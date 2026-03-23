@@ -1,0 +1,63 @@
+# Suricata EVE JSON Template - Tier 1 Parser
+# Covers common alert types: alert, flow, http, dns, tls, ssh
+
+source_type: suricata
+version: "1.0"
+
+templates:
+  - name: suricata_alert
+    source_type: suricata
+    match:
+      event_type: alert
+    fields:
+      timestamp:
+        path: "timestamp"
+        type: string
+      event_type:
+        path: "event_type"
+        type: string
+      src_ip:
+        path: "src_ip"
+        type: ip
+      src_port:
+        path: "src_port"
+        type: integer
+      dest_ip:
+        path: "dest_ip"
+        type: ip
+      dest_port:
+        path: "dest_port"
+        type: integer
+      proto:
+        path: "proto"
+        type: string
+      alert_signature:
+        path: "alert.signature"
+        type: string
+      alert_severity:
+        path: "alert.severity"
+        type: integer
+
+  - name: suricata_flow
+    source_type: suricata
+    match:
+      event_type: flow
+    fields:
+      timestamp:
+        path: "timestamp"
+        type: string
+      event_type:
+        path: "event_type"
+        type: string
+      src_ip:
+        path: "src_ip"
+        type: ip
+      src_port:
+        path: "src_port"
+        type: integer
+      dest_ip:
+        path: "dest_ip"
+        type: ip
+      dest_port:
+        path: "dest_port"
+        type: integer
