@@ -35,7 +35,7 @@
 **Plans:** 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Docker Compose Dev Environment
+- [x] 01-01-PLAN.md — Docker Compose Dev Environment (COMPLETE)
 - [ ] 01-02-PLAN.md — Vector Syslog to Kafka Pipeline
 - [ ] 01-03-PLAN.md — Three-Tier Parser (Template, Drain, DSPy)
 - [ ] 01-04-PLAN.md — PostgreSQL Storage + Redis Deduplication
@@ -103,7 +103,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Ingestion | 0/5 | Not started | - |
+| 1. Foundation & Ingestion | 1/5 | In progress | - |
 | 2. Core Analysis Engine | 0/5 | Not started | - |
 | 3. Attack Chain Correlation | 0/4 | Not started | - |
 | 4. Recommendations & Polish | 0/5 | Not started | - |
