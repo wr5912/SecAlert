@@ -16,7 +16,7 @@
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] 系统能还原攻击链，呈现完整的攻击路径 — Phase 02 (attack-chain-correlation) 验证通过
 
 ### Active
 
@@ -69,4 +69,4 @@
 
 ---
 
-*Last updated: 2026-03-22 after initialization*
+*Last updated: 2026-03-23 after Phase 02 completion*
