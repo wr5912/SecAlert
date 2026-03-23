@@ -1,0 +1,24 @@
+# IP 关联规则配置
+rules:
+  - name: "端口扫描横向移动"
+    conditions:
+      - field: src_ip
+        operator: equals
+        value: "${alert.src_ip}"
+        weight: 1.0
+      - field: event_type
+        operator: "attck_stage_progression"
+        value: "reconnaissance->lateral_movement"
+        weight: 2.0
+    min_alerts: 3
+
+  - name: "暴力破解后利用"
+    conditions:
+      - field: src_ip
+        operator: same_ip_pair
+        weight: 1.0
+      - field: alert_signature
+        operator: "contains"
+        value: "Auth Fail"
+        weight: 1.0
+    min_alerts: 5
