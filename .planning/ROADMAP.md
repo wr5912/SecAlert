@@ -32,14 +32,14 @@
 4. Parsed alerts are stored in PostgreSQL with searchable fields
 5. Redis caches deduplication state and reduces duplicate alert processing
 
-**Plans:** 5 plans
+**Plans:** 3/5 plans executed
 
 Plans:
 - [x] 01-01-PLAN.md — Docker Compose Dev Environment (COMPLETE)
-- [ ] 01-02-PLAN.md — Vector Syslog to Kafka Pipeline
+- [x] 01-02-PLAN.md — Vector Syslog to Kafka Pipeline
 - [ ] 01-03-PLAN.md — Three-Tier Parser (Template, Drain, DSPy)
 - [ ] 01-04-PLAN.md — PostgreSQL Storage + Redis Deduplication
-- [ ] 01-05-PLAN.md — Qwen3-32B Test Data Generator
+- [x] 01-05-PLAN.md — Qwen3-32B Test Data Generator
 
 ---
 
@@ -103,7 +103,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Ingestion | 1/5 | In progress | - |
+| 1. Foundation & Ingestion | 3/5 | In Progress|  |
 | 2. Core Analysis Engine | 0/5 | Not started | - |
 | 3. Attack Chain Correlation | 0/4 | Not started | - |
 | 4. Recommendations & Polish | 0/5 | Not started | - |
