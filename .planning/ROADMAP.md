@@ -9,8 +9,8 @@
 ## Phases
 
 - [ ] **Phase 1: Foundation & Ingestion** - Technical infrastructure and log ingestion pipeline
-- [ ] **Phase 2: Core Analysis Engine** - AI-powered false positive filtering and attack detection
-- [ ] **Phase 3: Attack Chain Correlation** - Cross-device correlation and attack chain reconstruction
+- [ ] **Phase 2: Attack Chain Correlation** - Cross-device correlation and attack chain reconstruction
+- [ ] **Phase 3: Core Analysis Engine** - AI-powered false positive filtering and attack detection
 - [ ] **Phase 4: Recommendations & Polish** - Remediation guidance and operator UI refinement
 
 ---
@@ -37,17 +37,35 @@
 Plans:
 - [x] 01-01-PLAN.md — Docker Compose Dev Environment (COMPLETE)
 - [x] 01-02-PLAN.md — Vector Syslog to Kafka Pipeline
-- [ ] 01-03-PLAN.md — Three-Tier Parser (Template, Drain, DSPy)
+- [x] 01-03-PLAN.md — Three-Tier Parser (Template, Drain, DSPy)
 - [x] 01-04-PLAN.md — PostgreSQL Storage + Redis Deduplication
 - [x] 01-05-PLAN.md — Qwen3-32B Test Data Generator
 
 ---
 
-### Phase 2: Core Analysis Engine
+### Phase 2: Attack Chain Correlation
+
+**Goal:** System groups related alerts across time and devices into coherent attack narratives
+
+**Depends on:** Phase 1
+
+**Requirements:** CHAIN-01
+
+**Success Criteria** (what must be TRUE):
+1. Related alerts are correlated by shared indicators (source IP, target asset, attack pattern)
+2. Attack chains are reconstructed as timeline visualizations showing progression
+3. Each chain is linked to relevant MITRE ATT&CK techniques when applicable
+4. Operator can view attack chain detail with all correlated alerts and chain metadata
+
+**Plans:** TBD
+
+---
+
+### Phase 3: Core Analysis Engine
 
 **Goal:** System automatically filters false positives and identifies real attacks
 
-**Depends on:** Phase 1
+**Depends on:** Phase 2
 
 **Requirements:** FILTER-01, DETECT-01
 
@@ -57,24 +75,6 @@ Plans:
 3. Real attacks are flagged with severity level (Critical, High, Medium, Low)
 4. Operator can view list of auto-dismissed false positives and restore any that were incorrectly filtered
 5. System measures and displays false positive rate (target <30%)
-
-**Plans:** TBD
-
----
-
-### Phase 3: Attack Chain Correlation
-
-**Goal:** System groups related alerts across time and devices into coherent attack narratives
-
-**Depends on:** Phase 2
-
-**Requirements:** CHAIN-01
-
-**Success Criteria** (what must be TRUE):
-1. Related alerts are correlated by shared indicators (source IP, target asset, attack pattern)
-2. Attack chains are reconstructed as timeline visualizations showing progression
-3. Each chain is linked to relevant MITRE ATT&CK techniques when applicable
-4. Operator can view attack chain detail with all correlated alerts and chain metadata
 
 **Plans:** TBD
 
@@ -104,8 +104,8 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Ingestion | 3/5 | In Progress|  |
-| 2. Core Analysis Engine | 0/5 | Not started | - |
-| 3. Attack Chain Correlation | 0/4 | Not started | - |
+| 2. Attack Chain Correlation | 0/4 | Not started | - |
+| 3. Core Analysis Engine | 0/5 | Not started | - |
 | 4. Recommendations & Polish | 0/5 | Not started | - |
 
 ---
@@ -115,9 +115,9 @@ Plans:
 | Requirement | ID | Phase |
 |-------------|-----|-------|
 | 系统能自动识别和解析未知格式的安全设备日志 | PARSE-01 | Phase 1 |
-| 系统能自动过滤误报，直接忽略 | FILTER-01 | Phase 2 |
-| 系统能检测真实攻击并报警 | DETECT-01 | Phase 2 |
-| 系统能还原攻击链，呈现完整的攻击路径 | CHAIN-01 | Phase 3 |
+| 系统能还原攻击链，呈现完整的攻击路径 | CHAIN-01 | Phase 2 |
+| 系统能自动过滤误报，直接忽略 | FILTER-01 | Phase 3 |
+| 系统能检测真实攻击并报警 | DETECT-01 | Phase 3 |
 | 系统能给出简单明确的处置建议 | REMED-01 | Phase 4 |
 | 界面简洁，面向非专业运维人员 | UI-01 | Phase 4 |
 
@@ -130,9 +130,9 @@ Plans:
 ```
 Phase 1 (Foundation & Ingestion)
     ↓
-Phase 2 (Core Analysis Engine)
+Phase 2 (Attack Chain Correlation)
     ↓
-Phase 3 (Attack Chain Correlation)
+Phase 3 (Core Analysis Engine)
     ↓
 Phase 4 (Recommendations & Polish)
 ```
