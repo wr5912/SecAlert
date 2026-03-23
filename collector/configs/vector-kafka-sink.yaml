@@ -1,0 +1,20 @@
+# Vector Kafka Sink Configuration
+# Reliable delivery settings for Suricata events
+
+sinks:
+  kafka_suricata:
+    type: kafka
+    inputs:
+      - suricata_syslog
+    bootstrap_servers: kafka:29092
+    topic: raw-suricata
+    compression: gzip                      # Reduce network/memory
+    acks: all                              # Wait for all replicas (no data loss)
+    batch_size: 16384                     # Tune for throughput
+    linger_ms: 5                           # Small batch window for low latency
+    retry_max_duration_secs: 300
+    buffer:
+      type: disk
+      max_size: 1073741824                # 1GB disk buffer
+      num_segments: 10
+      when_full: block                    # Backpressure to prevent loss
