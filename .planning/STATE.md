@@ -47,6 +47,7 @@ Plan: Not started
 | 误报自动忽略 | 运维人员不胜烦扰，自动过滤是核心价值 | Pending |
 | Qwen3-32B统一推理 | 离线部署，无外部API依赖 | Pending |
 | 三层解析架构 | 模板优先 → Drain聚类 → LLM兜底 | Pending |
+| 攻击链关联策略 | 规则引擎为主 + ATT&CK 阶段逻辑 + 动态时间窗口 | Pending |
 | Docker Compose本地开发 | 单命令启动全部6个服务 | Complete |
 | Confluent Kafka 7.5.0 | 成熟稳定的Kafka发行版 | Complete |
 | Elasticsearch 8.11.0单节点 | 本地开发无需集群 | Complete |
@@ -73,8 +74,8 @@ Phase 1 → Phase 2 → Phase 3 → Phase 4
 | Field | Value |
 |-------|-------|
 | Last Updated | 2026-03-23 |
-| Last Phase | 01-foundation-ingestion (01-05 complete) |
-| Next Action | Execute 01-03-PLAN.md — Three-Tier Parser |
+| Last Phase | 02-attack-chain-correlation (context gathered) |
+| Next Action | Plan Phase 2 — Attack Chain Correlation |
 
 ---
 
