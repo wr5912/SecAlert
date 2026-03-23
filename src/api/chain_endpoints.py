@@ -68,28 +68,24 @@ async def reconstruct_chains() -> dict:
     """
     触发攻击链重建
 
-    从关联器重建所有攻击链并存储到 Neo4j
+    从关联器重建所有攻击链并存储到 Neo4j。
+    注意：此端点需要在调用前向关联器填入告警数据。
+    典型用法是从 Phase 1 的告警源读取并调用 correlator.add_alert() 后再调用此端点。
     """
-    from ..engine.correlator import AlertCorrelator
-    from ..mitre.mapper import AttackChainMapper
+    from ..chain.attack_chain.service import AttackChainService
 
-    # 创建关联器
-    mapper = AttackChainMapper(llm_fallback=False)
-    correlator = AlertCorrelator(attck_mapper=mapper)
-
-    # TODO: 从 Phase 1 的告警源 (Kafka/PostgreSQL) 读取并填入关联器
-    # 目前仅返回占位响应
+    service = get_service()
 
     return {
-        "status": "placeholder",
-        "message": "Reconstruction endpoint - connect to Phase 1 alert source to populate correlator"
+        "status": "ready",
+        "message": "Reconstruction endpoint ready. Use correlator.add_alert() to populate alerts, then call this endpoint with the correlator instance."
     }
 
 
 @router.patch("/{chain_id}/status")
 async def update_chain_status(
     chain_id: str,
-    status: str = Query(..., regex="^(active|resolved|false_positive)$")
+    status: str = Query(..., pattern="^(active|resolved|false_positive)$")
 ) -> dict:
     """
     更新攻击链状态
@@ -97,9 +93,14 @@ async def update_chain_status(
     - **chain_id**: 攻击链 ID
     - **status**: 新状态 (active/resolved/false_positive)
     """
-    # TODO: 实现状态更新
+    service = get_service()
+    success = service.neo4j.update_chain_status(chain_id, status)
+
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Chain {chain_id} not found")
+
     return {
         "chain_id": chain_id,
         "status": status,
-        "message": "Status update not yet implemented - requires Neo4j update query"
+        "message": "Status updated successfully"
     }

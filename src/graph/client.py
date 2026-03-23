@@ -273,6 +273,30 @@ class Neo4jClient:
 
             return chains
 
+    def update_chain_status(self, chain_id: str, status: str) -> bool:
+        """
+        更新攻击链状态
+
+        Args:
+            chain_id: 攻击链 ID
+            status: 新状态 (active/resolved/false_positive)
+
+        Returns:
+            是否更新成功
+        """
+        if not self.driver:
+            return False
+
+        with self.driver.session() as session:
+            result = session.run("""
+                MATCH (c:AttackChain {chain_id: $chain_id})
+                SET c.status = $status,
+                    c.updated_at = datetime()
+                RETURN c
+            """, chain_id=chain_id, status=status)
+
+            return result.single() is not None
+
     def __enter__(self):
         return self
 

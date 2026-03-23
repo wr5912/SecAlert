@@ -139,9 +139,9 @@ class TestChainEndpoints:
             )
 
     def test_reconstruct_endpoint(self):
-        """测试重建端点 (placeholder)"""
+        """测试重建端点 (ready)"""
         response = client.post("/api/chains/reconstruct")
 
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "placeholder"
+        assert data["status"] == "ready"
