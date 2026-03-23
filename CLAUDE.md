@@ -1,3 +1,8 @@
+## 语言规范
+- 所有对话和回复必须使用中文
+- 所有代码注释使用中文
+- 所有文档编写使用中文
+
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
