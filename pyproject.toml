@@ -21,6 +21,13 @@ ai = [
     "dspy>=2.0.0",
     "vllm>=0.3.0",
 ]
+chain = [
+    "python-dateutil>=2.8.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "httpx>=0.24.0",
+    "neo4j>=5.0.0",
+]
 
 [build-system]
 requires = ["setuptools>=68.0"]
