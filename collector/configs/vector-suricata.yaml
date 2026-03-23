@@ -1,0 +1,24 @@
+# Vector Syslog Source Configuration for Suricata IDS
+# Suricata BSD syslog uses TCP mode with line framing (newline-delimited messages)
+
+sources:
+  suricata_syslog:
+    type: syslog
+    address: 0.0.0.0:514
+    mode: tcp                              # BSD syslog requires TCP
+    framing:
+      method: lines                        # BSD syslog uses newline delimiting
+    max_frame_size: 65536
+    receive_buffer_bytes: 262144          # 256KB buffer
+    connection_delay_secs: 1
+    max_connections: 100                   # Support multiple sources
+
+# Basic transforms to add metadata
+transforms:
+  add_suricata_metadata:
+    type: add_fields
+    inputs:
+      - suricata_syslog
+    fields:
+      source_type: suricata
+      collector: vector-01
