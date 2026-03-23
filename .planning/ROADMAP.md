@@ -38,7 +38,7 @@ Plans:
 - [x] 01-01-PLAN.md — Docker Compose Dev Environment (COMPLETE)
 - [x] 01-02-PLAN.md — Vector Syslog to Kafka Pipeline
 - [ ] 01-03-PLAN.md — Three-Tier Parser (Template, Drain, DSPy)
-- [ ] 01-04-PLAN.md — PostgreSQL Storage + Redis Deduplication
+- [x] 01-04-PLAN.md — PostgreSQL Storage + Redis Deduplication
 - [x] 01-05-PLAN.md — Qwen3-32B Test Data Generator
 
 ---
