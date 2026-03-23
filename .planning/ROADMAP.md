@@ -57,12 +57,12 @@ Plans:
 3. Each chain is linked to relevant MITRE ATT&CK techniques when applicable
 4. Operator can view attack chain detail with all correlated alerts and chain metadata
 
-**Plans:** 1/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 - [x] 02-01-PLAN.md — Test Infrastructure & ATT&CK Rules
-- [ ] 02-02-PLAN.md — ATT&CK Mapper (Rule + LLM Fallback)
-- [ ] 02-03-PLAN.md — Alert Correlator Engine (Dynamic Window + Rules)
+- [x] 02-02-PLAN.md — ATT&CK Mapper (Rule + LLM Fallback)
+- [x] 02-03-PLAN.md — Alert Correlator Engine (Dynamic Window + Rules)
 - [ ] 02-04-PLAN.md — Attack Chain Storage & API
 
 ---
@@ -110,7 +110,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Ingestion | 5/5 | Complete | 2026-03-23 |
-| 2. Attack Chain Correlation | 1/4 | In Progress|  |
+| 2. Attack Chain Correlation | 3/4 | In Progress|  |
 | 3. Core Analysis Engine | 0/5 | Not started | - |
 | 4. Recommendations & Polish | 0/5 | Not started | - |
 
