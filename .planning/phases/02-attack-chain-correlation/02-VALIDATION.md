@@ -2,7 +2,7 @@
 phase: 02
 slug: attack-chain-correlation
 status: draft
-nyquist_compliant: true
+nyquist_compliant: false
 wave_0_complete: false
 created: 2026-03-23
 ---
@@ -76,9 +76,9 @@ created: 2026-03-23
 
 - [x] All tasks have `<automated>` verify or Wave 0 dependencies
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
-- [x] Wave 0 covers all MISSING references
+- [ ] Wave 0 covers all MISSING references (Wave 0 待 Plan 01 执行后完成)
 - [x] No watch-mode flags
 - [x] Feedback latency < 60s
-- [x] `nyquist_compliant: true` set in frontmatter
+- [ ] `nyquist_compliant: true` set in frontmatter (Wave 0 待执行后验证)
 
-**Approval:** approved 2026-03-23
+**Approval:** pending — Wave 0 待执行后 complete
