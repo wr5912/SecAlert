@@ -1,0 +1,32 @@
+# Drain3 Clustering Configuration for Tier 2 Parser
+# Handles unknown log formats through pattern clustering
+
+drain:
+  max_depth: 4              # Token tree depth (default is fine for most logs)
+  max_children: 100         # Max children per non-leaf node
+  extra_delimiters:
+    - " "                   # Standard word separator
+    - ":"                   # Port separators, time delimiters
+    - "-"                   # Date separators, IP dash notation
+    - "."                   # IP dots, file extensions
+    - "/"                   # URL paths
+    - "\\"                  # Windows paths
+    - "@"                   # Email addresses
+    - "#"                   # Comments, hash values
+    - "["                   # Array start, log levels
+    - "]"                   # Array end
+    - "("                   # Parenthetical content
+    - ")"                   # Parenthetical content
+    - "'"                   # Quoted strings
+    - '"'                   # Double-quoted strings
+  trace_anomaly: false      # Set true for debugging unparsed logs
+
+# Performance settings
+cache:
+  enabled: true
+  max_size: 10000           # LRU cache for parsed templates
+
+# Persistence
+persistence:
+  enabled: true
+  path: "parser/drain/state/"  # Save/load cluster state
