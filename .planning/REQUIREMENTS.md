@@ -19,7 +19,7 @@
 | CHAIN-01 | Phase 2: Attack Chain Correlation | 0/4 | Not started |
 | FILTER-01 | Phase 3: Core Analysis Engine | 0/5 | Not started |
 | DETECT-01 | Phase 3: Core Analysis Engine | 0/5 | Not started |
-| REMED-01 | Phase 4: Recommendations & Polish | 0/5 | Not started |
+| REMED-01 | Phase 4: Recommendations & Polish | 1/5 | In Progress |
 | UI-01 | Phase 4: Recommendations & Polish | 0/5 | Not started |
 
 ## Coverage
