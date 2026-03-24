@@ -1,0 +1,29 @@
+# Vector 配置 (适配 0.19.0)
+# Suricata Syslog Source → Kafka Sink
+
+[sources.suricata_syslog]
+type = "syslog"
+address = "0.0.0.0:514"
+mode = "tcp"
+max_connections = 100
+
+[transforms.add_suricata_metadata]
+type = "add_fields"
+inputs = ["suricata_syslog"]
+[transforms.add_suricata_metadata.fields]
+source_type = "suricata"
+collector = "vector-01"
+
+[sinks.kafka_suricata]
+type = "kafka"
+inputs = ["add_suricata_metadata"]
+bootstrap_servers = "kafka:29092"
+topic = "raw-suricata"
+encoding = "text"
+compression = "gzip"
+acks = "all"
+batch_size = 16384
+linger_ms = 5
+buffer_type = "disk"
+buffer_max_size = 1073741824
+buffer_when_full = "block"
