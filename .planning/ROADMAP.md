@@ -86,7 +86,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — DSPy Classifier & Severity Scoring (Wave 1) ✅ COMPLETE
-- [ ] 03-02-PLAN.md — AnalysisService & Metrics (Wave 2)
+- [x] 03-02-PLAN.md — AnalysisService & Metrics (Wave 2)
 - [ ] 03-03-PLAN.md — REST API & Unit Tests (Wave 3)
 
 ---
