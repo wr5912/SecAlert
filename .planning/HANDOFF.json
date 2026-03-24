@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-24T08:31:35.940Z",
+  "phase": "01",
+  "phase_name": "foundation-ingestion",
+  "phase_dir": ".planning/phases/01-foundation-ingestion",
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
+  "status": "paused",
+  "completed_tasks": [],
+  "remaining_tasks": [],
+  "blockers": [
+    {
+      "description": "timberio/vector:latest 实际是 0.3.0-dev 开发版本，项目配置是为 0.34.0 编写",
+      "type": "external",
+      "workaround": "需要拉取正确版本的 vector 镜像，或者更新配置语法适配 0.3.0"
+    },
+    {
+      "description": "docker-compose.yml 中 version: '3.8' 字段已废弃",
+      "type": "technical",
+      "workaround": "删除 version 字段"
+    },
+    {
+      "description": "Vector 配置分割为两个文件（suricata source + kafka sink），但容器期望单一的 vector.toml",
+      "type": "technical",
+      "workaround": "需要合并两个配置为单个 vector.toml 并正确挂载"
+    }
+  ],
+  "human_actions_pending": [
+    {
+      "action": "sudo docker pull timberio/vector:0.34.0 或找到正确版本标签",
+      "context": "timberio/vector:latest 拉取到的是 0.3.0-dev，无法使用 0.34.0 配置语法",
+      "blocking": true
+    },
+    {
+      "action": "合并 collector/configs/vector-suricata.yaml 和 vector-kafka-sink.yaml 为单个 vector.toml",
+      "context": "当前配置分割导致 Vector 启动失败",
+      "blocking": true
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "将 vector 镜像从 timberio/vector:0.34.0 改为 timberio/vector:latest（尝试解决拉取问题）",
+      "rationale": "0.34.0 标签拉取失败，latest 标签可拉取但版本不符",
+      "phase": "01"
+    },
+    {
+      "decision": "Vector 配置使用 VECTOR_CONFIG_DIR 环境变量指向 /vector/config",
+      "rationale": "docker-compose 中配置了 VECTOR_CONFIG_DIR: /vector，但 0.3.0-dev 版本不支持此环境变量",
+      "phase": "01"
+    }
+  ],
+  "uncommitted_files": [
+    "docker-compose.yml (修改了 vector 镜像版本)",
+    ".planning/phases/01-foundation-ingestion/01-UAT.md (新建)"
+  ],
+  "next_action": "先拉取正确版本的 Vector 镜像: sudo docker pull timberio/vector:0.36.0 或检查可用标签",
+  "context_notes": "Milestone v1.0 刚完成。开始 Phase 1 UAT 验证时发现 Vector 配置问题。docker-compose up -d 后 5/6 服务 healthy，唯独 vector 退出。日志显示 'Configuration error: missing field inputs for key sinks.print'，说明配置未正确加载。timberio/vector:latest 实际是 0.3.0-dev 极老版本。"
+}
