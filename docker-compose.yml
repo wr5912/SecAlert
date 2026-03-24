@@ -112,6 +112,53 @@ services:
       timeout: 3s
       retries: 5
 
+  neo4j:
+    image: neo4j:5.18-community
+    container_name: secalert-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/neo4j_dev
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_dbms_security_allowlist: apoc.*
+    volumes:
+      - ./storage/neo4j/data:/data
+      - ./storage/neo4j/logs:/logs
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7474"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: secalert-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - neo4j
+      - postgres
+      - redis
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USERNAME: neo4j
+      NEO4J_PASSWORD: neo4j_dev
+      POSTGRES_URI: postgresql://secalert:secalert_dev@postgres:5432/secalert
+      REDIS_URL: redis://redis:6379
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
 networks:
   secalert-network:
     driver: bridge

@@ -139,9 +139,11 @@ class TestChainEndpoints:
             )
 
     def test_reconstruct_endpoint(self):
-        """测试重建端点 (ready)"""
+        """测试重建端点 - 实际执行重建并返回结果"""
         response = client.post("/api/chains/reconstruct")
 
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "ready"
+        assert data["status"] == "completed"
+        assert "chains_reconstructed" in data
+        assert "chain_ids" in data
