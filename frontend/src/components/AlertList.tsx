@@ -2,14 +2,15 @@
 
 Per D-06: 默认只显示 Critical + High 严重度告警
 支持 severity 筛选和 Tab 切换（活跃/已抑制）
+已抑制告警支持恢复功能
 */
 
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, CheckCircle, RefreshCw, RotateCcw } from 'lucide-react';
 import { Card, CardContent } from './ui/Card';
 import { Badge } from './ui/Badge';
 import type { AttackChain, Severity, TabMode, AttackChainListResponse } from '../types';
-import { fetchChains, fetchFalsePositives } from '../api/client';
+import { fetchChains, fetchFalsePositives, restoreAlert } from '../api/client';
 
 interface AlertListProps {
   onSelectChain: (chainId: string) => void;
@@ -42,6 +43,7 @@ export function AlertList({ onSelectChain, selectedChainId }: AlertListProps) {
           );
         }
       } else {
+        // 已抑制告警 - 使用 status=false_positive 获取误报列表
         response = await fetchFalsePositives(50, 0);
       }
       setChains(response.chains);
@@ -120,6 +122,10 @@ export function AlertList({ onSelectChain, selectedChainId }: AlertListProps) {
               chain={chain}
               selected={chain.chain_id === selectedChainId}
               onClick={() => onSelectChain(chain.chain_id)}
+              isSuppressed={tab === 'suppressed'}
+              onRestore={() => {
+                restoreAlert(chain.chain_id).then(() => loadChains());
+              }}
             />
           ))}
         </div>
@@ -183,11 +189,15 @@ function SeverityFilter({
 function ChainRow({
   chain,
   selected,
-  onClick
+  onClick,
+  isSuppressed,
+  onRestore
 }: {
   chain: AttackChain;
   selected: boolean;
   onClick: () => void;
+  isSuppressed?: boolean;
+  onRestore?: () => void;
 }) {
   const srcIp = chain.alerts[0]?.src_ip || '未知';
   const primaryBehavior = chain.alerts[0]?.alert_signature || '未知行为';
@@ -214,8 +224,22 @@ function ChainRow({
               {primaryBehavior}
             </div>
           </div>
-          <div className="text-xs text-slate-400">
-            {chain.start_time ? new Date(chain.start_time).toLocaleString() : ''}
+          <div className="flex items-center gap-2">
+            {isSuppressed && onRestore && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRestore();
+                }}
+                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                title="恢复为活跃告警"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            )}
+            <div className="text-xs text-slate-400">
+              {chain.start_time ? new Date(chain.start_time).toLocaleString() : ''}
+            </div>
           </div>
         </div>
       </CardContent>
