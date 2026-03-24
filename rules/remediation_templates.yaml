@@ -1,0 +1,47 @@
+# ATT&CK Technique 处置建议模板库
+# Phase 4 - 处置建议生成模块
+# 模板优先策略：命中有模板的 technique_id 时直接填充资产信息
+
+templates:
+  "T1190":  # Web 应用攻击
+    short_action: "检查 {dst_ip} 的 Web 应用日志，确认是否存在未授权访问"
+    detailed_steps:
+      - "1. 查看 {dst_ip} 的 Nginx/Apache 访问日志"
+      - "2. 搜索来自 {src_ip} 的 404/500 错误"
+      - "3. 检查是否存在 SQL 注入特征"
+      - "4. 如确认攻击，封锁 {src_ip}"
+    attck_ref: "T1190 - Exploit Public-Facing Application"
+
+  "T1021":  # 远程服务横向移动
+    short_action: "封锁 {src_ip} 与 {dst_ip} 的 {port} 端口通信"
+    detailed_steps:
+      - "1. 检查 {dst_ip} 的 {port} 端口访问日志"
+      - "2. 确认是否存在异常 SSH/RDP 登录"
+      - "3. 如确认横向移动，立即隔离 {dst_ip}"
+      - "4. 重置受影响账户密码"
+    attck_ref: "T1021 - Remote Services"
+
+  "T1046":  # 网络服务发现
+    short_action: "检查 {dst_ip} 是否被 {src_ip} 扫描"
+    detailed_steps:
+      - "1. 查看防火墙日志确认扫描行为"
+      - "2. 封锁 {src_ip} 的进一步连接尝试"
+      - "3. 检查是否存在已入侵迹象"
+    attck_ref: "T1046 - Network Service Discovery"
+
+  "T1071":  # 应用层协议（C2）
+    short_action: "检查 {dst_ip} 的异常外发连接"
+    detailed_steps:
+      - "1. 查看防火墙外发流量日志"
+      - "2. 确认是否存在恶意软件通信特征"
+      - "3. 封锁 {src_ip} 的恶意连接"
+    attck_ref: "T1071 - Application Layer Protocol"
+
+  "T1041":  # 数据泄露
+    short_action: "检查 {dst_ip} 的外发流量，封锁 {src_ip} 的异常连接"
+    detailed_steps:
+      - "1. 查看防火墙外发流量日志"
+      - "2. 确认是否存在大量数据外发"
+      - "3. 封锁 {src_ip} 的所有连接"
+      - "4. 通知安全团队进行取证"
+    attck_ref: "T1041 - Exfiltration Over C2 Channel"
