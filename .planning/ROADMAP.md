@@ -82,7 +82,12 @@ Plans:
 4. Operator can view list of auto-dismissed false positives and restore any that were incorrectly filtered
 5. System measures and displays false positive rate (target <30%)
 
-**Plans:** TBD
+**Plans:** 3/3 plans created
+
+Plans:
+- [ ] 03-01-PLAN.md — DSPy Classifier & Severity Scoring (Wave 1)
+- [ ] 03-02-PLAN.md — AnalysisService & Metrics (Wave 2)
+- [ ] 03-03-PLAN.md — REST API & Unit Tests (Wave 3)
 
 ---
 
@@ -111,7 +116,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation & Ingestion | 5/5 | Complete | 2026-03-23 |
 | 2. Attack Chain Correlation | 4/4 | Complete   | 2026-03-23 |
-| 3. Core Analysis Engine | 0/5 | Not started | - |
+| 3. Core Analysis Engine | 0/3 | Not started | - |
 | 4. Recommendations & Polish | 0/5 | Not started | - |
 
 ---
