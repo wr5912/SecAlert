@@ -5,6 +5,14 @@ Phase 4 核心模块
 """
 
 from .advisor import RemediationAdvisor
-from .timeline import simplify_chain_timeline
+from .templates import RemediationTemplates
+from .timeline import simplify_chain_timeline, TACTIC_NAMES
+from .signatures import RemediationRecommendationSignature
 
-__all__ = ["RemediationAdvisor", "simplify_chain_timeline"]
+__all__ = [
+    "RemediationAdvisor",
+    "RemediationTemplates",
+    "simplify_chain_timeline",
+    "TACTIC_NAMES",
+    "RemediationRecommendationSignature",
+]
