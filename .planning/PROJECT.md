@@ -19,13 +19,12 @@
 - [x] 系统能还原攻击链，呈现完整的攻击路径 — Phase 02 (attack-chain-correlation) 验证通过
 - [x] 系统能自动过滤误报，直接忽略 — Phase 03 (core-analysis-engine) 验证通过
 - [x] 系统能检测真实攻击并报警 — Phase 03 (core-analysis-engine) 验证通过
+- [x] 系统能给出简单明确的处置建议 — Phase 04 (recommendations-polish) 验证通过
+- [x] 界面简洁，面向非专业运维人员 — Phase 04 (recommendations-polish) 验证通过
 
 ### Active
 
 - [ ] 系统能自动识别和解析未知格式的安全设备日志
-- [ ] 系统能还原攻击链，呈现完整的攻击路径
-- [ ] 系统能给出简单明确的处置建议
-- [ ] 界面简洁，面向非专业运维人员
 
 ### Out of Scope
 
@@ -62,11 +61,11 @@
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| 分析工具定位 | 非专业用户，不能做自动处置，风险太大 | — Pending |
-| 误报自动忽略 | 运维人员不胜烦扰，自动过滤是核心价值 | — Pending |
+| 分析工具定位 | 非专业用户，不能做自动处置，风险太大 | Phase 04 验证通过 |
+| 误报自动忽略 | 运维人员不胜烦扰，自动过滤是核心价值 | Phase 03 验证通过 |
 | Qwen3-32B统一推理 | 离线部署，无外部API依赖 | — Pending |
 | 三层解析架构 | 模板优先 → Drain聚类 → LLM兜底，平衡性能与准确性 | — Pending |
 
 ---
 
-*Last updated: 2026-03-24 after Phase 03 completion*
+*Last updated: 2026-03-24 after Phase 04 completion*
