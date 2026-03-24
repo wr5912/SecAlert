@@ -85,7 +85,7 @@ Plans:
 **Plans:** 3/3 plans created
 
 Plans:
-- [ ] 03-01-PLAN.md — DSPy Classifier & Severity Scoring (Wave 1)
+- [x] 03-01-PLAN.md — DSPy Classifier & Severity Scoring (Wave 1) ✅ COMPLETE
 - [ ] 03-02-PLAN.md — AnalysisService & Metrics (Wave 2)
 - [ ] 03-03-PLAN.md — REST API & Unit Tests (Wave 3)
 
@@ -116,7 +116,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation & Ingestion | 5/5 | Complete | 2026-03-23 |
 | 2. Attack Chain Correlation | 4/4 | Complete   | 2026-03-23 |
-| 3. Core Analysis Engine | 0/3 | Not started | - |
+| 3. Core Analysis Engine | 1/3 | In Progress | - |
 | 4. Recommendations & Polish | 0/5 | Not started | - |
 
 ---
