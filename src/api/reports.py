@@ -13,6 +13,7 @@ from fastapi.responses import Response
 from src.analysis.report_aggregator import ReportAggregator, DailyMetrics
 from src.exporters.pdf_exporter import generate_pdf
 from src.exporters.excel_exporter import generate_excel_report
+from src.api.health import _source_registry, DataSourceHealth, DataSourceStatus
 
 logger = logging.getLogger(__name__)
 
@@ -211,3 +212,65 @@ async def export_excel_report(
     except Exception as e:
         logger.error(f"Excel 生成失败: {e}")
         raise HTTPException(status_code=500, detail=f"Excel 生成失败: {str(e)}")
+
+
+@router.get("/datasource-health")
+async def get_datasource_health_report() -> Dict[str, Any]:
+    """获取数据源健康报表
+
+    从 Phase 5 DS-06 的 DataSourceHealth 接口获取所有数据源的健康状态，
+    汇总后返回报表数据。
+
+    Returns:
+        数据源健康报表数据，包含各数据源状态、延迟、告警数量等
+    """
+    sources = _source_registry.get_all()
+
+    # 汇总统计
+    total = len(sources)
+    healthy_count = sum(1 for s in sources if s.status == DataSourceStatus.HEALTHY)
+    degraded_count = sum(1 for s in sources if s.status == DataSourceStatus.DEGRADED)
+    down_count = sum(1 for s in sources if s.status == DataSourceStatus.DOWN)
+
+    # 计算整体健康度
+    health_score = (healthy_count * 100 + degraded_count * 50) / total if total > 0 else 0
+
+    # 按类型分组统计
+    sources_by_type: Dict[str, List[Dict[str, Any]]] = {}
+    for source in sources:
+        if source.source_type not in sources_by_type:
+            sources_by_type[source.source_type] = []
+        sources_by_type[source.source_type].append({
+            "source_name": source.source_name,
+            "status": source.status.value,
+            "last_event_time": source.last_event_time.isoformat() if source.last_event_time else None,
+            "events_per_minute": source.events_per_minute,
+            "error_count": source.error_count,
+            "error_message": source.error_message,
+            "metadata": source.metadata
+        })
+
+    return {
+        "report_title": "SecAlert 数据源健康报表",
+        "generated_at": datetime.now().isoformat(),
+        "summary": {
+            "total": total,
+            "healthy": healthy_count,
+            "degraded": degraded_count,
+            "down": down_count,
+            "health_score": round(health_score, 1)
+        },
+        "sources_by_type": sources_by_type,
+        "sources": [
+            {
+                "source_type": s.source_type,
+                "source_name": s.source_name,
+                "status": s.status.value,
+                "last_event_time": s.last_event_time.isoformat() if s.last_event_time else None,
+                "events_per_minute": s.events_per_minute,
+                "error_count": s.error_count,
+                "error_message": s.error_message
+            }
+            for s in sources
+        ]
+    }

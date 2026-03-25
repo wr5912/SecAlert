@@ -52,11 +52,13 @@ class DataSourceRegistry:
         """注册数据源"""
         key = f"{source_type}:{source_name}"
         if key not in self._sources:
+            # 将所有 metadata 值转为字符串 (Pydantic Dict[str, str] 要求)
+            str_metadata = {k: str(v) for k, v in metadata.items()}
             self._sources[key] = DataSourceHealth(
                 source_type=source_type,
                 source_name=source_name,
                 status=DataSourceStatus.HEALTHY,
-                metadata=metadata
+                metadata=str_metadata
             )
 
     def update(
