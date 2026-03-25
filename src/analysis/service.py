@@ -73,6 +73,9 @@ class AnalysisService:
         else:
             self._flag_real_attack(chain_id, classification)
 
+        # 5. 持久化分类详情 (IG-05)
+        self.neo4j.update_classification(chain_id, classification)
+
         # 5. 计算严重度（如果真实攻击）
         severity = classification["severity"]
         if not classification["should_suppress"] and chain_data.get("alerts"):
@@ -123,8 +126,15 @@ class AnalysisService:
 
     def _update_severity(self, chain_id: str, severity: str) -> None:
         """更新链的严重度标签"""
-        # Neo4jClient 暂不支持直接更新 severity 字段，使用 status 更新时的额外属性
-        logger.info(f"Chain {chain_id} severity updated to {severity}")
+        # IG-03: 通过 update_classification 持久化严重度标签
+        self.neo4j.update_classification(chain_id, {
+            "is_real_threat": True,
+            "confidence": 1.0,
+            "severity": severity,
+            "reasoning": f"Severity updated to {severity}",
+            "should_suppress": False,
+            "rule_matched": False
+        })
 
     def restore_chain(self, chain_id: str) -> Dict[str, Any]:
         """恢复被误判的误报链

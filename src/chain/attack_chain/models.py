@@ -32,10 +32,15 @@ class AttackChainModel(BaseModel):
     start_time: Optional[str] = None
     end_time: Optional[str] = None
     alert_count: int = 0
-    max_severity: int = 0
+    max_severity: int = 0  # 原始数值严重度 (0-4)
+    severity_label: Optional[str] = None  # 严重度标签 (critical/high/medium/low)
     status: str = "active"  # active, resolved, false_positive
     asset_ip: Optional[str] = None
     alerts: List[AlertModel] = Field(default_factory=list)
+    # ATT&CK 字段 (IG-06 修复)
+    mitre_tactic: Optional[str] = None
+    mitre_technique_id: Optional[str] = None
+    mitre_technique_name: Optional[str] = None
 
     class Config:
         from_attributes = True
