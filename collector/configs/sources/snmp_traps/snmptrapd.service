@@ -1,0 +1,12 @@
+[Unit]
+Description=SNMP Trap Daemon
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/usr/sbin/snmptrapd -f -Lo -C -c /etc/snmp/snmptrapd.conf udp:162
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
