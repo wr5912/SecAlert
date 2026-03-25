@@ -1,0 +1,14 @@
+[Unit]
+Description=JDBC Database Poller
+After=network.target kafka.service
+
+[Service]
+Type=simple
+User=secalert
+EnvironmentFile=/etc/secalert/jdbc_poller.env
+ExecStart=/usr/bin/python3 /opt/secalert/collector/polling/jdbc_poller.py --config /etc/secalert/jdbc_poller.yaml
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
