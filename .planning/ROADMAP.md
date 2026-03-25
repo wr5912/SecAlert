@@ -35,7 +35,7 @@
   - [ ] 07-02-PLAN.md - NL查询与建议生成 (Wave 2)
 - [ ] Phase 8: 报表 RP-01~RP-05 (3 plans)
   - [x] 08-PLAN.md - 报表基础架构 (Wave 1) ✅
-  - [ ] 08-02-PLAN.md - 定时报表生成 (Wave 2)
+  - [x] 08-02-PLAN.md - 定时报表生成 (Wave 2) ✅
   - [ ] 08-03-PLAN.md - 数据源健康报表 (Wave 3)
 
 </details>
@@ -53,7 +53,7 @@
 | 5. 多数据源支持 | 1/1 | Complete | 2026-03-25 |
 | 6. 产品级 UI | 1/1 | Complete   | 2026-03-25 |
 | 7. AI 助手 | 1/2 | In Progress|  |
-| 8. 报表 | 1/3 | In Progress |  |
+| 8. 报表 | 2/3 | In Progress |  |
 
 ---
 
