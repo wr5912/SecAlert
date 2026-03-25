@@ -1,95 +1,119 @@
-# Phase 07 Plan 01 Summary: AI助手核心功能
+---
+phase: 07-ai-assistant
+plan: 07-01
+subsystem: ui
+tags: [zustand, SSE, radix-ui, fastapi, chatbot]
 
-## 元信息
-- **Phase:** 07-ai-assistant
-- **Plan:** 07-01
-- **Status:** Completed
-- **Completed:** 2026-03-25
-- **Duration:** ~2 minutes
-- **Commits:** 5
+# Dependency graph
+requires:
+  - phase: 06-product-ui
+    provides: 前端组件架构和布局基础
+provides:
+  - AI助手对话框界面（ChatDialog + 浮动触发按钮）
+  - 上下文动态关联（告警列表/详情/仪表盘）
+  - 对话历史持久化（会话管理 + 消息存储）
+  - SSE流式响应支持
+affects:
+  - 07-ai-assistant (后续NL查询需要对话基础)
+  - 08-reporting (报表功能可集成到AI助手)
 
-## One-liner
-AI助手对话框界面、上下文动态关联、流式响应和历史持久化实现完成。
+# Tech tracking
+tech-stack:
+  added: [zustand, @radix-ui/react-dialog, @radix-ui/react-scroll-area]
+  patterns: [SSE流式响应, Zustand persist中间件, Radix UI Dialog组件]
 
-## 任务完成情况
+key-files:
+  created:
+    - src/api/chat_endpoints.py (对话API端点)
+    - database/chat_schema.sql (数据库Schema)
+    - frontend/src/stores/chatStore.ts (Zustand状态管理)
+    - frontend/src/api/chat.ts (API客户端)
+    - frontend/src/components/chat/*.tsx (6个对话组件)
+  modified:
+    - src/api/main.py (注册chat_router)
+    - frontend/src/App.tsx (集成AI助手)
 
-| Task | Name | Commit | Files |
-|------|------|--------|-------|
-| 1 | 创建数据库表和后端对话API | 7e1890f | chat_endpoints.py, chat_schema.sql, main.py |
-| 2 | 创建前端Zustand Store | f62ba69 | chatStore.ts |
-| 3 | 创建前端对话API客户端 | d1bbf7b | chat.ts |
-| 4 | 创建前端对话组件 | 150dfae | ChatDialog.tsx, ChatHeader.tsx, ChatMessageList.tsx, ChatMessage.tsx, ChatInput.tsx, ContextIndicator.tsx |
-| 5 | 集成AI助手到主应用 | f7c7f88 | AppShell.tsx, AlertListPage.tsx, AlertDetailPage.tsx |
+key-decisions:
+  - 使用内存存储演示，生产环境替换为PostgreSQL
+  - SSE流式响应通过fetch + ReadableStream实现
+  - 上下文通过Zustand persist中间件持久化
 
-## 工件清单
+patterns-established:
+  - "SSE流式响应模式: fetch + ReadableStream + chunk回调"
+  - "Zustand + persist: 选择性持久化(sessionId/context，不持久化messages)"
+  - "Radix UI Dialog: Portal + Overlay + Content三层结构"
 
-### 后端 (src/api/)
-- **chat_endpoints.py** - 对话API端点
-  - POST /api/chat/sessions - 创建新会话
-  - POST /api/chat/stream - 流式对话响应 (SSE)
-  - GET /api/chat/sessions/{session_id}/history - 获取历史消息
-  - GET /api/chat/sessions - 列出所有会话
+requirements-completed: [AI-01, AI-02, AI-05]
 
-### 数据库 (database/)
-- **chat_schema.sql** - PostgreSQL Schema
-  - chat_sessions 表
-  - chat_messages 表
+# Metrics
+duration: 2min
+completed: 2026-03-25
+---
 
-### 前端 (frontend/src/)
-- **stores/chatStore.ts** - Zustand状态管理
-  - 状态: messages, sessionId, context, isOpen, isStreaming
-  - persist中间件持久化sessionId和context
-- **api/chat.ts** - API客户端
-  - createSession, getChatHistory, streamChat
-  - filterSensitiveInfo 过滤内网IP
-- **components/chat/**
-  - ChatDialog.tsx - 对话框主组件 + ChatTriggerButton浮动按钮
-  - ChatHeader.tsx - 对话框头部
-  - ContextIndicator.tsx - 上下文指示器
-  - ChatMessageList.tsx - 消息列表 (ScrollArea)
-  - ChatMessage.tsx - 单条消息组件
-  - ChatInput.tsx - 输入框 + 流式响应处理
+# Phase 07-01: AI助手核心功能 Summary
 
-## 上下文关联
+**AI助手对话框界面、上下文动态关联、流式响应和历史持久化实现完成。**
 
-| 页面 | Context Type | Context Details |
-|------|-------------|----------------|
-| 仪表盘 | dashboard | - |
-| 告警列表 | list | - |
-| 告警详情 | chain | chain_id |
+## Performance
 
-## 验收检查
+- **Duration:** 2 min
+- **Started:** 2026-03-25T21:12:00Z
+- **Completed:** 2026-03-25T21:15:00Z
+- **Tasks:** 5/5
+- **Files modified:** 14
 
-### AI-01 (对话框界面)
-- [x] ChatDialog.tsx 存在且使用 Radix UI Dialog
-- [x] ChatMessageList.tsx 使用 @radix-ui/react-scroll-area
-- [x] ChatInput.tsx 支持发送消息和流式响应
-- [x] ChatTriggerButton 显示在页面右下角
+## Accomplishments
 
-### AI-02 (上下文关联)
-- [x] ContextIndicator 显示当前上下文类型
-- [x] AlertListPage.tsx 在加载时调用 setContext({type:'list'})
-- [x] AlertDetailPage.tsx 在加载时调用 setContext({type:'chain', chain_id})
-- [x] 创建会话时传递正确的 context_type
+- 对话API后端：创建会话、流式响应(SSE)、历史查询
+- Zustand状态管理：消息、会话ID、上下文、流式状态管理
+- 前端对话组件：ChatDialog + 6个子组件（Header/MessageList/Message/Input/ContextIndicator）
+- 上下文关联：告警列表页面设置type='list'，详情页面设置type='chain'+chain_id
+- AI助手集成：浮动触发按钮、对话框打开/关闭、主应用集成
 
-### AI-05 (历史记录)
-- [x] POST /api/chat/sessions 创建会话
-- [x] GET /api/chat/sessions/{session_id}/history 获取历史
-- [x] streamChat 函数支持 SSE 流式响应
-- [x] 数据库Schema定义完成 (内存存储作为演示)
+## Task Commits
 
-## 技术栈
+Each task was committed atomically:
 
-### 新增依赖
-- zustand (已有)
-- @radix-ui/react-dialog (已有)
-- @radix-ui/react-scroll-area (已有)
+1. **Task 1: 创建数据库表和后端对话API** - `7e1890f` (feat)
+2. **Task 2: 创建前端Zustand Store** - `f62ba69` (feat)
+3. **Task 3: 创建前端对话API客户端** - `d1bbf7b` (feat)
+4. **Task 4: 创建前端对话组件** - `150dfae` (feat)
+5. **Task 5: 集成AI助手到主应用** - `f7c7f88` (feat)
 
-### 新增模式
-- SSE (Server-Sent Events) 流式响应
-- Zustand persist 中间件
-- Radix UI Dialog + ScrollArea
+## Files Created/Modified
 
-## 后续计划
-- Phase 07-02: 自然语言查询 (NL Query)
-- Phase 07-03: AI处理建议生成
+- `src/api/chat_endpoints.py` - 对话API端点（会话管理、SSE流式响应、历史查询）
+- `database/chat_schema.sql` - PostgreSQL Schema（chat_sessions、chat_messages表）
+- `frontend/src/stores/chatStore.ts` - Zustand状态管理（persist中间件持久化）
+- `frontend/src/api/chat.ts` - API客户端（createSession、streamChat、filterSensitiveInfo）
+- `frontend/src/components/chat/ChatDialog.tsx` - 对话框主组件 + ChatTriggerButton
+- `frontend/src/components/chat/ChatHeader.tsx` - 对话框头部
+- `frontend/src/components/chat/ContextIndicator.tsx` - 上下文指示器
+- `frontend/src/components/chat/ChatMessageList.tsx` - 消息列表（ScrollArea）
+- `frontend/src/components/chat/ChatMessage.tsx` - 单条消息组件
+- `frontend/src/components/chat/ChatInput.tsx` - 输入框 + 流式响应处理
+- `src/api/main.py` - 注册chat_router
+- `frontend/src/App.tsx` - 集成ChatDialog和ChatTriggerButton
+
+## Decisions Made
+
+- 使用内存存储演示，生产环境替换为PostgreSQL
+- SSE流式响应通过fetch + ReadableStream实现
+- 上下文通过Zustand persist中间件持久化（sessionId和context）
+
+## Deviations from Plan
+
+None - plan executed exactly as written.
+
+## Issues Encountered
+
+None.
+
+## Next Phase Readiness
+
+- AI助手核心框架已完成（07-01）
+- 准备实现自然语言查询和AI处置建议生成（07-02）
+
+---
+*Phase: 07-ai-assistant*
+*Completed: 2026-03-25*
