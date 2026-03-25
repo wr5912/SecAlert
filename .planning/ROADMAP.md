@@ -26,8 +26,8 @@
 <details>
 <summary>🚧 v1.1 (Phase 5-8)</summary>
 
-- [ ] Phase 5: 多数据源支持 DS-01~DS-06 (1 plan)
-  - [ ] 05-PLAN.md - 多数据源支持
+- [x] Phase 5: 多数据源支持 DS-01~DS-06 (1 plan)
+  - [x] 05-PLAN.md - 多数据源支持
 - [ ] Phase 6: 产品级 UI UI-01~UI-05 (1 plan)
   - [x] 06-PLAN.md - 产品级 UI 重构 (Wave 1)
 - [ ] Phase 7: AI 助手 AI-01~AI-05 (2 plans)
@@ -50,7 +50,7 @@
 | 2. Attack Chain Correlation | 4/4 | Complete | 2026-03-23 |
 | 3. Core Analysis Engine | 3/3 | Complete | 2026-03-24 |
 | 4. Recommendations & Polish | 3/3 | Complete | 2026-03-24 |
-| 5. 多数据源支持 | 1/1 | Planning | — |
+| 5. 多数据源支持 | 1/1 | Complete | 2026-03-25 |
 | 6. 产品级 UI | 1/1 | Planning | — |
 | 7. AI 助手 | 2/2 | Planning | — |
 | 8. 报表 | 3/3 | Planning | — |
