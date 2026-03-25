@@ -1,0 +1,24 @@
+# Palo Alto PAN-OS 防火墙 Syslog 源配置
+# 用途: 接收 Palo Alto 防火墙产生的安全日志
+
+sources:
+  paloalto_panos_syslog:
+    type: syslog
+    address: "0.0.0.0:5143"
+    mode: tcp
+    framing:
+      method: lines
+    max_frame_size: 65536
+    receive_buffer_bytes: 262144
+
+transforms:
+  add_paloalto_metadata:
+    type: add_fields
+    inputs:
+      - paloalto_panos_syslog
+    fields:
+      source_type: paloalto_panos
+      source_name: paloalto-01
+      device_type: firewall
+      vendor: paloalto
+      collector: vector

@@ -1,0 +1,41 @@
+# Vector Syslog源配置
+# 支持 RFC 5424/3164，TCP模式避免UDP丢包
+
+sources:
+  ssh_syslog_tcp:
+    type: syslog
+    address: "0.0.0.0:514"
+    mode: tcp
+    framing:
+      method: lines
+    max_frame_size: 65536
+    receive_buffer_bytes: 262144
+
+  ssh_syslog_udp:
+    type: syslog
+    address: "0.0.0.0:5140"
+    mode: udp
+    framing:
+      method: octet_counting
+    receive_buffer_bytes: 262144
+
+transforms:
+  add_syslog_metadata:
+    type: add_fields
+    inputs:
+      - ssh_syslog_tcp
+      - ssh_syslog_udp
+    fields:
+      source_type: ssh_syslog
+      collector: vector
+      protocol: syslog
+
+sinks:
+  to_kafka:
+    type: kafka
+    inputs:
+      - add_syslog_metadata
+    bootstrap_servers: "${KAFKA_BOOTSTRAP_SERVERS}"
+    topic: raw-events
+    encoding:
+      codec: json

@@ -1,0 +1,24 @@
+# Fortinet FortiGate 防火墙 Syslog 源配置
+# 用途: 接收 FortiGate 防火墙产生的安全日志
+
+sources:
+  fortinet_fortigate_syslog:
+    type: syslog
+    address: "0.0.0.0:5142"
+    mode: tcp
+    framing:
+      method: lines
+    max_frame_size: 65536
+    receive_buffer_bytes: 262144
+
+transforms:
+  add_fortinet_metadata:
+    type: add_fields
+    inputs:
+      - fortinet_fortigate_syslog
+    fields:
+      source_type: fortinet_fortigate
+      source_name: fortigate-01
+      device_type: firewall
+      vendor: fortinet
+      collector: vector
