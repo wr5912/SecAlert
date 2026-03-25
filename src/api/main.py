@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.chain_endpoints import router as chain_router
 from src.api.remediation_endpoints import router as remediation_router
+from src.api.health import router as health_router
 from src.analysis.api import router as analysis_router
 
 # 配置日志
@@ -61,6 +62,7 @@ app.add_middleware(
 # 注册路由
 app.include_router(chain_router)
 app.include_router(remediation_router)
+app.include_router(health_router)
 app.include_router(analysis_router)
 
 
