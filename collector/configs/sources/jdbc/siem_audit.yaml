@@ -1,0 +1,11 @@
+# SIEM 数据库审计日志轮询配置示例
+
+query: |
+  SELECT event_id, timestamp, user_name, action, source_ip
+  FROM audit_log
+  WHERE event_type = 'security'
+  ORDER BY event_id
+
+kafka_topic: raw-events
+id_column: event_id
+poll_interval_seconds: 30
