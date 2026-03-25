@@ -30,7 +30,10 @@
   - [ ] 05-PLAN.md - 多数据源支持
 - [ ] Phase 6: 产品级 UI UI-01~UI-05
 - [ ] Phase 7: AI 助手 AI-01~AI-05
-- [ ] Phase 8: 报表 RP-01~RP-05
+- [ ] Phase 8: 报表 RP-01~RP-05 (3 plans)
+  - [ ] 08-PLAN.md - 报表基础架构 (Wave 1)
+  - [ ] 08-02-PLAN.md - 定时报表生成 (Wave 2)
+  - [ ] 08-03-PLAN.md - 数据源健康报表 (Wave 3)
 
 </details>
 
@@ -47,7 +50,7 @@
 | 5. 多数据源支持 | 1/1 | Planning | — |
 | 6. 产品级 UI | 0/5 | Pending | — |
 | 7. AI 助手 | 0/5 | Pending | — |
-| 8. 报表 | 0/5 | Pending | — |
+| 8. 报表 | 3/3 | Planning | — |
 
 ---
 
