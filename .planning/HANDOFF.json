@@ -1,0 +1,65 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-25T01:11:35Z",
+  "phase": "v1.0",
+  "phase_name": "Milestone v1.0 Gap Fixes",
+  "phase_dir": "v1.0",
+  "plan": null,
+  "task": null,
+  "total_tasks": 4,
+  "status": "paused",
+  "completed_tasks": [
+    {
+      "id": 1,
+      "name": "修复 IG-03: 严重度量纲不匹配",
+      "status": "done",
+      "commit": "89c42af"
+    },
+    {
+      "id": 2,
+      "name": "修复 IG-05: Phase 3 分类结果未持久化到 Neo4j",
+      "status": "done",
+      "commit": "89c42af"
+    },
+    {
+      "id": 3,
+      "name": "修复 IG-06: AttackChain 节点缺少 ATT&CK 字段",
+      "status": "done",
+      "commit": "89c42af"
+    },
+    {
+      "id": 4,
+      "name": "修复 IG-07: Flink 流处理作业缺失",
+      "status": "not_started",
+      "note": "架构差异，Python Kafka Consumer 已实现相同功能，暂不需要 Flink"
+    }
+  ],
+  "remaining_tasks": [],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {
+      "decision": "IG-03 severity_label 方案",
+      "rationale": "AttackChainModel 添加 severity_label (string) 字段，与前端 Severity 类型对齐",
+      "phase": "v1.0"
+    },
+    {
+      "decision": "IG-05 update_classification() 方案",
+      "rationale": "Neo4jClient 新增 update_classification() 方法，持久化完整分类结果",
+      "phase": "v1.0"
+    },
+    {
+      "decision": "IG-06 ATT&CK 字段方案",
+      "rationale": "AttackChain 节点直接存储 mitre_tactic/technique_id/technique_name",
+      "phase": "v1.0"
+    },
+    {
+      "decision": "IG-07 Flink 方案",
+      "rationale": "Python Kafka Consumer 已实现流处理，Flink 缺失为架构文档与实现的差异，不阻塞当前功能",
+      "phase": "v1.0"
+    }
+  ],
+  "uncommitted_files": [],
+  "next_action": "无阻塞任务。所有关键 gap 已修复。",
+  "context_notes": "Phase 1-4 UAT 全部完成 (39/39 tests passed)。修复了 4 个 integration gap 中的 3 个。剩余 IG-07 (Flink) 为架构文档差异，不影响功能。"
+}
