@@ -1,0 +1,26 @@
+# Cisco ASA 防火墙 Syslog 源配置
+# 用途: 接收 Cisco ASA 防火墙产生的安全日志
+
+# 注意: 此文件为示例配置，实际使用时请合并到 vector-syslog.yaml
+
+sources:
+  cisco_asa_syslog:
+    type: syslog
+    address: "0.0.0.0:5141"
+    mode: tcp
+    framing:
+      method: lines
+    max_frame_size: 65536
+    receive_buffer_bytes: 262144
+
+transforms:
+  add_cisco_asa_metadata:
+    type: add_fields
+    inputs:
+      - cisco_asa_syslog
+    fields:
+      source_type: cisco_asa
+      source_name: cisco-asa-01
+      device_type: firewall
+      vendor: cisco
+      collector: vector

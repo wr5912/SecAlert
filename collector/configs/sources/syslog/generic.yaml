@@ -1,0 +1,23 @@
+# 通用 Syslog 设备配置模板
+# 用途: 用于未识别的 Syslog 设备，作为默认配置
+
+sources:
+  generic_syslog:
+    type: syslog
+    address: "0.0.0.0:5144"
+    mode: tcp
+    framing:
+      method: lines
+    max_frame_size: 65536
+    receive_buffer_bytes: 262144
+
+transforms:
+  add_generic_metadata:
+    type: add_fields
+    inputs:
+      - generic_syslog
+    fields:
+      source_type: generic_syslog
+      source_name: generic-unknown
+      device_type: unknown
+      collector: vector
