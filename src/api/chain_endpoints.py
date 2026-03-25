@@ -39,12 +39,12 @@ def get_correlator() -> AlertCorrelator:
     return _correlator
 
 
-@router.get("", response_model=AttackChainListResponse)
+@router.get("", response_model=dict)
 async def list_chains(
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     status: Optional[str] = Query(default=None)
-) -> AttackChainListResponse:
+) -> dict:
     """
     列出攻击链 (分页)
 
@@ -54,7 +54,10 @@ async def list_chains(
     """
     service = get_service()
     result = service.list_chains(limit=limit, offset=offset, status=status)
-    return AttackChainListResponse(**result)
+    # 直接返回字典，前端需要 severity_label 字段
+    for chain in result["chains"]:
+        chain["max_severity"] = chain["severity_label"]  # 前端使用这个显示
+    return result
 
 
 @router.get("/{chain_id}", response_model=AttackChainModel)

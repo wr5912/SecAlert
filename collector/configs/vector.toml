@@ -1,6 +1,10 @@
 # Vector 配置 (适配 0.19.0)
 # Suricata Syslog Source → Kafka Sink
 
+[api]
+enabled = true
+address = "0.0.0.0:9001"
+
 [sources.suricata_syslog]
 type = "syslog"
 address = "0.0.0.0:514"

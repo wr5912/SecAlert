@@ -139,21 +139,40 @@ class AttackChainService:
         if not chain_data:
             return None
 
+        # 转换告警 timestamp 为字符串
+        def _convert_alert(alert_dict: Dict[str, Any]) -> Dict[str, Any]:
+            """转换 Neo4j DateTime 为字符串"""
+            result = dict(alert_dict)
+            for field in ["timestamp", "start_time", "end_time"]:
+                if field in result and result[field] is not None:
+                    result[field] = str(result[field])
+            return result
+
         # 转换为模型
         alerts = [
-            AlertModel(**a) for a in chain_data.get("alerts", [])
+            AlertModel(**_convert_alert(a)) for a in chain_data.get("alerts", [])
         ]
+
+        severity = chain_data.get("max_severity", 0)
+        start_time = chain_data.get("start_time")
+        end_time = chain_data.get("end_time")
 
         return AttackChainModel(
             chain_id=chain_data["chain_id"],
-            start_time=chain_data.get("start_time"),
-            end_time=chain_data.get("end_time"),
+            start_time=str(start_time) if start_time else None,
+            end_time=str(end_time) if end_time else None,
             alert_count=chain_data.get("alert_count", 0),
-            max_severity=chain_data.get("max_severity", 0),
+            max_severity=severity,
+            severity_label=self._severity_to_label(severity),
             status=chain_data.get("status", "unknown"),
             asset_ip=chain_data.get("asset_ip"),
             alerts=alerts
         )
+
+    def _severity_to_label(self, severity: int) -> str:
+        """将数字严重度转换为字符串标签"""
+        mapping = {4: "critical", 3: "high", 2: "medium", 1: "low"}
+        return mapping.get(severity, "low")
 
     def list_chains(
         self,
@@ -176,16 +195,19 @@ class AttackChainService:
 
         chains = []
         for c in chains_data:
-            chains.append(AttackChainModel(
-                chain_id=c["chain_id"],
-                start_time=c.get("start_time"),
-                end_time=c.get("end_time"),
-                alert_count=c.get("alert_count", 0),
-                max_severity=c.get("max_severity", 0),
-                status=c.get("status", "unknown"),
-                asset_ip=c.get("asset_ip"),
-                alerts=[]
-            ))
+            severity = c.get("max_severity", 0)
+            severity_label = self._severity_to_label(severity)
+            chains.append({
+                "chain_id": c["chain_id"],
+                "start_time": c.get("start_time"),
+                "end_time": c.get("end_time"),
+                "alert_count": c.get("alert_count", 0),
+                "max_severity": severity,  # 保留数字用于排序
+                "severity_label": severity_label,  # 前端用这个显示
+                "status": c.get("status", "unknown"),
+                "asset_ip": c.get("asset_ip"),
+                "alerts": []
+            })
 
         return {
             "chains": chains,
