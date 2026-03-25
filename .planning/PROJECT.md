@@ -23,9 +23,22 @@
 - [x] 系统能给出简单明确的处置建议 — v1.0 (Phase 4, UAT ✅)
 - [x] 界面简洁，面向非专业运维人员 — v1.0 (Phase 4, UAT ✅)
 
+## Current Milestone: v1.1 多数据源支持 + 产品级 UI + AI 助手
+
+**Goal:** 扩展多设备支持，升级前端到生产级 Web UI，增加 AI 助手对话能力
+
+**Target features:**
+- 多数据源支持：扩展三层解析架构，支持更多设备类型（防火墙、WAF、EDR、云安全）
+- 产品级 Web UI：响应式布局、交互体验提升、组件复用、性能优化
+- AI 助手对话框：前端内嵌 AI 对话界面，上下文与当前页面/告警动态关联
+- 报表统计：告警趋势、误报率统计、TOP 攻击类型、受影响资产、处置统计
+
 ### Active
 
-- [ ] 新需求待定义 (运行 `/gsd:new-milestone`)
+- [ ] v1.1 多数据源支持 — 扩展三层解析架构，支持更多设备类型
+- [ ] v1.1 产品级 Web UI — 响应式布局、交互体验、组件复用
+- [ ] v1.1 AI 助手对话框 — 上下文动态关联
+- [ ] v1.1 报表统计 — 可视化仪表板
 
 ### Out of Scope
 
@@ -76,6 +89,25 @@
 | Docker Compose本地开发 | 单命令启动全部6个服务 | ✅ v1.0 验证通过 |
 | Confluent Kafka 7.5.0 | 成熟稳定的Kafka发行版 | ✅ v1.0 验证通过 |
 | Elasticsearch 8.11.0单节点 | 本地开发无需集群 | ✅ v1.0 验证通过 |
+
+---
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
 
 ---
 
