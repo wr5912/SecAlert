@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -20,8 +21,16 @@ export default {
           800: '#1e40af',
           900: '#1e3a8a',
         },
+        severity: {
+          critical: '#dc2626',
+          high: '#f97316',
+          medium: '#eab308',
+          low: '#6b7280',
+        },
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 }
