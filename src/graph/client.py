@@ -151,8 +151,12 @@ class Neo4jClient:
                     c.end_time = datetime($end_time),
                     c.alert_count = $alert_count,
                     c.max_severity = $max_severity,
+                    c.severity_label = $severity_label,
                     c.status = $status,
                     c.asset_ip = $asset_ip,
+                    c.mitre_tactic = $mitre_tactic,
+                    c.mitre_technique_id = $mitre_technique_id,
+                    c.mitre_technique_name = $mitre_technique_name,
                     c.created_at = datetime()
             """,
                 chain_id=chain_id,
@@ -160,8 +164,12 @@ class Neo4jClient:
                 end_time=chain_data.get("end_time"),
                 alert_count=chain_data.get("alert_count", 0),
                 max_severity=chain_data.get("max_severity", 0),
+                severity_label=chain_data.get("severity_label"),
                 status=chain_data.get("status", "active"),
-                asset_ip=chain_data.get("asset_ip")
+                asset_ip=chain_data.get("asset_ip"),
+                mitre_tactic=chain_data.get("mitre_tactic"),
+                mitre_technique_id=chain_data.get("mitre_technique_id"),
+                mitre_technique_name=chain_data.get("mitre_technique_name")
             )
 
             # 建立 Alert -> PART_OF -> AttackChain 关系
@@ -217,8 +225,13 @@ class Neo4jClient:
                 "end_time": str(c["end_time"]) if c.get("end_time") else None,
                 "alert_count": c.get("alert_count", 0),
                 "max_severity": c.get("max_severity", 0),
+                "severity_label": c.get("severity_label"),  # IG-03: 字符串严重度
                 "status": c.get("status", "unknown"),
                 "asset_ip": c.get("asset_ip"),
+                # IG-06: ATT&CK 字段
+                "mitre_tactic": c.get("mitre_tactic"),
+                "mitre_technique_id": c.get("mitre_technique_id"),
+                "mitre_technique_name": c.get("mitre_technique_name"),
                 "alerts": sorted(alert_list, key=lambda x: x["timestamp"] or "")
             }
 
@@ -294,6 +307,52 @@ class Neo4jClient:
                     c.updated_at = datetime()
                 RETURN c
             """, chain_id=chain_id, status=status)
+
+            return result.single() is not None
+
+    def update_classification(
+        self,
+        chain_id: str,
+        classification: Dict[str, Any]
+    ) -> bool:
+        """
+        更新攻击链分类结果 (IG-05)
+
+        Args:
+            chain_id: 攻击链 ID
+            classification: 分类结果 {
+                is_real_threat, confidence, severity, reasoning,
+                should_suppress, suppression_reason, rule_matched
+            }
+
+        Returns:
+            是否更新成功
+        """
+        if not self.driver:
+            return False
+
+        with self.driver.session() as session:
+            result = session.run("""
+                MATCH (c:AttackChain {chain_id: $chain_id})
+                SET c.is_real_threat = $is_real_threat,
+                    c.confidence = $confidence,
+                    c.severity_label = $severity,
+                    c.reasoning = $reasoning,
+                    c.should_suppress = $should_suppress,
+                    c.suppression_reason = $suppression_reason,
+                    c.rule_matched = $rule_matched,
+                    c.classified_at = datetime()
+                RETURN c
+            """,
+                chain_id=chain_id,
+                is_real_threat=classification.get("is_real_threat"),
+                confidence=classification.get("confidence", 0.0),
+                severity=classification.get("severity"),
+                reasoning=classification.get("reasoning"),
+                should_suppress=classification.get("should_suppress", False),
+                suppression_reason=classification.get("suppression_reason"),
+                rule_matched=classification.get("rule_matched", False)
+            )
 
             return result.single() is not None
 
