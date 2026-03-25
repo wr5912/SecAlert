@@ -195,8 +195,8 @@ class RemediationAdvisor:
         Returns:
             自然语言描述的处置建议
         """
-        # 获取建议
-        recommendation = self.get_recommendation(chain_data.get("chain_id", "unknown"))
+        # 获取建议 - get_recommendation 返回直接包含 short_action, detailed_steps, attck_ref 的字典
+        recommendation = self.get_recommendation(chain_data)
 
         # 构建自然语言响应
         severity = chain_data.get("max_severity", "medium").upper()
@@ -204,16 +204,16 @@ class RemediationAdvisor:
 
         response = f"针对攻击链 {chain_id[:8]}...（严重度: {severity}）\n\n"
 
-        rec = recommendation.get("recommendation", {}) if isinstance(recommendation, dict) else recommendation
-        response += f"**建议**: {rec.get('short_action', '进行安全调查')}\n\n"
+        # recommendation 是直接包含建议字段的字典，不是 {"recommendation": {...}}
+        response += f"**建议**: {recommendation.get('short_action', '进行安全调查')}\n\n"
 
-        steps = rec.get("detailed_steps", [])
+        steps = recommendation.get("detailed_steps", [])
         if steps:
             response += "**处置步骤**:\n"
             for i, step in enumerate(steps, 1):
                 response += f"{i}. {step}\n"
 
-        attck_ref = rec.get("attck_ref", "")
+        attck_ref = recommendation.get("attck_ref", "")
         if attck_ref and attck_ref != "N/A":
             response += f"\n**相关威胁**: {attck_ref}"
 
