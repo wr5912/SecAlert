@@ -30,9 +30,9 @@
   - [x] 05-PLAN.md - 多数据源支持
 - [x] Phase 6: 产品级 UI UI-01~UI-05 (1 plan)
   - [x] 06-PLAN.md - 产品级 UI 重构 (Wave 1) ✅
-- [x] Phase 7: AI 助手 AI-01~AI-05 (1/2 plans)
+- [x] Phase 7: AI 助手 AI-01~AI-05 (2/2 plans)
   - [x] 07-PLAN.md - AI助手核心组件 (Wave 1) ✅
-  - [ ] 07-02-PLAN.md - NL查询与建议生成 (Wave 2)
+  - [x] 07-02-PLAN.md - NL查询与建议生成 (Wave 2) ✅
 - [ ] Phase 8: 报表 RP-01~RP-05 (3 plans)
   - [x] 08-PLAN.md - 报表基础架构 (Wave 1) ✅
   - [x] 08-02-PLAN.md - 定时报表生成 (Wave 2) ✅
@@ -52,7 +52,7 @@
 | 4. Recommendations & Polish | 3/3 | Complete | 2026-03-24 |
 | 5. 多数据源支持 | 1/1 | Complete | 2026-03-25 |
 | 6. 产品级 UI | 1/1 | Complete   | 2026-03-25 |
-| 7. AI 助手 | 1/2 | In Progress|  |
+| 7. AI 助手 | 2/2 | Complete   | 2026-03-25 |
 | 8. 报表 | 3/3 | Complete    | 2026-03-25 |
 
 ---

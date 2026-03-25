@@ -1,6 +1,6 @@
 ---
 phase: 07-ai-assistant
-plan: 07-02
+plan: "07-02"
 subsystem: ai-assistant
 tags: [nlp, intent-recognition, remediation, httpx, fastapi]
 
@@ -55,8 +55,8 @@ completed: 2026-03-25
 ## Performance
 
 - **Duration:** 15 min
-- **Started:** 2026-03-25T13:16:08Z
-- **Completed:** 2026-03-25T13:31:00Z
+- **Started:** 2026-03-25T14:30:00Z
+- **Completed:** 2026-03-25T14:45:00Z
 - **Tasks:** 2
 - **Files modified:** 2
 
@@ -78,13 +78,15 @@ completed: 2026-03-25
 
 Each task was committed atomically:
 
-1. **Task 1: 实现NL查询意图识别和路由** - `7b465c6` (feat)
-2. **Task 2: 实现自然语言处置建议生成** - `b4badb9` (feat)
+1. **Task 1: 实现NL查询意图识别和路由** - `38b792b` (fix)
+2. **Task 2: 实现自然语言处置建议生成** - `38b792b` (fix)
+
+**Note:** 本次执行发现并修复了已实现代码中的Bug，合并为一个提交。
 
 ## Files Created/Modified
 
-- `src/api/chat_endpoints.py` - 添加NL查询意图识别、API调用路由、响应格式化函数，修改chat_stream支持意图路由
-- `src/analysis/remediation/advisor.py` - 添加generate_recommendation_nl()方法生成自然语言处置建议
+- `src/api/chat_endpoints.py` - 修复get_recommendation调用时传递chain_id字符串而非完整chain_data字典的Bug
+- `src/analysis/remediation/advisor.py` - 修复generate_recommendation_nl中get_recommendation调用参数错误和recommendation结构访问错误
 
 ## Decisions Made
 
@@ -94,11 +96,32 @@ Each task was committed atomically:
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] 修复 generate_recommendation_nl 中 get_recommendation 调用参数错误**
+- **Found during:** Task 2 (实现自然语言处置建议生成)
+- **Issue:** get_recommendation 需要完整的 chain_data 字典，但代码传递了 chain_id 字符串；且 recommendation 结构访问错误（应直接访问字段而非嵌套 .recommendation）
+- **Fix:** 修改为传递完整的 chain_data 字典；修复 recommendation 结构访问逻辑
+- **Files modified:** src/analysis/remediation/advisor.py
+- **Verification:** Python import 测试通过
+- **Committed in:** 38b792b
+
+**2. [Rule 1 - Bug] 修复 chat_stream 中 general_chat 分支 get_recommendation 调用错误**
+- **Found during:** Task 1 (实现NL查询意图识别和路由)
+- **Issue:** get_recommendation 需要 chain_data 字典，但只提供了 chain_id 字符串
+- **Fix:** 先通过 call_chain_api 获取完整 chain_data，再调用 get_recommendation
+- **Files modified:** src/api/chat_endpoints.py
+- **Verification:** 函数存在性验证通过
+- **Committed in:** 38b792b
+
+---
+
+**Total deviations:** 2 auto-fixed (均为 Rule 1 Bug修复)
+**Impact on plan:** 两个auto-fix都是必要修复，确保NL查询和处置建议功能正确工作。无范围蔓延。
 
 ## Issues Encountered
 
-None
+None - 计划执行顺利，仅发现并修复了代码中已实现的Bug
 
 ## Next Phase Readiness
 
