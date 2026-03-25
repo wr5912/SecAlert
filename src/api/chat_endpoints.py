@@ -464,16 +464,21 @@ async def chat_stream(request: StreamRequest):
                 advisor = RemediationAdvisor()
 
                 if request.context.chain_id:
-                    recommendation = advisor.get_recommendation(request.context.chain_id)
-                    response_text = f"根据当前上下文，我为您生成以下处置建议：\n\n"
-                    response_text += f"**处置动作**: {recommendation.get('short_action', '查看详情')}\n\n"
+                    # 需要先获取完整的 chain_data 才能调用 get_recommendation
+                    chain_data = await call_chain_api({}, chain_id=request.context.chain_id, api_type="detail")
+                    if "error" in chain_data:
+                        response_text = chain_data["error"]
+                    else:
+                        recommendation = advisor.get_recommendation(chain_data)
+                        response_text = f"根据当前上下文，我为您生成以下处置建议：\n\n"
+                        response_text += f"**处置动作**: {recommendation.get('short_action', '查看详情')}\n\n"
 
-                    if recommendation.get('detailed_steps'):
-                        response_text += "**详细步骤**:\n"
-                        for i, step in enumerate(recommendation['detailed_steps'], 1):
-                            response_text += f"{i}. {step}\n"
+                        if recommendation.get('detailed_steps'):
+                            response_text += "**详细步骤**:\n"
+                            for i, step in enumerate(recommendation['detailed_steps'], 1):
+                                response_text += f"{i}. {step}\n"
 
-                    response_text += f"\n**ATT&CK**: {recommendation.get('attck_ref', 'N/A')}"
+                        response_text += f"\n**ATT&CK**: {recommendation.get('attck_ref', 'N/A')}"
                 else:
                     response_text = "我目前显示的是全局上下文。如果您想获取具体的告警处置建议，请先选择一个告警或在告警列表页面与我对话。"
 
