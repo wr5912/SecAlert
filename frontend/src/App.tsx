@@ -3,7 +3,7 @@
 入口组件，管理告警列表和详情视图切换
 */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Shield } from 'lucide-react';
 import { AlertList } from './components/AlertList';
 import { AlertDetail } from './components/AlertDetail';

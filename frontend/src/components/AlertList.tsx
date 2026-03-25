@@ -169,7 +169,6 @@ function SeverityFilter({
   value: Severity | 'all';
   onChange: (v: Severity | 'all') => void;
 }) {
-  const options: (Severity | 'all')[] = ['all', 'critical', 'high', 'medium', 'low'];
   return (
     <select
       value={value}
