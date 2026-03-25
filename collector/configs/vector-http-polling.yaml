@@ -1,0 +1,43 @@
+# Vector HTTP Client API 轮询配置
+# 支持 Bearer Token 认证、重试机制、定时轮询
+
+sources:
+  # 通用 HTTP 轮询源模板
+  http_polling_generic:
+    type: http_client
+    endpoint: "${API_ENDPOINT}"
+    method: GET
+    scrape_interval_secs: ${SCRAPE_INTERVAL:-300}
+    auth:
+      strategy: bearer
+      token: "${API_TOKEN}"
+    headers:
+      Accept: "application/json"
+      User-Agent: "SecAlert-Collector/1.0"
+    timeout_secs: 30
+    retry_on:
+      max_retries: 3
+      backoff_secs: 5
+    decoder:
+      type: json
+
+transforms:
+  normalize_http_event:
+    type: remap
+    inputs:
+      - http_polling_generic
+    source: |
+      .source_type = "api_polling"
+      .collector = "vector"
+      .api_endpoint = getenv("API_ENDPOINT")
+      .collected_at = now()
+
+sinks:
+  http_to_kafka:
+    type: kafka
+    inputs:
+      - normalize_http_event
+    bootstrap_servers: "${KAFKA_BOOTSTRAP_SERVERS}"
+    topic: raw-events
+    encoding:
+      codec: json

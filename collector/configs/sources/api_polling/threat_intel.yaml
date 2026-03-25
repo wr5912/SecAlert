@@ -1,0 +1,17 @@
+# 威胁情报 API 轮询配置示例
+# 用于采集第三方威胁情报数据
+
+sources:
+  threat_intel_api:
+    type: http_client
+    endpoint: "https://api.abuseipdb.com/api/v2/check-block"
+    method: GET
+    scrape_interval_secs: 3600
+    auth:
+      strategy: bearer
+      token: "${ABUSEIPDB_API_KEY}"
+    query:
+      maximumNewAge: "30"
+      ipVersion: "4"
+    headers:
+      Accept: "application/json"
