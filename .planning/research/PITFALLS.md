@@ -1,203 +1,340 @@
-# Domain Pitfalls: Security Alert Analysis Systems
+# Domain Pitfalls: v1.1 新增功能扩展
 
-**Domain:** Enterprise Security Alert Analysis / SIEM
-**Researched:** 2026-03-22
-**Confidence:** LOW (WebSearch unavailable, based on training data from 2024-2025)
-
-## Critical Pitfalls
-
-Mistakes that cause rewrites, security incidents missed, or operator trust erosion.
-
-### Pitfall 1: Alert Fatigue from Undifferentiated Flood
-
-**What goes wrong:** System presents all alerts equally, overwhelming operators with thousands of daily notifications. Real threats are buried and missed.
-
-**Why it happens:**
-- Treating all alerts as equally important
-- No severity scoring or contextual prioritization
-- "Detect everything" mentality without triage logic
-
-**Consequences:** Analysts ignore or miss critical alerts; real attacks succeed undetected.
-
-**Prevention:**
-- Multi-tier prioritization (critical/high/medium/low)
-- Suppress known false positives automatically
-- Risk score each alert based on asset criticality, threat intel, context
-
-**Detection:** Operators reporting "too many alerts," response times increasing, critical alerts sitting unaddressed for hours.
+**Domain:** 安全告警分析系统功能扩展
+**Researched:** 2026-03-25
+**Confidence:** MEDIUM（外部验证受限，依赖训练数据 + React 文档部分验证）
 
 ---
 
-### Pitfall 2: Trust Erosion from High False Positive Rate
+## 研究背景
 
-**What goes wrong:** System frequently cries wolf. Operators stop trusting alerts and begin ignoring them.
+v1.0 已验证三层解析架构（模板优先 -> Drain 聚类 -> LLM 兜底）和攻击链分析。本次扩展四个方向：
 
-**Why it happens:**
-- Rule-based detection without ML/l contextual validation
-- No feedback loop to learn from operator dismissals
-- Generic detection rules not tuned to environment
+1. **多数据源支持**：扩展三层解析架构，支持更多设备类型（防火墙、WAF、EDR、云安全）
+2. **产品级 Web UI**：响应式布局、交互体验提升、组件复用、性能优化
+3. **AI 助手对话框**：前端内嵌 AI 对话界面，上下文与当前页面/告警动态关联
+4. **报表统计仪表板**：告警趋势、误报率统计、TOP 攻击类型、受影响资产、处置统计
 
-**Consequences:** "狼来了" syndrome — real attacks ignored when they appear.
-
-**Prevention:**
-- Implement operator feedback mechanism (dismissed/confirmed)
-- Continuous rule tuning based on confirmed vs false positives
-- Measure and publish false positive rate; aim for <30%
-
-**Detection:** High dismissal rate on alerts, operator surveys showing distrust.
+本文件聚焦于**向现有系统添加这些功能**时常见的错误，而非从零构建这些功能。
 
 ---
 
-### Pitfall 3: Alert Overload Without Context (No Attack Chain Reconstruction)
+## Critical Pitfalls（会导致重写或重大返工）
 
-**What goes wrong:** Individual alerts are incomprehensible without deep security expertise. Operators cannot determine if alerts are related.
+### Pitfall 1: 多数据源扩展破坏 v1.0 兼容性
 
-**Why it happens:**
-- Displaying raw events without correlation
-- No timeline view of related alerts
-- Missing lateral movement detection across entities
+**问题描述：** 扩展多设备支持时，改动三层解析的底层抽象，导致 v1.0 已支持的设备类型解析失败。
 
-**Consequences:** Operators cannot assess scope or severity of apparent incidents.
+**为什么会发生：**
+- Drain3 的 `add_template` 会影响已有聚类结果，新设备模板覆盖旧模板
+- LLM 兜底返回格式变化（如新增字段）破坏下游 Enrichment 层
+- 解析层各层之间存在隐式耦合，改动时没有接口抽象
 
-**Prevention:**
-- Attack chain visualization linking related alerts
-- Timeline view showing progression of an attack
-- Entity correlation (same source IP, same target, same time window)
+**后果：**
+- v1.0 验证通过的防火墙日志突然解析失败，告警消失
+- Neo4j 攻击链中的告警丢失 enrichment 元数据，攻击链断裂
+- 置信度计算逻辑与新设备类型不兼容，导致误报率飙升
 
-**Detection:** Operators asking "what does this alert mean?" or "is this related to X?"
+**预防：**
+- 解析层架构变更必须通过接口抽象，禁止直接修改现有模板注册表
+- 新设备类型用独立 parser 子类，继承统一 Parser 接口
+- 每个新设备接入前先跑 v1.0 全量回归测试（CI 必须覆盖）
+- 模板注册表增加版本号，新模板不能修改已有模板条目
 
----
-
-### Pitfall 4: Generic Recommendations That Are Unactionable
-
-**What goes wrong:** System provides vague security advice ("monitor network traffic") that operators cannot act on.
-
-**Why it happens:**
-- LLM-generated generic text not integrated with asset database
-- No integration with ticketing system for workflow
-- Recommendations not scoped to operator's actual permissions
-
-**Consequences:** Alerts generate work but no resolution; operators frustrated.
-
-**Prevention:**
-- Specific, asset-targeted recommendations ("Isolate server X from VLAN Y")
-- Integration with CMDB to identify asset owner and location
-- Step-by-step procedures tied to runbooks
-
-**Detection:** Alerts repeatedly generating tickets but remaining unresolved.
+**检测信号：**
+- CI 中 v1.0 设备日志的解析成功率下降
+- Neo4j 中 AttackChain 节点的 enriched_fields 出现 null
+- Kafka consumer lag 正常但告警量异常下降
 
 ---
 
-### Pitfall 5: Unknown Format Blindness (Log Parsing Failures)
+### Pitfall 2: AI 助手上下文泄露安全敏感信息
 
-**What goes wrong:** System fails silently when encountering unknown device log formats, producing no alerts from critical security devices.
+**问题描述：** AI 助手对话中，运维人员询问"这个告警的原始 IP 是谁"时，AI 可能输出原始日志全文或上下游关联告警的敏感资产信息。
 
-**Why it happens:**
-- Hardcoded parsing for known vendor formats only
-- No schema inference or heuristic parsing
-- Unknown formats dropped without notification
+**为什么会发生：**
+- AI 助手的 RAG 检索阶段没有做权限隔离，所有 Elasticsearch 索引数据均可被检索
+- 攻击链上下文注入时包含完整告警详情，包括内网资产拓扑
+- 对话历史积累后，AI 能推理出更多敏感信息
 
-**Consequences:** Security blind spots — critical devices silently unmonitored.
+**后果：**
+- 运维人员 A 能看到其他运维人员负责区域的告警详情（跨域泄露）
+- AI 输出的攻击链路径暴露未隔离的内部资产信息
+- 审计合规风险：日志中敏感字段不应该出现在 AI 对话中
 
-**Prevention:**
-- Layered parsing: template matching → clustering → LLM inference
-- Alert on unparsed logs to flag coverage gaps
-- Continuous log format discovery and cataloging
+**预防：**
+- AI 助手必须有数据隔离层：查询前根据运维人员权限过滤 ES 索引
+- 告警上下文注入 AI 时，明确移除：raw_log 原始全文、内网 IP 细节（保留公网 IP）、未授权访问的资产信息
+- 对 AI 输出内容做安全敏感信息过滤（正则 + DSPy 签名校验输出格式）
+- 定义 AI 助手专用 DSPy Signature，明确规定上下文 Schema，禁止 LLM 自定义检索范围
 
-**Detection:** Periodic audit of log sources showing drop rates; devices with zero alerts.
-
----
-
-## Moderate Pitfalls
-
-### Pitfall 6: Tuning Debt Accumulation
-
-**What goes wrong:** Over months/years, suppression rules and exceptions accumulate without cleanup, hiding real threats.
-
-**Why it happens:**
-- Adding suppressions without expiration dates
-- No periodic review of suppression rules
-- Different operators adding rules for same issue
-
-**Consequences:** Attack patterns suppressed that should fire; detection gaps.
-
-**Prevention:**
-- Time-boxed suppression rules with mandatory review
-- Annual "suppression audit" to remove stale rules
-- Link suppressions to specific incidents/tickets
+**检测信号：**
+- AI 回答中出现 10.0.0.x、192.168.x.x、172.16.x.x 等内网 IP 段
+- AI 回答中出现的资产信息不在该运维人员负责范围内
+- 审计日志发现 AI 访问了非授权索引
 
 ---
 
-### Pitfall 7: Single-Point-of-Failure Alert Channels
+### Pitfall 3: AI 助手上下文膨胀导致 Qwen3-32B 推理质量下降
 
-**What goes wrong:** If the SIEM/analysis system goes down, no alerts reach operators. Attacks succeed during outages.
+**问题描述：** 为了让 AI 理解当前告警，把整个攻击链的告警列表 + enrichment 数据全部塞进上下文。超过 32K token 窗口后，Qwen3-32B 生成质量显著下降。
 
-**Why it happens:**
-- No redundant alert delivery mechanisms
-- Alerts only via single channel (email, Slack, etc.)
-- No health monitoring of the analysis pipeline itself
+**为什么会发生：**
+- 上下文压缩策略缺失，每个告警携带 20+ enrichment 字段全部注入
+- 攻击链跨多条告警时，告警数量 × 字段数 = 快速膨胀
+- AI 助手的"上下文理解当前页面"需求没有边界定义
 
-**Consequences:** "Dark period" attacks succeed while system is down.
+**后果：**
+- AI 在长对话中开始"遗忘"早期告警的判断
+- 处置建议从具体变通用（"联系安全团队"而不是"隔离该主机"）
+- 推理延迟从秒级变成十几秒，用户体验恶化
 
-**Prevention:**
-- Multiple alert channels (email + SMS + direct)
-- Pipeline health monitoring with auto-escalation
-- On-call rotation visibility
+**预防：**
+- 定义明确的 AI 助手上下文签名（DSPy Signature）：只注入告警 ID、严重度、technique_id、资产名称、时间窗口
+- 原始日志全文 NEVER 进入 AI 上下文，只作为需要时按需查询
+- 超过 8K token 的攻击链，只注入 Critical/High 告警
+- 对话历史超过 20 轮时，触发上下文摘要压缩
 
----
-
-### Pitfall 8: Ignoring Alert Velocity (Rate-of-Change)
-
-**What goes wrong:** System treats 1 alert from an IP the same as 1000 alerts from same IP.
-
-**Why it happens:**
-- Per-alert analysis without session/context aggregation
-- No threshold detection for behavioral anomalies
-- Static rules that don't adapt to baseline
-
-**Consequences:** Brute force or scanning attacks missed because each attempt is "normal."
-
-**Prevention:**
-- Rate-based alerting (100 failed logins/minute = anomaly)
-- Dynamic baselining of normal activity per entity
-- Velocity scoring in addition to severity scoring
+**检测信号：**
+- AI 对话中后期回复出现逻辑矛盾或前后不一致
+- AI 建议从具体操作变成泛化建议
+- 单次 AI 推理延迟超过 15 秒
 
 ---
 
-## Minor Pitfalls
+### Pitfall 4: React UI 状态管理混乱导致数据不一致
 
-### Pitfall 9: Compliance-Driven Alerting (Checkbox Security)
+**问题描述：** 从 v1.0 的简单组件升级到多页面生产级 UI 时，AlertList 和 RemediationPanel 共享的告警状态没有统一管理，导致列表选择项和详情面板数据不一致。
 
-**What goes wrong:** Alerts exist because "compliance requires it" rather than security value. Noise increases without detection improvement.
+**为什么会发生：**
+- v1.0 用 props drilling 直接传告警对象，多组件共享状态靠回调层层传递
+- 升级后多个组件（AI 助手、报表、告警详情）需要共享状态，没有引入统一状态管理
+- 同时使用 React Query 做服务端状态和 React 内部 state，两套状态不同步
 
-**Prevention:** Validate each alert source against actual threat model; remove alerts with zero confirmed detections in 6 months.
+**后果：**
+- 用户在 AlertList 点击告警 A，RemediationPanel 显示告警 B
+- 列表筛选条件变化后，已打开的详情面板不更新
+- 告警处置操作后，列表中的状态不同步，需要手动刷新
+
+**预防：**
+- 在组件重构前先确定状态管理方案（推荐 Zustand，API 简单，学习成本低）
+- 告警列表状态（筛选、排序、选中项）和告警详情状态分开管理
+- 统一使用 React Query 管理服务端状态，禁止组件内部直接 fetch
+- 单一数据源原则：一个告警的状态只在一处定义
+
+**检测信号：**
+- 告警列表和详情面板严重度显示不一致
+- 处置操作后列表中告警状态不同步
+- 页面刷新后状态丢失
 
 ---
 
-### Pitfall 10: Siloed Detection Without Cross-Reference
+## Moderate Pitfalls（导致延期或严重性能问题）
 
-**What goes wrong:** Firewall sees one thing, endpoint sees another, but system never correlates them.
+### Pitfall 5: 多数据源 Drain3 模板爆炸导致解析性能下降
 
-**Prevention:** Multi-source correlation (firewall + endpoint + identity + network) before presenting to operator.
+**问题描述：** 每种新设备类型接入时，Drain3 注册新模板。50+ 设备类型后，Drain3 的正则匹配性能线性下降，解析延迟从 10ms 变成 200ms+。
+
+**为什么会发生：**
+- Drain3 匹配算法是线性扫描所有模板，没有索引优化
+- 没有模板数量上限，新模板持续累积
+- 没有按设备类型分区，同一设备多个版本模板共存
+
+**后果：**
+- Kafka consumer lag 持续增长，告警处理延迟增加
+- Flink 实时性优势被解析瓶颈抵消
+- 每天 3 万+ 告警处理能力下降
+
+**预防：**
+- Drain3 只处理结构化程度高的日志（CSV 格式、JSON 格式），非结构化日志直接进入 LLM 兜底层
+- 设置模板数量上限（建议 50 个），超过后触发模板合并评审
+- 按设备类型分区存储模板，避免跨类型干扰
+
+**检测信号：**
+- Kafka consumer lag 持续增长
+- 单条告警解析时间超过 100ms
+- CPU 解析线程持续高负载
 
 ---
 
-## Phase-Specific Warnings
+### Pitfall 6: React UI 未做代码分割导致首屏加载过长
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|----------------|------------|
-| Log parsing architecture | Unknown format blindness (Pitfall 5) | Layered parsing with LLM fallback; alert on unparsed logs |
-| False positive filtering | Trust erosion (Pitfall 2) | Feedback loop essential; measure and publish FP rate |
-| Attack chain reconstruction | Alert overload without context (Pitfall 3) | Build correlation engine before UI; test with real multi-alert scenarios |
-| Recommendation generation | Generic unactionable advice (Pitfall 4) | Tie recommendations to CMDB; operator-tested for comprehensibility |
-| Rule/tuning system | Tuning debt (Pitfall 6) | Time-boxed suppressions; periodic rule review process |
-| Alert delivery | Single-point-of-failure channels (Pitfall 7) | Redundant delivery from day one |
+**问题描述：** v1.0 前端是单文件打包。增加 AI 助手、报表仪表板后，打包体积从 500KB 变成 3MB+，首屏加载超过 5 秒。
+
+**为什么会发生：**
+- 所有页面和组件打包到单一 JS bundle
+- AI 助手依赖（可能包括 SDK）全部同步加载
+- 没有使用 React.lazy 进行路由级懒加载
+
+**后果：**
+- 运维人员在弱网环境下无法快速打开告警列表
+- AI 助手页面加载时主线程阻塞，其他操作卡顿
+- 用户体验倒退，与"极简操作"核心价值冲突
+
+**预防：**
+- 每个页面（告警列表、AI 助手、报表）独立 chunk
+- AI 助手组件用 React.lazy 懒加载，首屏不加载
+- 关键 CSS 内联，非关键 CSS 异步加载
+- 使用 dynamic import 按需加载报表图表库（如 Recharts）
+
+**检测信号：**
+- Lighthouse first contentful paint 超过 3 秒
+- 打包后 vendor.js 超过 1MB
+- Time to Interactive 超过 5 秒
+
+---
+
+### Pitfall 7: 报表仪表板实时刷新导致存储层压力
+
+**问题描述：** 仪表板默认每 30 秒刷新所有统计指标。ClickHouse 每次扫描全量告警，QPS 突然增高导致 ES 和 ClickHouse 负载飙升。
+
+**为什么会发生：**
+- 仪表板没有区分实时指标和历史指标，统一高频刷新
+- 每次刷新都执行全量聚合查询，不知道利用预聚合
+- 没有缓存层，相同查询重复执行
+
+**后果：**
+- ClickHouse 查询响应时间超过 5 秒，仪表板加载缓慢
+- ES search query latency > 500ms，影响正常告警查询
+- 存储层成为系统瓶颈，影响告警分析核心功能
+
+**预防：**
+- 仪表板统计用预聚合表（ClickHouse 物化视图），不实时查询原始告警
+- 不同粒度的统计用不同的刷新策略：实时趋势（5 分钟刷新）、日报表（小时级）
+- 前端加手动刷新按钮，减少不必要的自动轮询
+- 使用 Redis 缓存高频查询结果
+
+**检测信号：**
+- ClickHouse 查询响应时间超过 5 秒
+- ES search query latency > 500ms
+- 仪表板加载时间超过 10 秒
+
+---
+
+### Pitfall 8: 报表指标定义与前端展示不一致
+
+**问题描述：** 后端 ClickHouse 计算的"误报率"是 (误报数 / 总告警数)，前端展示时用 (误报数 / 已分类告警数)，导致用户看到的数字和预期不符。
+
+**为什么会发生：**
+- 后端和前端对指标定义没有统一文档
+- 不同组件、不同页面使用不同计算口径
+- 新增指标时没有评审指标定义
+
+**后果：**
+- 用户反馈"误报率加起来不是 100%"
+- 不同页面同一指标数值不一致，丧失可信度
+- 运维人员基于错误数据做决策
+
+**预防：**
+- 指标定义文档化（建议用 OpenAPI schema 描述每个统计 API 的返回字段含义）
+- 在 API 响应中返回计算公式和统计口径
+- 前端不做二次计算，只展示后端返回的聚合结果
+- Dashboard 图表必须有明确的数值单位标签
+
+**检测信号：**
+- 用户反馈指标数值不对劲
+- 不同页面同一指标数值不一致
+
+---
+
+## Minor Pitfalls（影响体验，不阻塞发布）
+
+### Pitfall 9: AI 助手对话历史无持久化
+
+**问题描述：** AI 对话记录存在 React 组件 state 中，刷新页面后丢失。运维人员需要重新描述问题上下文。
+
+**预防：** 对话历史存 localStorage 或后端 session 表，页面加载时恢复最近 10 条记录。
+
+---
+
+### Pitfall 10: React UI 响应式布局未覆盖平板
+
+**问题描述：** UI 只做了桌面端响应式，报表仪表板在平板上图表堆叠，内容不可读。
+
+**预防：** 至少覆盖 768px 平板横屏断点，关键操作按钮 44px 最小点击区域。
+
+---
+
+### Pitfall 11: 多数据源日志格式变更导致沉默失败
+
+**问题描述：** 某厂商设备升级后日志格式变化，系统仍返回"解析成功"但内容全错。Kafka 消费 lag 为 0，表面一切正常。
+
+**预防：**
+- 解析结果抽样校验：随机挑 1% 解析结果做字段完整性检查
+- 关键字段（timestamp、src_ip、alert_type）缺失时触发告警
+- 解析成功率低于 95% 时触发监控告警
+
+---
+
+### Pitfall 12: AI 助手回复格式不稳定导致 UI 报错
+
+**问题描述：** AI 偶尔返回纯文本而不是预期的结构化 JSON，前端处置建议展示组件报错。
+
+**预防：**
+- AI 输出强制使用 DSPy Signature 约束输出格式
+- 前端展示组件做异常捕获，格式不对时显示降级文案
+
+---
+
+## Phase-Specific Warnings（按 v1.1 阶段分的重点关注）
+
+| 阶段 | 最可能掉进的陷阱 | 优先预防措施 |
+|------|------------------|--------------|
+| 多数据源接入 | 破坏 v1.0 兼容性（Pitfall 1） | 接口抽象 + 模板版本管理 + 回归测试 |
+| React UI 重构 | 状态管理混乱（Pitfall 4）+ 首屏性能（Pitfall 6） | 先定状态方案 + code split + React.lazy |
+| AI 助手集成 | 上下文泄露（Pitfall 2）+ 上下文膨胀（Pitfall 3） | 签名约束 + 权限过滤 + 上下文上限 |
+| 报表仪表板 | 存储层压力（Pitfall 7）+ 指标不一致（Pitfall 8） | 预聚合表 + 指标定义文档化 |
+
+---
+
+## Anti-Patterns to Avoid
+
+### 1. "先接入再说" 心态做多数据源
+
+不要在没定义好 Parser 接口的情况下直接写设备专属解析代码。这会导致每个新设备需要修改核心解析逻辑，v1.0 设备陆续失效。
+
+**正确做法：** 先定义 Parser Interface 和 Template Registry 抽象，新增设备只注册不修改核心。
+
+### 2. 把 AI 助手当成独立聊天机器人设计
+
+AI 助手在 SecAlert 中是辅助工具，不是通用问答机器人。上下文必须与当前页面/告警强关联，禁止做成通用对话。
+
+**正确做法：** AI 助手始终有当前告警上下文，询问范围限制在告警处置、攻击链理解、相似案例检索。
+
+### 3. 仪表板追求"实时"而忽略存储成本
+
+ClickHouse 预聚合表是必需品，不是优化项。实时和准确性在安全告警场景下必须同时满足。
+
+**正确做法：** 从第一天就用物化视图做预聚合，实时指标和历史指标分离。
+
+### 4. 前端状态一股脑塞进全局 Store
+
+不是所有状态都需要全局管理。组件本地状态（如 AI 对话展开/折叠）放 localStorage，跨组件共享的才放 Zustand。
+
+**正确做法：** 状态提升有层次：组件本地 -> 页面级共享 -> 全局应用状态。
+
+### 5. AI 上下文注入原始日志全文
+
+原始日志全文包含大量无关联信息，会快速撑爆 token 窗口且干扰 AI 判断。
+
+**正确做法：** 只注入 enrichment 后的结构化字段，原始日志按需查询。
 
 ---
 
 ## Sources
 
-- Confidence: LOW (WebSearch unavailable, based on training data)
-- Training data likely reflects state through ~2024-early 2025
-- **Recommendation:** Verify via web research when WebSearch becomes available
-- Key concepts: alert fatigue (Gartner, CISO surveys), SIEM tuning (SANS Institute), attack chain correlation (MITRE ATT&CK framework)
+- React 官方文档（通过 WebFetch 部分验证）：React 组件设计模式、Hooks 规则、JSX 规范
+- 训练数据覆盖：SIEM 最佳实践、Drain3 log 解析架构、ClickHouse 聚合查询、React 性能优化
+- **Confidence:** MEDIUM（外部验证受限，依赖训练数据 + 部分 WebFetch 验证）
+- **验证限制：** WebSearch/WebFetch 在当前环境不可用，无法进行实时 ecosystem 验证
+- **建议：** 后续使用 WebSearch 验证多数据源解析架构和 AI 助手集成模式
+
+---
+
+## 结论
+
+v1.1 四个扩展方向中，**最危险的是 AI 助手上下文管理**（信息泄露 Pitfall 2 + 膨胀 Pitfall 3）和**多数据源对现有架构的侵入性修改**（Pitfall 1）。这两个方向必须在架构设计阶段就定义好边界，不能边开发边调整。
+
+React UI 升级（状态管理 Pitfall 4 + 性能 Pitfall 6）和报表仪表板（存储层 Pitfall 7 + 指标一致性 Pitfall 8）相对风险可控，只要遵循状态管理最佳实践和预聚合原则。
+
+所有阶段都必须保证 v1.0 功能的回归测试覆盖，这是底线。
