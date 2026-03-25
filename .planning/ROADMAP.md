@@ -29,7 +29,9 @@
 - [ ] Phase 5: 多数据源支持 DS-01~DS-06 (1 plan)
   - [ ] 05-PLAN.md - 多数据源支持
 - [ ] Phase 6: 产品级 UI UI-01~UI-05
-- [ ] Phase 7: AI 助手 AI-01~AI-05
+- [ ] Phase 7: AI 助手 AI-01~AI-05 (2 plans)
+  - [ ] 07-PLAN.md - AI助手核心组件 (Wave 1)
+  - [ ] 07-02-PLAN.md - NL查询与建议生成 (Wave 2)
 - [ ] Phase 8: 报表 RP-01~RP-05 (3 plans)
   - [ ] 08-PLAN.md - 报表基础架构 (Wave 1)
   - [ ] 08-02-PLAN.md - 定时报表生成 (Wave 2)
@@ -49,7 +51,7 @@
 | 4. Recommendations & Polish | 3/3 | Complete | 2026-03-24 |
 | 5. 多数据源支持 | 1/1 | Planning | — |
 | 6. 产品级 UI | 0/5 | Pending | — |
-| 7. AI 助手 | 0/5 | Pending | — |
+| 7. AI 助手 | 2/2 | Planning | — |
 | 8. 报表 | 3/3 | Planning | — |
 
 ---
