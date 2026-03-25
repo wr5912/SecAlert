@@ -16,15 +16,16 @@
 
 ### Validated
 
-- [x] 系统能还原攻击链，呈现完整的攻击路径 — Phase 02 (attack-chain-correlation) 验证通过
-- [x] 系统能自动过滤误报，直接忽略 — Phase 03 (core-analysis-engine) 验证通过
-- [x] 系统能检测真实攻击并报警 — Phase 03 (core-analysis-engine) 验证通过
-- [x] 系统能给出简单明确的处置建议 — Phase 04 (recommendations-polish) 验证通过
-- [x] 界面简洁，面向非专业运维人员 — Phase 04 (recommendations-polish) 验证通过
+- [x] 系统能自动识别和解析未知格式的安全设备日志 — v1.0 (Phase 1, UAT ✅)
+- [x] 系统能还原攻击链，呈现完整的攻击路径 — v1.0 (Phase 2, UAT ✅)
+- [x] 系统能自动过滤误报，直接忽略 — v1.0 (Phase 3, UAT ✅)
+- [x] 系统能检测真实攻击并报警 — v1.0 (Phase 3, UAT ✅)
+- [x] 系统能给出简单明确的处置建议 — v1.0 (Phase 4, UAT ✅)
+- [x] 界面简洁，面向非专业运维人员 — v1.0 (Phase 4, UAT ✅)
 
 ### Active
 
-- [ ] 系统能自动识别和解析未知格式的安全设备日志
+- [ ] 新需求待定义 (运行 `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -61,11 +62,28 @@
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| 分析工具定位 | 非专业用户，不能做自动处置，风险太大 | Phase 04 验证通过 |
-| 误报自动忽略 | 运维人员不胜烦扰，自动过滤是核心价值 | Phase 03 验证通过 |
-| Qwen3-32B统一推理 | 离线部署，无外部API依赖 | — Pending |
-| 三层解析架构 | 模板优先 → Drain聚类 → LLM兜底，平衡性能与准确性 | — Pending |
+| 分析工具定位 | 非专业用户，不能做自动处置，风险太大 | ✅ v1.0 验证通过 |
+| 误报自动忽略 | 运维人员不胜烦扰，自动过滤是核心价值 | ✅ v1.0 验证通过 |
+| Qwen3-32B统一推理 | 离线部署，无外部API依赖 | ✅ v1.0 验证通过 |
+| 三层解析架构 | 模板优先 → Drain聚类 → LLM兜底，平衡性能与准确性 | ✅ v1.0 验证通过 |
+| 攻击链级别判断 | 不是单条告警，链内多条告警联合判断 | ✅ v1.0 验证通过 |
+| 置信度0.0-1.0 | 连续分数，DSPy兼容 | ✅ v1.0 验证通过 |
+| 置信度<0.5自动误报 | Critical/High严重度豁免 | ✅ v1.0 验证通过 |
+| 四档分级 | Critical/High/Medium/Low | ✅ v1.0 验证通过 |
+| ATT&CK严重度基准+上下文 | 技术基准+上下文系数调整 | ✅ v1.0 验证通过 |
+| 规则优先+LLM兜底（处置建议） | 命中有模板的 technique_id 时直接填充，模板未命中时调用 DSPy LLM 生成 | ✅ v1.0 验证通过 |
+| 攻击链存储策略 | Neo4j 图数据库存储攻击链，Alert 节点关联 AttackChain 节点 | ✅ v1.0 验证通过 |
+| Docker Compose本地开发 | 单命令启动全部6个服务 | ✅ v1.0 验证通过 |
+| Confluent Kafka 7.5.0 | 成熟稳定的Kafka发行版 | ✅ v1.0 验证通过 |
+| Elasticsearch 8.11.0单节点 | 本地开发无需集群 | ✅ v1.0 验证通过 |
 
 ---
 
-*Last updated: 2026-03-24 after Phase 04 completion*
+## v1.0 Shipped
+
+**Shipped:** 2026-03-25
+**Phases:** 4 | **Plans:** 15 | **Tasks:** 39 | **Files:** 170 | **LOC:** 28,760
+**UAT:** 39/39 tests passed
+**Gaps Fixed:** 6/6 (IG-01/02/03/04/05/06/08; IG-07 not_needed)
+
+*Last updated: 2026-03-25 after v1.0 milestone completion*
