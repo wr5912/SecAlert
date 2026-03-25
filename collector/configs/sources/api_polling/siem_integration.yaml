@@ -1,0 +1,14 @@
+# SIEM 集成 API 轮询配置示例
+# 用于从其他 SIEM 系统拉取告警
+
+sources:
+  siem_alerts:
+    type: http_client
+    endpoint: "${SIEM_API_URL}/alerts"
+    method: GET
+    scrape_interval_secs: 60
+    auth:
+      strategy: basic
+      password: "${SIEM_API_KEY}"
+    headers:
+      Accept: "application/json"
