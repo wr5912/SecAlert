@@ -4,7 +4,7 @@ Per D-02: 混合内容风格 - 核心行动一行 + 可展开详细说明
 显示一行核心建议 + 可展开的详细步骤 + ATT&CK 引用
 */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 import type { Recommendation } from '../types';
 
