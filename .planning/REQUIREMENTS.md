@@ -1,33 +1,53 @@
 # SecAlert Requirements
 
-## Active Requirements
+## v1.0 MVP (Completed)
 
-| ID | Requirement | Phase | Status |
-|----|-------------|-------|--------|
-| PARSE-01 | 系统能自动识别和解析未知格式的安全设备日志 | Phase 1 | Pending |
-| CHAIN-01 | 系统能还原攻击链，呈现完整的攻击路径 | Phase 2 | Pending |
-| FILTER-01 | 系统能自动过滤误报，直接忽略 | Phase 3 | Pending |
-| DETECT-01 | 系统能检测真实攻击并报警 | Phase 3 | Pending |
-| REMED-01 | 系统能给出简单明确的处置建议 | Phase 4 | Pending |
-| UI-01 | 界面简洁，面向非专业运维人员 | Phase 4 | Pending |
+### Phase 1: Foundation & Ingestion
+- REQ-01: 数据采集框架搭建
+- REQ-02: Kafka消息队列集成
+- REQ-03: 基础数据模型定义
 
-## Traceability
+### Phase 2: Attack Chain Correlation
+- REQ-04: 攻击链关联分析
+- REQ-05: 时序关联引擎
 
-| Requirement | Phase | Plans Complete | Status |
-|-------------|-------|----------------|--------|
-| PARSE-01 | Phase 1: Foundation & Ingestion | 0/5 | Not started |
-| CHAIN-01 | Phase 2: Attack Chain Correlation | 0/4 | Not started |
-| FILTER-01 | Phase 3: Core Analysis Engine | 0/5 | Not started |
-| DETECT-01 | Phase 3: Core Analysis Engine | 0/5 | Not started |
-| REMED-01 | Phase 4: Recommendations & Polish | 1/5 | In Progress |
-| UI-01 | Phase 4: Recommendations & Polish | 0/5 | Not started |
+### Phase 3: Core Analysis Engine
+- REQ-06: DSPy签名驱动AI分析
+- REQ-07: 告警优先级评估
 
-## Coverage
-
-**Total v1 Requirements:** 6
-**Mapped:** 6/6
-**Orphaned:** 0
+### Phase 4: Recommendations & Polish
+- REQ-08: 处理建议生成
+- REQ-09: 用户界面完善
 
 ---
 
-*Last updated: 2026-03-22*
+## v1.1 多数据源支持 + 产品级 UI + AI 助手
+
+### Phase 5: 多数据源支持 (DS-01 ~ DS-06)
+- **DS-01**: 支持SSH Syslog数据源接入
+- **DS-02**: 支持Windows Event Log数据源
+- **DS-03**: 支持SNMP Trap数据源
+- **DS-04**: 支持API轮询数据源（HTTP/HTTPS）
+- **DS-05**: 支持数据库JDBC数据源
+- **DS-06**: 数据源健康状态监控与告警
+
+### Phase 6: 产品级 UI (UI-01 ~ UI-05)
+- **UI-01**: 响应式布局框架，支持桌面/平板/手机
+- **UI-02**: 告警仪表盘重构，数据可视化升级
+- **UI-03**: 告警列表多维度筛选与排序
+- **UI-04**: 告警详情页全新设计
+- **UI-05**: 用户偏好设置与个性化配置
+
+### Phase 7: AI 助手 (AI-01 ~ AI-05)
+- **AI-01**: AI助手对话框界面
+- **AI-02**: 告警上下文动态关联
+- **AI-03**: 自然语言查询告警
+- **AI-04**: AI处理建议自然语言生成
+- **AI-05**: AI对话历史记录
+
+### Phase 8: 报表 (RP-01 ~ RP-05)
+- **RP-01**: 日报自动生成
+- **RP-02**: 周报统计报表
+- **RP-03**: 告警趋势分析图
+- **RP-04**: 数据源健康报表
+- **RP-05**: 报表导出功能（PDF/Excel）
