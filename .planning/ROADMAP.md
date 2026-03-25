@@ -52,7 +52,7 @@
 | 4. Recommendations & Polish | 3/3 | Complete | 2026-03-24 |
 | 5. 多数据源支持 | 1/1 | Complete | 2026-03-25 |
 | 6. 产品级 UI | 1/1 | Complete   | 2026-03-25 |
-| 7. AI 助手 | 2/2 | Planning | — |
+| 7. AI 助手 | 1/2 | In Progress|  |
 | 8. 报表 | 3/3 | Planning | — |
 
 ---
