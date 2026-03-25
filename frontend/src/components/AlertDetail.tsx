@@ -4,7 +4,7 @@ Per D-07: 单屏设计 - 攻击链摘要 + 处置建议 + 操作按钮
 Per D-08: 响应工作流 - "确认已通报"和"确认为误报"+可选备注
 */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
@@ -92,7 +92,12 @@ export function AlertDetail({ chainId, onBack, onStatusChange }: AlertDetailProp
     );
   }
 
-  const { recommendation, timeline, severity, src_ip, asset_ip } = data;
+  const { recommendation, timeline, severity } = data;
+
+  // 将 severity 转换为显示字符串
+  const severityText = typeof severity === 'number'
+    ? ['', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'][severity] || 'UNKNOWN'
+    : severity?.toUpperCase();
 
   return (
     <div className="space-y-4">
@@ -105,7 +110,7 @@ export function AlertDetail({ chainId, onBack, onStatusChange }: AlertDetailProp
           <ArrowLeft className="w-5 h-5" />
         </button>
         <Badge severity={severity as Severity}>
-          {severity?.toUpperCase()}
+          {severityText}
         </Badge>
         <span className="text-slate-600 font-mono text-sm">{chainId}</span>
       </div>

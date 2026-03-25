@@ -1,65 +1,72 @@
 {
   "version": "1.0",
-  "timestamp": "2026-03-25T01:11:35Z",
-  "phase": "v1.0",
-  "phase_name": "Milestone v1.0 Gap Fixes",
-  "phase_dir": "v1.0",
+  "timestamp": "2026-03-25T08:39:35Z",
+  "phase": "debug",
+  "phase_name": "Frontend UI Debug Session",
+  "phase_dir": "debug",
   "plan": null,
   "task": null,
-  "total_tasks": 4,
+  "total_tasks": null,
   "status": "paused",
   "completed_tasks": [
     {
       "id": 1,
-      "name": "修复 IG-03: 严重度量纲不匹配",
+      "name": "修复 Tailwind CSS 缺失问题",
       "status": "done",
-      "commit": "89c42af"
+      "note": "安装了 tailwindcss@3 和 autoprefixer，创建了配置文件"
     },
     {
       "id": 2,
-      "name": "修复 IG-05: Phase 3 分类结果未持久化到 Neo4j",
+      "name": "修复 TypeScript 编译错误",
       "status": "done",
-      "commit": "89c42af"
+      "note": "Card 组件缺少 onClick 属性等"
     },
     {
       "id": 3,
-      "name": "修复 IG-06: AttackChain 节点缺少 ATT&CK 字段",
+      "name": "修复 severity 类型不匹配问题",
       "status": "done",
-      "commit": "89c42af"
-    },
+      "note": "Badge.tsx 和 AlertDetail.tsx 已更新处理数字类型的 severity"
+    }
+  ],
+  "remaining_tasks": [
     {
       "id": 4,
-      "name": "修复 IG-07: Flink 流处理作业缺失",
+      "name": "验证前端界面是否恢复正常",
       "status": "not_started",
-      "note": "架构差异，Python Kafka Consumer 已实现相同功能，暂不需要 Flink"
+      "note": "等待用户刷新浏览器验证"
     }
   ],
-  "remaining_tasks": [],
   "blockers": [],
-  "human_actions_pending": [],
+  "human_actions_pending": [
+    {
+      "action": "刷新浏览器页面验证修复效果",
+      "context": "用户需要刷新页面并确认界面是否正常显示",
+      "blocking": true
+    }
+  ],
   "decisions": [
     {
-      "decision": "IG-03 severity_label 方案",
-      "rationale": "AttackChainModel 添加 severity_label (string) 字段，与前端 Severity 类型对齐",
-      "phase": "v1.0"
+      "decision": "Badge.tsx 处理数字 severity",
+      "rationale": "API 返回数字 1-4，需要映射到 'low', 'medium', 'high', 'critical'",
+      "phase": "debug"
     },
     {
-      "decision": "IG-05 update_classification() 方案",
-      "rationale": "Neo4jClient 新增 update_classification() 方法，持久化完整分类结果",
-      "phase": "v1.0"
-    },
-    {
-      "decision": "IG-06 ATT&CK 字段方案",
-      "rationale": "AttackChain 节点直接存储 mitre_tactic/technique_id/technique_name",
-      "phase": "v1.0"
-    },
-    {
-      "decision": "IG-07 Flink 方案",
-      "rationale": "Python Kafka Consumer 已实现流处理，Flink 缺失为架构文档与实现的差异，不阻塞当前功能",
-      "phase": "v1.0"
+      "decision": "AlertDetail.tsx severityText 转换",
+      "rationale": "数字 severity 需要转换为大写字符串显示",
+      "phase": "debug"
     }
   ],
-  "uncommitted_files": [],
-  "next_action": "无阻塞任务。所有关键 gap 已修复。",
-  "context_notes": "Phase 1-4 UAT 全部完成 (39/39 tests passed)。修复了 4 个 integration gap 中的 3 个。剩余 IG-07 (Flink) 为架构文档差异，不影响功能。"
+  "uncommitted_files": [
+    "frontend/package.json",
+    "frontend/tailwind.config.js",
+    "frontend/postcss.config.js",
+    "frontend/src/components/ui/Badge.tsx",
+    "frontend/src/components/AlertDetail.tsx",
+    "frontend/src/components/ui/Card.tsx",
+    "frontend/src/components/AlertList.tsx",
+    "frontend/src/components/RemediationPanel.tsx",
+    "frontend/src/App.tsx"
+  ],
+  "next_action": "等待用户验证：刷新浏览器页面 http://localhost:3000，检查 AlertDetail 组件是否正常显示（不再报 toUpperCase 错误）",
+  "context_notes": "这是一个调试会话，不是标准的 phase 工作流。用户报告前端 UI 界面样式/布局问题。已完成 Tailwind CSS 修复和 severity 类型修复，等待用户验证。"
 }
