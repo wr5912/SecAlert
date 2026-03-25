@@ -16,20 +16,18 @@ interface UserPreferences {
   setPreference: <K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) => void;
 }
 
-export function usePreferencesStore() {
-  return create<UserPreferences>()(
-    persist(
-      (set) => ({
-        theme: 'system',
-        defaultSeverity: 'all',
-        defaultTab: 'active',
-        autoRefresh: true,
-        refreshInterval: 60,
-        setPreference: (key, value) => set((state) => ({ [key]: value })),
-      }),
-      {
-        name: 'secalert-preferences',
-      }
-    )
-  );
-}
+export const usePreferencesStore = create<UserPreferences>()(
+  persist(
+    (set) => ({
+      theme: 'system',
+      defaultSeverity: 'all',
+      defaultTab: 'active',
+      autoRefresh: true,
+      refreshInterval: 60,
+      setPreference: (key, value) => set(() => ({ [key]: value })),
+    }),
+    {
+      name: 'secalert-preferences',
+    }
+  )
+);

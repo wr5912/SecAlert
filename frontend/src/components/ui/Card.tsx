@@ -29,3 +29,11 @@ export function CardContent({ children, className = '' }: CardProps) {
     </div>
   );
 }
+
+export function CardTitle({ children, className = '' }: CardProps) {
+  return (
+    <h3 className={`text-lg font-semibold text-slate-900 ${className}`}>
+      {children}
+    </h3>
+  );
+}

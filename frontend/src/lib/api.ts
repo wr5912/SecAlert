@@ -14,7 +14,6 @@ import type {
 // 保留原有 API client 中的函数
 import {
   fetchChains as originalFetchChains,
-  fetchFalsePositives,
   fetchRemediation as originalFetchRemediation,
   acknowledgeAlert,
   restoreAlert,
