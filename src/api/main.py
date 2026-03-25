@@ -39,9 +39,24 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Neo4j 初始化警告: {e}")
 
+    # 启动报表调度器
+    try:
+        from src.analysis.report_scheduler import setup_scheduler
+        setup_scheduler()
+        logger.info("报表调度器初始化完成")
+    except Exception as e:
+        logger.warning(f"报表调度器初始化失败: {e}")
+
     yield
 
     logger.info("SecAlert API 关闭中...")
+
+    # 关闭报表调度器
+    try:
+        from src.analysis.report_scheduler import shutdown_scheduler
+        shutdown_scheduler()
+    except Exception as e:
+        logger.warning(f"报表调度器关闭失败: {e}")
 
 
 # 创建 FastAPI 应用
