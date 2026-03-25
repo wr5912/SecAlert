@@ -5,6 +5,7 @@
 
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -13,9 +14,18 @@ import { ChainTimeline } from '../components/ChainTimeline';
 import { RemediationPanel } from '../components/RemediationPanel';
 import { fetchRemediation } from '../lib/api';
 import type { Severity } from '../types';
+import { useChatStore } from '../stores/chatStore';
 
 export function AlertDetailPage() {
   const { chainId } = useParams<{ chainId: string }>();
+  const setContext = useChatStore(state => state.setContext);
+
+  // 设置聊天上下文为攻击链视图
+  useEffect(() => {
+    if (chainId) {
+      setContext({ type: 'chain', chain_id: chainId });
+    }
+  }, [chainId, setContext]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['chain', chainId],

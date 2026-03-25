@@ -5,6 +5,7 @@
 
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { AlertFilters } from '../components/alerts/AlertFilters';
 import { Badge } from '../components/ui/Badge';
@@ -12,8 +13,16 @@ import { Card, CardContent } from '../components/ui/Card';
 import { fetchChains, type ChainFilters } from '../lib/api';
 import type { AttackChain, Severity } from '../types';
 import { formatDate } from '../lib/utils';
+import { useChatStore } from '../stores/chatStore';
 
 export function AlertListPage() {
+  const setContext = useChatStore(state => state.setContext);
+
+  // 设置聊天上下文为列表视图
+  useEffect(() => {
+    setContext({ type: 'list' });
+  }, [setContext]);
+
   const [searchParams, setSearchParams] = useSearchParams();
 
   // 从 URL 恢复筛选状态

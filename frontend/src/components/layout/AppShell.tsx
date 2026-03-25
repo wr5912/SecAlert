@@ -5,6 +5,7 @@
 
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
+import { ChatDialog, ChatTriggerButton } from '../chat/ChatDialog';
 
 export function AppShell() {
   return (
@@ -13,6 +14,9 @@ export function AppShell() {
       <main className="max-w-7xl mx-auto px-4 py-6">
         <Outlet />
       </main>
+      {/* AI 助手对话框 */}
+      <ChatDialog />
+      <ChatTriggerButton />
     </div>
   );
 }
