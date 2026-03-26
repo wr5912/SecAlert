@@ -42,6 +42,7 @@
 - [x] v1.1 AI 助手对话框 — 上下文动态关联 (Phase 7 ✅)
 - [x] v1.1 报表统计 — 日报/周报自动生成、趋势分析、PDF/Excel 导出、数据源健康报表 (Phase 8 ✅)
 - [x] v1.2 智能分析工作台 — 故事线聚合、攻击链路图、多轨道时间线、威胁狩猎、资产上下文、AI调查助手 (Phase 9 ✅)
+- [x] v1.2 Tech Debt 清理 — Button组件、formatDate、updateLastMessage类型、Vite alias配置 (Phase 10 ✅)
 
 ### Out of Scope
 
@@ -121,4 +122,4 @@ This document evolves at phase transitions and milestone boundaries.
 **UAT:** 39/39 tests passed
 **Gaps Fixed:** 6/6 (IG-01/02/03/04/05/06/08; IG-07 not_needed)
 
-*Last updated: 2026-03-25 after v1.0 milestone completion*
+*Last updated: 2026-03-26 after Phase 10 completion*
