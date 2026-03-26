@@ -37,7 +37,7 @@ interface ChatState {
   setContext: (context: ChatContext) => void;
   setSessionId: (sessionId: string) => void;
   addMessage: (message: ChatMessage) => void;
-  updateLastMessage: (content: string) => void;
+  updateLastMessage: (content: string | ((prev: string) => string)) => void;
   clearMessages: () => void;
   setStreaming: (streaming: boolean) => void;
 }
@@ -69,9 +69,13 @@ export const useChatStore = create<ChatState>()(
         set((state) => {
           const messages = [...state.messages];
           if (messages.length > 0) {
+            const lastMessage = messages[messages.length - 1];
+            const newContent = typeof content === 'function'
+              ? content(lastMessage.content)
+              : content;
             messages[messages.length - 1] = {
-              ...messages[messages.length - 1],
-              content
+              ...lastMessage,
+              content: newContent
             };
           }
           return { messages };
