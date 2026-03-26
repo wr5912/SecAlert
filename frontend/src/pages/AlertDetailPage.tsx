@@ -140,7 +140,7 @@ export function AlertDetailPage() {
           {/* 操作按钮 */}
           <Card className="mt-4">
             <CardContent className="p-4 space-y-3">
-              <Button variant="primary" className="w-full">
+              <Button variant="default" className="w-full">
                 确认已通报
               </Button>
               <Button variant="destructive" className="w-full">

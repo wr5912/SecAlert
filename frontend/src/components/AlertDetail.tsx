@@ -6,7 +6,7 @@ Per D-08: 响应工作流 - "确认已通报"和"确认为误报"+可选备注
 
 import { useState, useEffect } from 'react';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from './ui/button';
 import { Badge } from './ui/Badge';
 import { Card, CardContent } from './ui/Card';
 import { ChainTimeline } from './ChainTimeline';
@@ -149,7 +149,7 @@ export function AlertDetail({ chainId, onBack, onStatusChange }: AlertDetailProp
           {/* 操作按钮 */}
           <div className="flex gap-3">
             <Button
-              variant="primary"
+              variant="default"
               onClick={handleAcknowledge}
               disabled={confirming}
             >
