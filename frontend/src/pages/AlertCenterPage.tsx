@@ -31,7 +31,6 @@ export function AlertCenterPage() {
   // 从 store 获取筛选条件
   const filters = useAnalysisStore((state) => state.filters);
   const updateFilters = useAnalysisStore((state) => state.updateFilters);
-  const selectedStorylineId = useAnalysisStore((state) => state.selectedStorylineId);
   const selectedEntityId = useAnalysisStore((state) => state.selectedEntityId);
 
   // 本地状态用于时间范围

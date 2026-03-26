@@ -24,16 +24,18 @@ export function ContextPanel({ assetId, onClose }: ContextPanelProps) {
 
   // 从 store 获取选中的实体
   const selectedEntityId = useAnalysisStore((state) => state.selectedEntityId);
-  const targetAssetId = assetId || selectedEntityId;
+  const targetAssetId = assetId ?? selectedEntityId ?? undefined;
 
   // 加载资产上下文数据
   useEffect(() => {
     if (!targetAssetId) return;
 
+    const assetIdToFetch: string = targetAssetId;
+
     async function loadContext() {
       setLoading(true);
       try {
-        const context = await fetchAssetContext(targetAssetId);
+        const context = await fetchAssetContext(assetIdToFetch);
         setData(context);
       } catch (error) {
         console.error('[ContextPanel] Failed to load asset context:', error);

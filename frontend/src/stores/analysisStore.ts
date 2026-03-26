@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { StorylineFilters, TimeRange, Severity } from '../types/analysis';
+import type { StorylineFilters, TimeRange } from '../types/analysis';
 
 // 分析视图类型
 export type AnalysisView = 'alerts' | 'graph' | 'timeline' | 'hunting' | 'assets';
@@ -66,10 +66,10 @@ const defaultFilters: StorylineFilters = {
   sources: [],
 };
 
-// 创建 Zustand store
+// 创建 store
 export const useAnalysisStore = create<UseAnalysisStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // 初始状态
       currentView: 'alerts',
       selectedStorylineId: null,
@@ -83,22 +83,34 @@ export const useAnalysisStore = create<UseAnalysisStore>()(
       // Actions
       setCurrentView: (view) => set({ currentView: view }),
 
-      selectStoryline: (storylineId) => set({
-        selectedStorylineId: storylineId,
-        copilotContext: storylineId ? { ...useAnalysisStore.getState().copilotContext, storylineId } : useAnalysisStore.getState().copilotContext,
-      }),
+      selectStoryline: (storylineId) => {
+        const currentContext = get().copilotContext;
+        set({
+          selectedStorylineId: storylineId,
+          copilotContext: storylineId
+            ? { ...currentContext, storylineId }
+            : currentContext,
+        });
+      },
 
-      selectEntity: (entityId, entityType) => set({
-        selectedEntityId: entityId,
-        selectedEntityType: entityType ?? null,
-        copilotContext: entityId ? { ...useAnalysisStore.getState().copilotContext, entityId, entityType } : useAnalysisStore.getState().copilotContext,
-      }),
+      selectEntity: (entityId, entityType) => {
+        const currentContext = get().copilotContext;
+        const newContext: AnalysisState['copilotContext'] = entityId
+          ? { ...currentContext, entityId, entityType: entityType ?? undefined }
+          : currentContext;
+        set({
+          selectedEntityId: entityId,
+          selectedEntityType: entityType ?? null,
+          copilotContext: newContext,
+        });
+      },
 
       setTimeRange: (timeRange) => set({ timeRange }),
 
-      updateFilters: (newFilters) => set((state) => ({
-        filters: { ...state.filters, ...newFilters },
-      })),
+      updateFilters: (newFilters) =>
+        set((state) => ({
+          filters: { ...state.filters, ...newFilters },
+        })),
 
       clearFilters: () => set({ filters: defaultFilters }),
 

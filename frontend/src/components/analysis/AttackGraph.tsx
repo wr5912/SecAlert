@@ -4,15 +4,9 @@
  */
 
 import { useCallback } from 'react';
-import ReactFlow, {
-  Controls,
-  MiniMap,
-  Background,
-  useNodesState,
-  useEdgesState,
-  type Node,
-  type Edge,
-} from '@xyflow/react';
+import { ReactFlow, Controls, MiniMap, Background } from '@xyflow/react';
+import { useNodesState, useEdgesState } from '@xyflow/react';
+import type { Node, Edge } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
 import type { AttackNode, AttackEdge, Severity } from '../../types/analysis';
@@ -116,16 +110,16 @@ export function AttackGraph({
   onEdgeClick,
 }: AttackGraphProps) {
   const { layoutedNodes, layoutedEdges } = getLayoutedElements(nodes, edges);
-  const [flowNodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
-  const [flowEdges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
+  const [flowNodes, , onNodesChange] = useNodesState(layoutedNodes);
+  const [flowEdges, , onEdgesChange] = useEdgesState(layoutedEdges);
 
   // 节点点击处理
-  const handleNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     onNodeClick?.(node.id);
   }, [onNodeClick]);
 
   // 边点击处理
-  const handleEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
+  const handleEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
     onEdgeClick?.(edge.id);
   }, [onEdgeClick]);
 

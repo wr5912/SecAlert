@@ -28,17 +28,6 @@ function getConfidenceLevel(confidence: number): 'high' | 'medium' | 'low' {
   return 'low';
 }
 
-// 攻击阶段 Badge 颜色映射
-const phaseBadgeColors: Record<string, string> = {
-  'reconnaissance': 'bg-blue-500/20 text-blue-400',
-  'weaponization': 'bg-purple-500/20 text-purple-400',
-  'delivery': 'bg-yellow-500/20 text-yellow-400',
-  'exploitation': 'bg-orange-500/20 text-orange-400',
-  'installation': 'bg-red-500/20 text-red-400',
-  'command_and_control': 'bg-red-600/20 text-red-500',
-  'actions_on_objective': 'bg-gray-500/20 text-gray-400',
-};
-
 // 故事线卡片组件
 export function StorylineCard({ storyline, selected = false, onSelect }: StorylineCardProps) {
   const navigate = useNavigate();

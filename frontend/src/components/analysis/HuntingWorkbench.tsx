@@ -18,7 +18,7 @@ export function HuntingWorkbench({
   onSaveAsTask,
 }: HuntingWorkbenchProps) {
   const [currentQuery, setCurrentQuery] = useState<HuntingQuery | null>(null);
-  const [result, setResult] = useState<HuntingResult | null>(null);
+  const [result] = useState<HuntingResult | null>(null);
   const [history, setHistory] = useState<HuntingQuery[]>([]);
 
   // 处理查询构建
