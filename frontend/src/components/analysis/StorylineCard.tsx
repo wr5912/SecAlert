@@ -4,7 +4,8 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import type { Storyline } from '../../types/analysis';
+import { Badge } from '../ui/Badge';
+import type { Storyline, Severity } from '../../types/analysis';
 
 // 故事线卡片属性
 export interface StorylineCardProps {
@@ -27,6 +28,17 @@ function getConfidenceLevel(confidence: number): 'high' | 'medium' | 'low' {
   return 'low';
 }
 
+// 攻击阶段 Badge 颜色映射
+const phaseBadgeColors: Record<string, string> = {
+  'reconnaissance': 'bg-blue-500/20 text-blue-400',
+  'weaponization': 'bg-purple-500/20 text-purple-400',
+  'delivery': 'bg-yellow-500/20 text-yellow-400',
+  'exploitation': 'bg-orange-500/20 text-orange-400',
+  'installation': 'bg-red-500/20 text-red-400',
+  'command_and_control': 'bg-red-600/20 text-red-500',
+  'actions_on_objective': 'bg-gray-500/20 text-gray-400',
+};
+
 // 故事线卡片组件
 export function StorylineCard({ storyline, selected = false, onSelect }: StorylineCardProps) {
   const navigate = useNavigate();
@@ -34,7 +46,7 @@ export function StorylineCard({ storyline, selected = false, onSelect }: Storyli
 
   const handleClick = () => {
     onSelect?.(storyline.id);
-    navigate(`/graph/${storyline.id}`);
+    navigate(`/analysis/graph/${storyline.id}`);
   };
 
   return (
@@ -46,14 +58,14 @@ export function StorylineCard({ storyline, selected = false, onSelect }: Storyli
       }`}
       onClick={handleClick}
     >
-      {/* 置信度标签 */}
+      {/* 置信度 + 攻击阶段 */}
       <div className="flex items-center gap-2 mb-2">
         <span className={`font-semibold ${confidenceColors[confidenceLevel]}`}>
           {storyline.confidence}%
         </span>
-        <span className="text-xs text-slate-400">
+        <Badge severity={(storyline.alerts[0]?.severity || 'low') as Severity}>
           {storyline.attackPhase}
-        </span>
+        </Badge>
       </div>
 
       {/* AI 摘要 */}
@@ -66,7 +78,7 @@ export function StorylineCard({ storyline, selected = false, onSelect }: Storyli
         <span>{storyline.assetCount} 资产</span>
         <span>{storyline.alerts.length} 告警</span>
         {storyline.threatIntelMatch > 0 && (
-          <span className="text-amber-500">威胁情报匹配 {storyline.threatIntelMatch}%</span>
+          <span className="text-amber-500">威胁情报 {storyline.threatIntelMatch}%</span>
         )}
       </div>
     </div>
