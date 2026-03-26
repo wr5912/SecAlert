@@ -4,7 +4,6 @@
  * 显示当前对话关联的上下文类型和关键信息
  */
 
-import React from 'react';
 import { ChatContext } from '../../stores/chatStore';
 
 export function ContextIndicator({ context }: { context: ChatContext }) {

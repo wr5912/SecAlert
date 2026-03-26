@@ -4,9 +4,8 @@
  * 使用 Radix UI Dialog 包装，提供完整的对话界面
  */
 
-import React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, MessageSquare } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { useChatStore } from '../../stores/chatStore';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessageList } from './ChatMessageList';

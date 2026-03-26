@@ -44,7 +44,7 @@ interface ChatState {
 
 export const useChatStore = create<ChatState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // 初始状态
       messages: [],
       sessionId: null,

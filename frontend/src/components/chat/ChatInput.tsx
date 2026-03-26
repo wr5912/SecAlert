@@ -2,7 +2,7 @@
  * 对话输入框组件
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import { useChatStore } from '../../stores/chatStore';
 import { createSession, streamChat, filterSensitiveInfo } from '../../api/chat';
@@ -10,7 +10,6 @@ import { createSession, streamChat, filterSensitiveInfo } from '../../api/chat';
 export function ChatInput() {
   const [input, setInput] = useState('');
   const {
-    messages,
     sessionId,
     context,
     isStreaming,

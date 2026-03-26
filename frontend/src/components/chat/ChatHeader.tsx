@@ -2,7 +2,6 @@
  * AI 助手对话框头部
  */
 
-import React from 'react';
 import { X, Bot } from 'lucide-react';
 import { ContextIndicator } from './ContextIndicator';
 import { useChatStore } from '../../stores/chatStore';

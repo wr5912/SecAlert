@@ -4,7 +4,7 @@
  * 使用 @radix-ui/react-scroll-area 实现平滑滚动
  */
 
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 import { useChatStore } from '../../stores/chatStore';
 import { ChatMessage } from './ChatMessage';

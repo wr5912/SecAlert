@@ -2,7 +2,6 @@
  * 单条消息组件
  */
 
-import React from 'react';
 import { User, Bot } from 'lucide-react';
 import { filterSensitiveInfo } from '../../api/chat';
 import type { ChatMessage as ChatMessageType } from '../../stores/chatStore';
