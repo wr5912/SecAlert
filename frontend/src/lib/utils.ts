@@ -1,18 +1,21 @@
-import { format, formatDistanceToNow, parseISO } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
-/**
- * 格式化日期为指定格式
- */
-export function formatDate(date: string | Date, pattern = 'yyyy-MM-dd HH:mm'): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
-  return format(d, pattern, { locale: zhCN });
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }
 
 /**
- * 格式化相对时间（如"3小时前"）
+ * 格式化日期为中文格式
  */
-export function formatRelativeTime(date: string | Date): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
-  return formatDistanceToNow(d, { addSuffix: true, locale: zhCN });
+export function formatDate(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
 }
