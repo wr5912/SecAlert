@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-26T12:17:54.958Z",
+  "phase": "11",
+  "phase_name": "后端 API 集成",
+  "phase_dir": "phases/11-backend-api",
+  "plan": "01",
+  "task": 6,
+  "total_tasks": 6,
+  "status": "completed",
+  "completed_tasks": [
+    {"id": 1, "name": "创建分析模块 Pydantic 模型", "status": "done"},
+    {"id": 2, "name": "实现获取故事线列表 API", "status": "done"},
+    {"id": 3, "name": "实现攻击图数据 API", "status": "done"},
+    {"id": 4, "name": "实现时间线事件 API", "status": "done"},
+    {"id": 5, "name": "实现资产上下文 API", "status": "done"},
+    {"id": 6, "name": "实现威胁狩猎查询 API", "status": "done"}
+  ],
+  "remaining_tasks": [],
+  "blockers": [],
+  "human_actions_pending": [
+    {
+      "action": "启动后端服务",
+      "context": "分析工作台页面报 API 404 错误，需要启动后端才能联调",
+      "blocking": false
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Phase 11-01 已完成后端 API 实现",
+      "rationale": "5个 API 端点已实现并注册到 main.py",
+      "phase": "11"
+    }
+  ],
+  "uncommitted_files": [],
+  "next_action": "启动后端服务进行联调验证: cd src && uvicorn api.main:app --reload",
+  "context_notes": "本会话主要是调试前端 UI 问题（severity 类型修复）。Phase 11-01 已完成但后端服务未启动，导致前端分析工作台报 404。"
+}
