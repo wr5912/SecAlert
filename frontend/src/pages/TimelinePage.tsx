@@ -6,7 +6,6 @@
 
 import { useState, useEffect } from 'react';
 import { Timeline } from '../components/analysis/Timeline';
-import { useAnalysisStore } from '../stores/analysisStore';
 import { fetchTimeline } from '../api/analysisEndpoints';
 import type { TimelineEvent, TimeRange } from '../types/analysis';
 
@@ -37,9 +36,6 @@ export function TimelinePage() {
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [timeRange, setTimeRange] = useState<TimeRange | null>(null);
   const [playbackPosition, setPlaybackPosition] = useState(50);
-
-  // 从 store 获取时间范围
-  const storeTimeRange = useAnalysisStore((state) => state.timeRange);
 
   // 设置默认时间范围（最近24小时）
   useEffect(() => {

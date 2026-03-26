@@ -12,7 +12,7 @@ import { AttackGraph } from '../components/analysis/AttackGraph';
 import { ContextPanel } from '../components/analysis/ContextPanel';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { fetchAttackGraph } from '../api/analysisEndpoints';
-import type { AttackNode, AttackEdge, Severity } from '../types/analysis';
+import type { AttackNode, AttackEdge } from '../types/analysis';
 
 // Mock storyline data (TODO: replace with API call)
 const mockStoryline = {

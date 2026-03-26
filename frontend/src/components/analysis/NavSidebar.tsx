@@ -13,10 +13,10 @@ import {
 
 // 导航项配置
 const navItems = [
-  { path: '/alerts', icon: AlertCircle, label: '告警中心' },
-  { path: '/hunting', icon: Search, label: '威胁狩猎' },
-  { path: '/timeline', icon: Clock, label: '溯源时间线' },
-  { path: '/assets', icon: Server, label: '资产图谱' },
+  { path: '/analysis/alerts', icon: AlertCircle, label: '告警中心' },
+  { path: '/analysis/hunting', icon: Search, label: '威胁狩猎' },
+  { path: '/analysis/timeline', icon: Clock, label: '溯源时间线' },
+  { path: '/analysis/assets', icon: Server, label: '资产图谱' },
 ];
 
 // NavSidebar 属性

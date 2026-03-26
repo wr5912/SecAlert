@@ -4,10 +4,10 @@
  * 可视化查询构建器 + 查询结果展示
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { QueryBuilder } from '../components/analysis/QueryBuilder';
 import { fetchHuntingResults } from '../api/analysisEndpoints';
-import type { HuntingQuery, HuntingResult, TimelineEvent } from '../types/analysis';
+import type { HuntingQuery, HuntingResult } from '../types/analysis';
 
 // 视图类型
 type ViewMode = 'table' | 'chart';
