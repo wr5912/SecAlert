@@ -27,6 +27,7 @@
 | 7. AI 助手 | v1.1 | 2/2 | Complete | 2026-03-25 |
 | 8. 报表 | v1.1 | 3/3 | Complete | 2026-03-25 |
 | 9. 智能分析工作台 | v1.2 | 1/1 | Complete   | 2026-03-26 |
+| 10. 后端联调 + Tech Debt | v1.2 | 1/1 | Planned | — |
 
 ---
 
@@ -57,4 +58,13 @@ Phase 7 (AI 助手)
 Phase 8 (报表)
     ↓
 Phase 9 (智能分析工作台)
+    ↓
+Phase 10 (后端联调 + Tech Debt)
 ```
+
+---
+
+## Phase 10 Plans
+
+Plans:
+- [x] 10-01-PLAN.md — Tech Debt Cleanup (修复 TypeScript 编译错误)
