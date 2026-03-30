@@ -18,6 +18,7 @@ import { AttackGraphPage } from './pages/AttackGraphPage';
 import { TimelinePage } from './pages/TimelinePage';
 import { HuntingPage } from './pages/HuntingPage';
 import { AssetContextPage } from './pages/AssetContextPage';
+import { AssetsPage } from './pages/AssetsPage';
 
 const router = createBrowserRouter([
   {
@@ -66,6 +67,10 @@ const router = createBrowserRouter([
       {
         path: 'hunting',
         element: <HuntingPage />,
+      },
+      {
+        path: 'assets',
+        element: <AssetsPage />,
       },
       {
         path: 'assets/:assetId',
