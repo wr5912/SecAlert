@@ -1,10 +1,11 @@
 /**
  * AI Copilot 面板组件
  * 提供上下文感知的 AI 辅助分析功能 - Tactical Command Center 风格
+ * 可折叠的 320px 右侧面板
  */
 
 import { useState, useEffect } from 'react';
-import { Bot, Send } from 'lucide-react';
+import { Bot, Send, X } from 'lucide-react';
 import { useAnalysisStore } from '../../stores/analysisStore';
 import type { AISuggestion } from '../../types/analysis';
 
@@ -25,6 +26,11 @@ export function AIPanel({ onExport }: AIPanelProps) {
   const copilotContext = useAnalysisStore((state) => state.copilotContext);
   const selectedStorylineId = useAnalysisStore((state) => state.selectedStorylineId);
   const selectedEntityId = useAnalysisStore((state) => state.selectedEntityId);
+  const copilotOpen = useAnalysisStore((state) => state.copilotOpen);
+  const toggleCopilot = useAnalysisStore((state) => state.toggleCopilot);
+
+  // 如果面板未打开则不渲染
+  if (!copilotOpen) return null;
 
   // 当上下文变化时，更新智能推荐
   useEffect(() => {
@@ -78,7 +84,7 @@ export function AIPanel({ onExport }: AIPanelProps) {
   };
 
   return (
-    <aside className="w-80 bg-surface border-l border-border flex flex-col relative">
+    <aside className="w-80 bg-surface border-l border-border flex flex-col relative shrink-0">
       {/* 顶部 accent 线 */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-accent via-accent/50 to-transparent" />
 
@@ -87,10 +93,17 @@ export function AIPanel({ onExport }: AIPanelProps) {
         <div className="p-2 bg-accent/10 rounded-lg border border-accent/20">
           <Bot className="w-4 h-4 text-accent" />
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="text-sm font-heading font-semibold text-slate-200">AI Copilot</h3>
           <p className="text-xs text-slate-500">智能告警分析助手</p>
         </div>
+        <button
+          onClick={toggleCopilot}
+          className="p-1.5 rounded hover:bg-accent/10 text-slate-400 hover:text-accent transition-colors duration-150"
+          title="关闭"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
       {/* 查询输入 */}

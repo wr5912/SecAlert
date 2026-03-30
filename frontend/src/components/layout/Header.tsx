@@ -5,6 +5,7 @@
 import { Shield, Bot } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/cn';
+import { useAnalysisStore } from '../../stores/analysisStore';
 
 const navItems = [
   { path: '/', label: '仪表盘' },
@@ -15,6 +16,8 @@ const navItems = [
 
 export function Header() {
   const location = useLocation();
+  const copilotOpen = useAnalysisStore((state) => state.copilotOpen);
+  const toggleCopilot = useAnalysisStore((state) => state.toggleCopilot);
 
   return (
     <header className="h-14 bg-surface border-b border-border relative">
@@ -46,8 +49,16 @@ export function Header() {
             </Link>
           ))}
         </nav>
-        {/* AI Copilot 按钮 */}
-        <button className="flex items-center gap-2 px-3 py-1.5 bg-accent/10 border border-accent/50 rounded-lg text-accent hover:bg-accent/20 transition-colors duration-150">
+        {/* AI Copilot 按钮 - 切换面板 */}
+        <button
+          onClick={toggleCopilot}
+          className={cn(
+            'flex items-center gap-2 px-3 py-1.5 border rounded-lg transition-colors duration-150',
+            copilotOpen
+              ? 'bg-accent/20 border-accent/50 text-accent'
+              : 'bg-accent/10 border-accent/50 text-accent hover:bg-accent/20'
+          )}
+        >
           <Bot className="w-4 h-4" />
           <span className="text-sm font-medium">AI Copilot</span>
         </button>
