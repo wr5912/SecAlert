@@ -1,3 +1,8 @@
+// 字体导入 - Tactical Command Center 字体系统
+import '@fontsource-variable/jetbrains-mono';
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/ibm-plex-sans';
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
