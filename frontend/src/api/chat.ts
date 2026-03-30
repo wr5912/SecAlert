@@ -11,6 +11,9 @@ import type { ChatContext, ChatMessage } from '../stores/chatStore';
 
 const API_BASE = '/api/chat';
 
+// 是否使用模拟模式（后端未运行时）
+const USE_MOCK = true;
+
 interface CreateSessionResponse {
   session_id: string;
   context_type: string;
@@ -33,6 +36,14 @@ export async function createSession(
   contextType: string = 'global',
   contextEntityId?: string
 ): Promise<CreateSessionResponse> {
+  // 模拟模式
+  if (USE_MOCK) {
+    return {
+      session_id: 'mock-session-' + Date.now(),
+      context_type: contextType
+    };
+  }
+
   const response = await fetch(`${API_BASE}/sessions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -87,6 +98,71 @@ export async function streamChat(
   onDone: () => void,
   onError: (error: Error) => void
 ): Promise<void> {
+  // 模拟模式
+  if (USE_MOCK) {
+    const mockResponses: Record<string, string> = {
+      'chain': `根据当前选中的攻击链，我为您分析如下：
+
+**攻击链详情**
+- 攻击阶段: 初始访问 → 执行 → 持久化
+- 目标资产: 192.168.1.100
+- 严重度: High
+- 置信度: 85%
+
+**建议的处置步骤**
+1. 隔离受影响的服务器
+2. 检查是否存在异常进程
+3. 查看系统日志确认入侵时间点
+4. 联系安全团队进行深入调查`,
+
+      'list': `当前告警列表中有 **23** 条活跃告警，其中：
+
+**严重告警 (Critical)**: 3 条
+- 192.168.1.100: 疑似暴力破解
+- 10.0.0.50: Webshell 上传检测
+
+**高危告警 (High)**: 8 条
+- 主要为异常登录和端口扫描行为
+
+建议先处理 Critical 级别的告警。`,
+
+      'dashboard': `当前仪表盘显示：
+
+**安全态势概览**
+- 活跃告警: 23 条
+- 待处理: 15 条
+- 已抑制: 8 条
+
+**最近 24 小时趋势**
+- 告警数量较昨日下降 12%
+- 未发现新的严重威胁
+
+建议关注近期内多次触发的告警。`,
+
+      'global': `您好！我是 SecAlert AI 助手。
+
+我可以帮您：
+- 查询和分析安全告警
+- 解释攻击链详情
+- 提供处置建议
+
+请选择一个告警或告诉我您想了解什么？`
+    };
+
+    const response = mockResponses[context.type] || mockResponses['global'];
+
+    // 模拟流式输出
+    const chunks = response.match(/.{1,5}/g) || [response];
+    let delay = 20;
+    for (const chunk of chunks) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay + 5, 50); // 逐渐增加延迟
+      onChunk(chunk);
+    }
+    onDone();
+    return;
+  }
+
   try {
     const response = await fetch(`${API_BASE}/stream`, {
       method: 'POST',
