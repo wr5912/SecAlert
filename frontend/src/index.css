@@ -1,35 +1,111 @@
-/* SecAlert 前端样式 - 深色专业主题 */
-
 /* Tailwind CSS 基础指令 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 基础重置 - 深色主题 */
-body {
-  @apply bg-[#0f172a] text-slate-200 antialiased;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+/* UI-SPEC CSS 变量定义 */
+:root {
+  /* Base palette */
+  --background: #0a0f1a;
+  --surface: #111827;
+  --border: #1e293b;
+  --accent: #00f0ff;
+  --accent-muted: rgba(0, 240, 255, 0.1);
+
+  /* Severity colors */
+  --severity-critical: #ff2d55;
+  --severity-high: #ff6b35;
+  --severity-medium: #fbbf24;
+  --severity-low: #4b5563;
+
+  /* Semantic colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --destructive: #ff2d55;
+  --info: #00f0ff;
+
+  /* Grid background */
+  --grid-color: rgba(30, 41, 59, 0.3);
+  --grid-size: 40px;
 }
 
-/* 滚动条样式 - 深色主题 */
+@layer base {
+  body {
+    @apply antialiased;
+    background-color: var(--background);
+    color: #e2e8f0;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  /* 网格背景效果 */
+  .grid-background {
+    background-image:
+      linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+  }
+
+  /* 噪点纹理 */
+  .noise-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.02;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+}
+
+/* 滚动条样式 */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-800;
+  background: var(--surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-600 rounded;
+  background: var(--border);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-500;
+  background: #334155;
 }
 
-/* Focus ring */
+/* Focus ring - 使用 accent 色 */
 *:focus-visible {
-  @apply outline-none ring-2 ring-cyan-500 ring-offset-2 ring-offset-[#0f172a];
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--accent);
 }
+
+/* Glow 效果 */
+.glow-accent {
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), 0 0 40px rgba(0, 240, 255, 0.1);
+}
+
+.glow-critical {
+  box-shadow: 0 0 20px rgba(255, 45, 85, 0.3), 0 0 40px rgba(255, 45, 85, 0.1);
+}
+
+.glow-high {
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.3), 0 0 40px rgba(255, 107, 53, 0.1);
+}
+
+/* 交错动画 */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 400ms ease-out forwards;
+}
+
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 50ms; }
+.stagger-3 { animation-delay: 100ms; }
+.stagger-4 { animation-delay: 150ms; }
+.stagger-5 { animation-delay: 200ms; }
