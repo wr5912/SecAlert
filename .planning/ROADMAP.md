@@ -29,7 +29,7 @@
 | 9. 智能分析工作台 | v1.2 | 1/1 | Complete | 2026-03-26 |
 | 10. 后端联调 + Tech Debt | v1.2 | 1/1 | Complete | 2026-03-26 |
 | 11. 后端 API 完善 | v1.2 | 0/1 | Not Started | — |
-| 12. 前端视觉升级 | v1.2 | 0/2 | Planning Complete | — |
+| 12. 前端视觉升级 | v1.2 | 1/2 | In Progress|  |
 
 ---
 
@@ -78,5 +78,5 @@ Plans:
 ## Phase 12 Plans
 
 Plans:
-- [ ] 12-01-PLAN.md — 全局样式 + 新组件 + P0 组件升级 (StatCard, AlertBadge)
+- [x] 12-01-PLAN.md — 全局样式 + 新组件 + P0 组件升级 (StatCard, AlertBadge)
 - [ ] 12-02-PLAN.md — P1/P2/P3 组件改造 (Card, Button, AlertRow, Header, Charts, AIPanel)
