@@ -1,9 +1,10 @@
 /**
  * AI Copilot 面板组件
- * 提供上下文感知的 AI 辅助分析功能
+ * 提供上下文感知的 AI 辅助分析功能 - Tactical Command Center 风格
  */
 
 import { useState, useEffect } from 'react';
+import { Bot, Send } from 'lucide-react';
 import { useAnalysisStore } from '../../stores/analysisStore';
 import type { AISuggestion } from '../../types/analysis';
 
@@ -77,45 +78,56 @@ export function AIPanel({ onExport }: AIPanelProps) {
   };
 
   return (
-    <aside className="w-80 bg-slate-900 border-l border-slate-700 flex flex-col">
+    <aside className="w-80 bg-surface border-l border-border flex flex-col relative">
+      {/* 顶部 accent 线 */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-accent via-accent/50 to-transparent" />
+
       {/* 头部 */}
-      <div className="h-14 px-4 flex items-center border-b border-slate-700">
-        <h2 className="font-semibold text-slate-200">AI 调查助手</h2>
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+        <div className="p-2 bg-accent/10 rounded-lg border border-accent/20">
+          <Bot className="w-4 h-4 text-accent" />
+        </div>
+        <div>
+          <h3 className="text-sm font-heading font-semibold text-slate-200">AI Copilot</h3>
+          <p className="text-xs text-slate-500">智能告警分析助手</p>
+        </div>
       </div>
 
       {/* 查询输入 */}
-      <div className="p-4 border-b border-slate-700">
-        <textarea
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="输入自然语言查询..."
-          className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-          rows={3}
-        />
-        <button
-          onClick={handleSubmit}
-          disabled={status === 'querying' || !query.trim()}
-          className="mt-2 w-full py-2 px-4 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          {status === 'querying' ? '分析中...' : '提交查询'}
-        </button>
+      <div className="p-3 border-b border-border">
+        <div className="relative">
+          <textarea
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="输入您的安全问题..."
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 resize-none"
+            rows={2}
+          />
+          <button
+            onClick={handleSubmit}
+            disabled={status === 'querying' || !query.trim()}
+            className="absolute right-2 bottom-2 p-2 bg-accent/10 rounded-lg border border-accent/50 text-accent hover:bg-accent/20 transition-colors duration-150"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* 智能推荐 */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <h3 className="text-sm font-medium text-slate-400 mb-3">智能推荐</h3>
+      <div className="flex-1 overflow-y-auto p-3">
+        <h3 className="text-xs font-heading font-medium text-slate-400 mb-3 uppercase tracking-wide">智能推荐</h3>
         <div className="space-y-3">
           {suggestions.map((suggestion, index) => (
             <div
               key={index}
-              className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg"
+              className="p-3 bg-surface/50 border border-border rounded-lg"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-cyan-400">
+                <span className="font-medium text-accent">
                   {suggestion.action}
                 </span>
-                <span className="text-xs text-slate-500">
-                  置信度 {Math.round(suggestion.confidence * 100)}%
+                <span className="text-xs text-slate-500 font-mono">
+                  {Math.round(suggestion.confidence * 100)}%
                 </span>
               </div>
               {/* reasoning 字段说明推理过程 */}
@@ -127,7 +139,7 @@ export function AIPanel({ onExport }: AIPanelProps) {
                   {suggestion.evidence.map((e, i) => (
                     <span
                       key={i}
-                      className="px-1.5 py-0.5 text-xs bg-slate-700 rounded text-slate-400"
+                      className="px-1.5 py-0.5 text-xs bg-accent/10 border border-accent/20 rounded text-slate-400"
                     >
                       {e}
                     </span>
@@ -140,24 +152,24 @@ export function AIPanel({ onExport }: AIPanelProps) {
       </div>
 
       {/* 导出功能 */}
-      <div className="p-4 border-t border-slate-700">
-        <h3 className="text-sm font-medium text-slate-400 mb-2">证据导出</h3>
+      <div className="p-3 border-t border-border">
+        <h3 className="text-xs font-heading font-medium text-slate-400 mb-2 uppercase tracking-wide">证据导出</h3>
         <div className="flex gap-2">
           <button
             onClick={() => onExport?.('pdf')}
-            className="flex-1 py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded transition-colors"
+            className="flex-1 py-1.5 px-3 bg-accent/10 border border-accent/30 hover:bg-accent/20 text-accent text-xs rounded transition-colors duration-150"
           >
             PDF
           </button>
           <button
             onClick={() => onExport?.('markdown')}
-            className="flex-1 py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded transition-colors"
+            className="flex-1 py-1.5 px-3 bg-accent/10 border border-accent/30 hover:bg-accent/20 text-accent text-xs rounded transition-colors duration-150"
           >
             Markdown
           </button>
           <button
             onClick={() => onExport?.('json')}
-            className="flex-1 py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded transition-colors"
+            className="flex-1 py-1.5 px-3 bg-accent/10 border border-accent/30 hover:bg-accent/20 text-accent text-xs rounded transition-colors duration-150"
           >
             JSON
           </button>
