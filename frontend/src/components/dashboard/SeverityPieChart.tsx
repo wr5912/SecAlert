@@ -65,7 +65,9 @@ export function SeverityPieChart({ data }: SeverityPieChartProps) {
             backgroundColor: '#111827',
             border: '1px solid #1e293b',
             borderRadius: '8px',
-            color: '#e2e8f0'
+          }}
+          itemStyle={{
+            color: '#e2e8f0',
           }}
         />
         <Legend
