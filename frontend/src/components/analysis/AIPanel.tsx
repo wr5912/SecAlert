@@ -5,7 +5,7 @@
  * 支持联动: 当前页面、选中的告警、选中的实体
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Bot, Send, X, AlertCircle, BarChart3, Shield, Settings, Loader2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAnalysisStore } from '../../stores/analysisStore';
@@ -14,32 +14,30 @@ import { createSession, streamChat, filterSensitiveInfo } from '../../api/chat';
 import type { AISuggestion } from '../../types/analysis';
 
 // 页面上下文类型
-type PageContext = 'dashboard' | 'alerts' | 'analysis' | 'attack-graph' | 'timeline' | 'hunting' | 'assets' | 'settings';
+type PageContextType = 'dashboard' | 'alerts' | 'analysis' | 'attack-graph' | 'timeline' | 'hunting' | 'assets' | 'settings';
+
+// 页面上下文配置
+const PAGE_CONTEXTS: Record<PageContextType, { name: string; icon: React.ReactNode }> = {
+  'dashboard': { name: '仪表盘', icon: <BarChart3 className="w-3 h-3" /> },
+  'alerts': { name: '告警列表', icon: <AlertCircle className="w-3 h-3" /> },
+  'analysis': { name: '分析工作台', icon: <AlertCircle className="w-3 h-3" /> },
+  'attack-graph': { name: '攻击路径分析', icon: <BarChart3 className="w-3 h-3" /> },
+  'timeline': { name: '时间线分析', icon: <AlertCircle className="w-3 h-3" /> },
+  'hunting': { name: '威胁狩猎', icon: <Shield className="w-3 h-3" /> },
+  'assets': { name: '资产视图', icon: <BarChart3 className="w-3 h-3" /> },
+  'settings': { name: '系统设置', icon: <Settings className="w-3 h-3" /> },
+};
 
 // 获取页面上下文
-function getPageContext(pathname: string): { page: PageContext; name: string; icon: React.ReactNode } {
-  if (pathname.startsWith('/analysis/graph')) {
-    return { page: 'attack-graph', name: '攻击路径分析', icon: <BarChart3 className="w-3 h-3" /> };
-  }
-  if (pathname.startsWith('/analysis/timeline')) {
-    return { page: 'timeline', name: '时间线分析', icon: <AlertCircle className="w-3 h-3" /> };
-  }
-  if (pathname.startsWith('/analysis/hunting')) {
-    return { page: 'hunting', name: '威胁狩猎', icon: <Shield className="w-3 h-3" /> };
-  }
-  if (pathname.startsWith('/analysis/assets')) {
-    return { page: 'assets', name: '资产视图', icon: <BarChart3 className="w-3 h-3" /> };
-  }
-  if (pathname.startsWith('/analysis')) {
-    return { page: 'analysis', name: '分析工作台', icon: <AlertCircle className="w-3 h-3" /> };
-  }
-  if (pathname.startsWith('/alerts')) {
-    return { page: 'alerts', name: '告警列表', icon: <AlertCircle className="w-3 h-3" /> };
-  }
-  if (pathname === '/settings') {
-    return { page: 'settings', name: '系统设置', icon: <Settings className="w-3 h-3" /> };
-  }
-  return { page: 'dashboard', name: '仪表盘', icon: <BarChart3 className="w-3 h-3" /> };
+function getPageKey(pathname: string): PageContextType {
+  if (pathname.startsWith('/analysis/graph')) return 'attack-graph';
+  if (pathname.startsWith('/analysis/timeline')) return 'timeline';
+  if (pathname.startsWith('/analysis/hunting')) return 'hunting';
+  if (pathname.startsWith('/analysis/assets')) return 'assets';
+  if (pathname.startsWith('/analysis')) return 'analysis';
+  if (pathname.startsWith('/alerts')) return 'alerts';
+  if (pathname === '/settings') return 'settings';
+  return 'dashboard';
 }
 
 // AIPanel 属性
@@ -53,9 +51,13 @@ export function AIPanel({ onExport }: AIPanelProps) {
   const [showChat, setShowChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 获取当前页面上下文
+  // 获取当前页面上下文 - 使用 useMemo 避免无限循环
   const location = useLocation();
-  const pageContext = getPageContext(location.pathname);
+  const page = useMemo(() => getPageKey(location.pathname), [location.pathname]);
+  const pageContext = useMemo(
+    () => ({ page, ...PAGE_CONTEXTS[page] }),
+    [page]
+  );
 
   // 从 analysisStore 获取上下文
   const selectedStorylineId = useAnalysisStore((state) => state.selectedStorylineId);
@@ -186,7 +188,7 @@ export function AIPanel({ onExport }: AIPanelProps) {
     }
 
     setSuggestions(newSuggestions);
-  }, [pageContext, selectedStorylineId, selectedEntityId, selectedEntityType, showChat]);
+  }, [page, selectedStorylineId, selectedEntityId, selectedEntityType, showChat]);
 
   // 自动滚动到最新消息
   useEffect(() => {
