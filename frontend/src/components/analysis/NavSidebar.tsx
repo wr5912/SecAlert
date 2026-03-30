@@ -33,13 +33,11 @@ export function NavSidebar({ collapsed = false, onToggle }: NavSidebarProps) {
       }`}
     >
       {/* Logo 区域 */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-slate-700">
-        {!collapsed && (
-          <span className="font-semibold text-cyan-400">SecAlert</span>
-        )}
+      <div className="flex items-center justify-end h-16 px-4 border-b border-slate-700">
         <button
           onClick={onToggle}
           className="p-1.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200"
+          title={collapsed ? '展开菜单' : '收起菜单'}
         >
           {collapsed ? '→' : '←'}
         </button>
