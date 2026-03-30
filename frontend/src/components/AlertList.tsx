@@ -11,6 +11,7 @@ import { Card, CardContent } from './ui/Card';
 import { Badge } from './ui/Badge';
 import type { AttackChain, Severity, TabMode, AttackChainListResponse } from '../types';
 import { fetchChains, fetchFalsePositives, restoreAlert } from '../api/client';
+import { cn } from '../lib/cn';
 
 interface AlertListProps {
   onSelectChain: (chainId: string) => void;
@@ -57,7 +58,7 @@ export function AlertList({ onSelectChain, selectedChainId }: AlertListProps) {
   return (
     <div className="space-y-4">
       {/* Tab 切换 */}
-      <div className="flex gap-4 border-b border-slate-200">
+      <div className="flex gap-4 border-b border-border">
         <TabButton
           active={tab === 'active'}
           onClick={() => setTab('active')}
@@ -83,7 +84,7 @@ export function AlertList({ onSelectChain, selectedChainId }: AlertListProps) {
           />
           <button
             onClick={loadChains}
-            className="p-2 text-slate-500 hover:text-slate-700"
+            className="p-2 text-slate-500 hover:text-accent transition-colors duration-150"
             title="刷新"
           >
             <RefreshCw className="w-4 h-4" />
@@ -108,25 +109,30 @@ export function AlertList({ onSelectChain, selectedChainId }: AlertListProps) {
       {/* 空状态 */}
       {!loading && !error && chains.length === 0 && (
         <div className="text-center py-8">
-          <p className="text-slate-500">暂无需要处理的告警</p>
-          <p className="text-sm text-slate-400">所有 Critical/High 告警已处理完毕</p>
+          <p className="text-slate-400">暂无需要处理的告警</p>
+          <p className="text-sm text-slate-500">所有 Critical/High 告警已处理完毕</p>
         </div>
       )}
 
       {/* 告警列表 */}
       {!loading && !error && chains.length > 0 && (
         <div className="space-y-2">
-          {chains.map((chain) => (
-            <ChainRow
+          {chains.map((chain, index) => (
+            <div
               key={chain.chain_id}
-              chain={chain}
-              selected={chain.chain_id === selectedChainId}
-              onClick={() => onSelectChain(chain.chain_id)}
-              isSuppressed={tab === 'suppressed'}
-              onRestore={() => {
-                restoreAlert(chain.chain_id).then(() => loadChains());
-              }}
-            />
+              className="animate-fade-in-up opacity-0"
+              style={{ animationDelay: `${Math.min(index * 50, 350)}ms` }}
+            >
+              <ChainRow
+                chain={chain}
+                selected={chain.chain_id === selectedChainId}
+                onClick={() => onSelectChain(chain.chain_id)}
+                isSuppressed={tab === 'suppressed'}
+                onRestore={() => {
+                  restoreAlert(chain.chain_id).then(() => loadChains());
+                }}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -149,11 +155,12 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-1 py-2 border-b-2 transition-colors ${
+      className={cn(
+        'flex items-center gap-2 px-1 py-2 border-b-2 transition-colors duration-150',
         active
-          ? 'border-blue-500 text-blue-600'
-          : 'border-transparent text-slate-500 hover:text-slate-700'
-      }`}
+          ? 'border-accent text-accent'
+          : 'border-transparent text-slate-400 hover:text-accent'
+      )}
     >
       {icon}
       {children}
@@ -173,7 +180,7 @@ function SeverityFilter({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as Severity | 'all')}
-      className="px-3 py-1.5 border border-slate-300 rounded text-sm"
+      className="px-3 py-1.5 border border-border bg-surface rounded text-sm text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 transition-colors duration-150"
     >
       <option value="all">全部</option>
       <option value="critical">Critical</option>
@@ -203,10 +210,12 @@ function ChainRow({
 
   return (
     <Card
-      className={`cursor-pointer transition-colors ${
-        selected ? 'ring-2 ring-blue-500' : 'hover:bg-slate-50'
-      }`}
+      className={cn(
+        'cursor-pointer transition-colors',
+        selected ? 'ring-2 ring-accent' : 'hover:bg-surface/50'
+      )}
       onClick={onClick}
+      severity={chain.max_severity as 'critical' | 'high' | 'medium' | 'low'}
     >
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
@@ -215,11 +224,11 @@ function ChainRow({
           </Badge>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-slate-900 font-mono">{srcIp}</span>
-              <span className="text-slate-400">→</span>
-              <span className="text-slate-900 font-mono">{chain.asset_ip || '未知'}</span>
+              <span className="text-slate-200 font-mono">{srcIp}</span>
+              <span className="text-slate-500">→</span>
+              <span className="text-slate-200 font-mono">{chain.asset_ip || '未知'}</span>
             </div>
-            <div className="text-sm text-slate-500 truncate mt-1">
+            <div className="text-sm text-slate-400 truncate mt-1">
               {primaryBehavior}
             </div>
           </div>
@@ -230,13 +239,13 @@ function ChainRow({
                   e.stopPropagation();
                   onRestore();
                 }}
-                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                className="p-1.5 text-slate-500 hover:text-accent hover:bg-accent/10 rounded transition-colors duration-150"
                 title="恢复为活跃告警"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
             )}
-            <div className="text-xs text-slate-400">
+            <div className="text-xs text-slate-500 font-mono">
               {chain.start_time ? new Date(chain.start_time).toLocaleString() : ''}
             </div>
           </div>
