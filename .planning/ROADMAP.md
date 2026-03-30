@@ -27,7 +27,9 @@
 | 7. AI 助手 | v1.1 | 2/2 | Complete | 2026-03-25 |
 | 8. 报表 | v1.1 | 3/3 | Complete | 2026-03-25 |
 | 9. 智能分析工作台 | v1.2 | 1/1 | Complete | 2026-03-26 |
-| 10. 后端联调 + Tech Debt | v1.2 | 1/1 | Complete    | 2026-03-26 |
+| 10. 后端联调 + Tech Debt | v1.2 | 1/1 | Complete | 2026-03-26 |
+| 11. 后端 API 完善 | v1.2 | 0/1 | Not Started | — |
+| 12. 前端视觉升级 | v1.2 | 0/2 | Planning Complete | — |
 
 ---
 
@@ -60,11 +62,21 @@ Phase 8 (报表)
 Phase 9 (智能分析工作台)
     ↓
 Phase 10 (后端联调 + Tech Debt)
+    ↓
+Phase 11 (后端 API 完善)
+    ↓
+Phase 12 (前端视觉升级)
 ```
+
+## Phase 11 Plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 11 to break down)
 
 ---
 
-## Phase 10 Plans
+## Phase 12 Plans
 
 Plans:
-- [x] 10-01-PLAN.md — Tech Debt Cleanup (修复 TypeScript 编译错误)
+- [ ] 12-01-PLAN.md — 全局样式 + 新组件 + P0 组件升级 (StatCard, AlertBadge)
+- [ ] 12-02-PLAN.md — P1/P2/P3 组件改造 (Card, Button, AlertRow, Header, Charts, AIPanel)
