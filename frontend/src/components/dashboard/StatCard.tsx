@@ -21,15 +21,15 @@ export function StatCard({ title, value, change, changeLabel, icon: Icon, trend 
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-slate-500 font-medium">{title}</p>
-            <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
+            <p className="text-sm text-slate-400 font-medium">{title}</p>
+            <p className="text-3xl font-bold text-slate-200 mt-2">{value}</p>
             {change !== undefined && (
               <div className="flex items-center gap-1 mt-2">
                 <span
                   className={cn(
                     'text-sm font-medium',
-                    trend === 'up' && 'text-green-600',
-                    trend === 'down' && 'text-red-600',
+                    trend === 'up' && 'text-green-400',
+                    trend === 'down' && 'text-red-400',
                     trend === 'neutral' && 'text-slate-500'
                   )}
                 >
@@ -38,13 +38,13 @@ export function StatCard({ title, value, change, changeLabel, icon: Icon, trend 
                   {change}%
                 </span>
                 {changeLabel && (
-                  <span className="text-sm text-slate-400">{changeLabel}</span>
+                  <span className="text-sm text-slate-500">{changeLabel}</span>
                 )}
               </div>
             )}
           </div>
-          <div className="p-3 bg-blue-50 rounded-lg">
-            <Icon className="w-6 h-6 text-blue-500" />
+          <div className="p-3 bg-cyan-500/10 rounded-lg">
+            <Icon className="w-6 h-6 text-cyan-400" />
           </div>
         </div>
       </CardContent>

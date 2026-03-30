@@ -50,7 +50,7 @@ export function SettingsPage() {
       {/* 返回链接 */}
       <Link
         to="/"
-        className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900"
+        className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-200 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         返回仪表盘
@@ -58,8 +58,8 @@ export function SettingsPage() {
 
       {/* 页面标题 */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">偏好设置</h1>
-        <p className="text-sm text-slate-500 mt-1">自定义您的使用体验</p>
+        <h1 className="text-2xl font-bold text-slate-200">偏好设置</h1>
+        <p className="text-sm text-slate-400 mt-1">自定义您的使用体验</p>
       </div>
 
       {/* 主题设置 */}
@@ -69,11 +69,11 @@ export function SettingsPage() {
         </CardHeader>
         <CardContent>
           <Select.Root value={theme} onValueChange={(v) => setPreference('theme', v as typeof theme)}>
-            <Select.Trigger className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+            <Select.Trigger className="w-full px-3 py-2 border border-slate-600 rounded-lg text-sm bg-slate-700 text-slate-200">
               <Select.Value />
             </Select.Trigger>
             <Select.Portal>
-              <Select.Content className="bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+              <Select.Content className="bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-50">
                 <Select.Viewport className="p-1">
                   {[
                     { value: 'light', label: '浅色' },
@@ -83,7 +83,7 @@ export function SettingsPage() {
                     <Select.Item
                       key={option.value}
                       value={option.value}
-                      className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-100 rounded outline-none"
+                      className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-700 rounded outline-none text-slate-200"
                     >
                       <Select.ItemText>{option.label}</Select.ItemText>
                     </Select.Item>
@@ -103,19 +103,19 @@ export function SettingsPage() {
         <CardContent className="space-y-4">
           {/* 默认严重度 */}
           <div>
-            <label className="block text-sm text-slate-600 mb-2">默认严重度</label>
+            <label className="block text-sm text-slate-400 mb-2">默认严重度</label>
             <Select.Root value={defaultSeverity} onValueChange={(v) => setPreference('defaultSeverity', v as Severity | 'all')}>
-              <Select.Trigger className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <Select.Trigger className="w-full px-3 py-2 border border-slate-600 rounded-lg text-sm bg-slate-700 text-slate-200">
                 <Select.Value />
               </Select.Trigger>
               <Select.Portal>
-                <Select.Content className="bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+                <Select.Content className="bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-50">
                   <Select.Viewport className="p-1">
                     {severityOptions.map((option) => (
                       <Select.Item
                         key={option.value}
                         value={option.value}
-                        className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-100 rounded outline-none"
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-700 rounded outline-none text-slate-200"
                       >
                         <Select.ItemText>{option.label}</Select.ItemText>
                       </Select.Item>
@@ -128,13 +128,13 @@ export function SettingsPage() {
 
           {/* 默认 Tab */}
           <div>
-            <label className="block text-sm text-slate-600 mb-2">默认标签页</label>
+            <label className="block text-sm text-slate-400 mb-2">默认标签页</label>
             <Select.Root value={defaultTab} onValueChange={(v) => setPreference('defaultTab', v as 'active' | 'suppressed')}>
-              <Select.Trigger className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white">
+              <Select.Trigger className="w-full px-3 py-2 border border-slate-600 rounded-lg text-sm bg-slate-700 text-slate-200">
                 <Select.Value />
               </Select.Trigger>
               <Select.Portal>
-                <Select.Content className="bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+                <Select.Content className="bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-50">
                   <Select.Viewport className="p-1">
                     {[
                       { value: 'active', label: '活跃告警' },
@@ -143,7 +143,7 @@ export function SettingsPage() {
                       <Select.Item
                         key={option.value}
                         value={option.value}
-                        className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-100 rounded outline-none"
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-700 rounded outline-none text-slate-200"
                       >
                         <Select.ItemText>{option.label}</Select.ItemText>
                       </Select.Item>
@@ -164,11 +164,11 @@ export function SettingsPage() {
         <CardContent className="space-y-4">
           {/* 自动刷新开关 */}
           <div className="flex items-center justify-between">
-            <label className="text-sm text-slate-600">启用自动刷新</label>
+            <label className="text-sm text-slate-400">启用自动刷新</label>
             <Checkbox.Root
               checked={autoRefresh}
               onCheckedChange={(checked) => setPreference('autoRefresh', checked === true)}
-              className="w-5 h-5 border border-slate-300 rounded data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+              className="w-5 h-5 border border-slate-500 rounded data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500"
             >
               <Checkbox.Indicator className="flex items-center justify-center text-white">
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -182,8 +182,8 @@ export function SettingsPage() {
           {autoRefresh && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm text-slate-600">刷新间隔</label>
-                <span className="text-sm text-slate-900">{refreshInterval} 秒</span>
+                <label className="text-sm text-slate-400">刷新间隔</label>
+                <span className="text-sm text-slate-200">{refreshInterval} 秒</span>
               </div>
               <Slider.Root
                 value={[refreshInterval]}
@@ -193,12 +193,12 @@ export function SettingsPage() {
                 step={30}
                 className="relative flex items-center w-full h-5"
               >
-                <Slider.Track className="bg-slate-200 relative grow rounded-full h-2">
-                  <Slider.Range className="absolute bg-blue-500 rounded-full h-full" />
+                <Slider.Track className="bg-slate-600 relative grow rounded-full h-2">
+                  <Slider.Range className="absolute bg-cyan-500 rounded-full h-full" />
                 </Slider.Track>
-                <Slider.Thumb className="block w-4 h-4 bg-white border-2 border-blue-500 rounded-full cursor-pointer" />
+                <Slider.Thumb className="block w-4 h-4 bg-slate-200 border-2 border-cyan-500 rounded-full cursor-pointer" />
               </Slider.Root>
-              <div className="flex justify-between text-xs text-slate-400">
+              <div className="flex justify-between text-xs text-slate-500">
                 <span>30秒</span>
                 <span>300秒</span>
               </div>
