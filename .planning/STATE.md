@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 12
-status: unknown
-last_updated: "2026-03-30T03:15:27.407Z"
+status: completed
+last_updated: "2026-03-30T03:30:00Z"
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # SecAlert State
@@ -22,7 +22,7 @@ progress:
 
 ## Current Position
 
-Phase: 12 (frontend-redesign) — EXECUTING
+Phase: 12 (frontend-redesign) — COMPLETED
 Plan: 2 of 2
 
 ## Session Continuity
@@ -45,6 +45,8 @@ Plan: 2 of 2
 
 ---
 - [Phase 12]: 使用 @fontsource-variable 字体包替代 Google Fonts (离线部署场景)
+- [Phase 12]: AIPanel 设计为可折叠 320px 右侧面板，通过 AppShell 状态管理
+- [Phase 12]: AIPanel 根据当前页面状态 (dashboard/alert/analysis) 显示不同欢迎语
 
 ## v1.2 Phase Breakdown
 
@@ -53,7 +55,7 @@ Plan: 2 of 2
 | 9 | 智能分析工作台 | New feature | Completed |
 | 10 | 后端联调 | Tech debt | Completed |
 | 11 | 后端 API 完善 | Backend API | Not Started |
-| 12 | 前端视觉升级 | Frontend redesign | UI-SPEC Approved |
+| 12 | 前端视觉升级 | Frontend redesign | Completed |
 
 ---
 
