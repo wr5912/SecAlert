@@ -14,11 +14,12 @@ const severityMap: Record<number, Severity> = {
   1: 'low',
 };
 
+// UI-SPEC 霓虹风格 severity 颜色
 const severityStyles: Record<Severity, string> = {
-  critical: 'bg-red-600 text-white',
-  high: 'bg-orange-500 text-white',
-  medium: 'bg-yellow-500 text-white',
-  low: 'bg-gray-500 text-white',
+  critical: 'bg-[var(--severity-critical)]/20 text-[var(--severity-critical)] border border-[var(--severity-critical)]/50',
+  high: 'bg-[var(--severity-high)]/20 text-[var(--severity-high)] border border-[var(--severity-high)]/50',
+  medium: 'bg-[var(--severity-medium)]/20 text-[var(--severity-medium)] border border-[var(--severity-medium)]/50',
+  low: 'bg-[var(--severity-low)]/20 text-[var(--severity-low)] border border-[var(--severity-low)]/50',
 };
 
 export function Badge({ severity, children }: BadgeProps) {
