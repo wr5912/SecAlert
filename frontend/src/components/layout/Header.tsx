@@ -1,5 +1,5 @@
 /**
- * 顶部导航栏组件
+ * 顶部导航栏组件 - 深色专业主题
  */
 
 import { Shield } from 'lucide-react';
@@ -9,6 +9,7 @@ import { cn } from '../../lib/cn';
 const navItems = [
   { path: '/', label: '仪表盘' },
   { path: '/alerts', label: '告警列表' },
+  { path: '/analysis', label: '分析工作台' },
   { path: '/settings', label: '设置' },
 ];
 
@@ -16,12 +17,12 @@ export function Header() {
   const location = useLocation();
 
   return (
-    <header className="bg-white border-b border-slate-200 px-4 py-3">
+    <header className="bg-slate-900 border-b border-slate-700 px-4 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Shield className="w-8 h-8 text-blue-500" />
-          <h1 className="text-xl font-semibold text-slate-900">SecAlert</h1>
-        </div>
+        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Shield className="w-8 h-8 text-cyan-400" />
+          <h1 className="text-xl font-semibold text-cyan-400">SecAlert</h1>
+        </Link>
         <nav className="flex items-center gap-1">
           {navItems.map((item) => (
             <Link
@@ -30,8 +31,8 @@ export function Header() {
               className={cn(
                 'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                 location.pathname === item.path
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-cyan-400/10 text-cyan-400'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
               )}
             >
               {item.label}
