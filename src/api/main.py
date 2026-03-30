@@ -12,9 +12,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.api.chain_endpoints import router as chain_router
 from src.api.remediation_endpoints import router as remediation_router
 from src.api.health import router as health_router
-from src.api.analysis import router as analysis_router
 from src.api.chat_endpoints import router as chat_router
 from src.api.reports import router as reports_router
+from src.api.analysis_endpoints import router as analysis_endpoints_router
 
 # 配置日志
 logging.basicConfig(
@@ -80,9 +80,9 @@ app.add_middleware(
 app.include_router(chain_router)
 app.include_router(remediation_router)
 app.include_router(health_router)
-app.include_router(analysis_router)
 app.include_router(chat_router)
 app.include_router(reports_router)
+app.include_router(analysis_endpoints_router)
 
 
 @app.get("/health")
