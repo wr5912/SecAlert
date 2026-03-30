@@ -65,9 +65,6 @@ export function AIPanel({ onExport }: AIPanelProps) {
   const copilotOpen = useAnalysisStore((state) => state.copilotOpen);
   const toggleCopilot = useAnalysisStore((state) => state.toggleCopilot);
 
-  // 如果面板未打开则不渲染
-  if (!copilotOpen) return null;
-
   // 当上下文变化时，更新智能推荐
   useEffect(() => {
     const newSuggestions: AISuggestion[] = [];
@@ -196,6 +193,9 @@ export function AIPanel({ onExport }: AIPanelProps) {
       setStatus('idle');
     }, 1000);
   };
+
+  // 如果面板未打开则不渲染
+  if (!copilotOpen) return null;
 
   return (
     <aside className="w-80 bg-surface border-l border-border flex flex-col relative shrink-0">
