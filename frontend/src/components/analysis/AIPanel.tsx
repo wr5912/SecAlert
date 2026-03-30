@@ -2,15 +2,46 @@
  * AI Copilot 面板组件
  * 提供上下文感知的 AI 辅助分析功能 - Tactical Command Center 风格
  * 可折叠的 320px 右侧面板
+ * 支持联动: 当前页面、选中的告警、选中的实体
  */
 
 import { useState, useEffect } from 'react';
-import { Bot, Send, X } from 'lucide-react';
+import { Bot, Send, X, AlertCircle, BarChart3, Shield, Settings } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useAnalysisStore } from '../../stores/analysisStore';
 import type { AISuggestion } from '../../types/analysis';
 
 // AI 面板状态
 type AIPanelStatus = 'idle' | 'querying' | 'responding' | 'error';
+
+// 页面上下文类型
+type PageContext = 'dashboard' | 'alerts' | 'analysis' | 'attack-graph' | 'timeline' | 'hunting' | 'assets' | 'settings';
+
+// 获取页面上下文
+function getPageContext(pathname: string): { page: PageContext; name: string; icon: React.ReactNode } {
+  if (pathname.startsWith('/analysis/graph')) {
+    return { page: 'attack-graph', name: '攻击路径分析', icon: <BarChart3 className="w-3 h-3" /> };
+  }
+  if (pathname.startsWith('/analysis/timeline')) {
+    return { page: 'timeline', name: '时间线分析', icon: <AlertCircle className="w-3 h-3" /> };
+  }
+  if (pathname.startsWith('/analysis/hunting')) {
+    return { page: 'hunting', name: '威胁狩猎', icon: <Shield className="w-3 h-3" /> };
+  }
+  if (pathname.startsWith('/analysis/assets')) {
+    return { page: 'assets', name: '资产视图', icon: <BarChart3 className="w-3 h-3" /> };
+  }
+  if (pathname.startsWith('/analysis')) {
+    return { page: 'analysis', name: '分析工作台', icon: <AlertCircle className="w-3 h-3" /> };
+  }
+  if (pathname.startsWith('/alerts')) {
+    return { page: 'alerts', name: '告警列表', icon: <AlertCircle className="w-3 h-3" /> };
+  }
+  if (pathname === '/settings') {
+    return { page: 'settings', name: '系统设置', icon: <Settings className="w-3 h-3" /> };
+  }
+  return { page: 'dashboard', name: '仪表盘', icon: <BarChart3 className="w-3 h-3" /> };
+}
 
 // AIPanel 属性
 export interface AIPanelProps {
@@ -22,10 +53,15 @@ export function AIPanel({ onExport }: AIPanelProps) {
   const [status, setStatus] = useState<AIPanelStatus>('idle');
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
 
+  // 获取当前页面上下文
+  const location = useLocation();
+  const pageContext = getPageContext(location.pathname);
+
   // 从 store 订阅上下文变化
   const copilotContext = useAnalysisStore((state) => state.copilotContext);
   const selectedStorylineId = useAnalysisStore((state) => state.selectedStorylineId);
   const selectedEntityId = useAnalysisStore((state) => state.selectedEntityId);
+  const selectedEntityType = useAnalysisStore((state) => state.selectedEntityType);
   const copilotOpen = useAnalysisStore((state) => state.copilotOpen);
   const toggleCopilot = useAnalysisStore((state) => state.toggleCopilot);
 
@@ -34,31 +70,109 @@ export function AIPanel({ onExport }: AIPanelProps) {
 
   // 当上下文变化时，更新智能推荐
   useEffect(() => {
-    if (selectedStorylineId || selectedEntityId) {
-      // 生成上下文相关的智能推荐
-      const contextSuggestions: AISuggestion[] = [];
+    const newSuggestions: AISuggestion[] = [];
 
-      if (selectedStorylineId) {
-        contextSuggestions.push({
-          action: '查看攻击路径',
-          reasoning: `当前选择了故事线 ${selectedStorylineId}，建议查看详细攻击路径以了解攻击链全貌`,
-          confidence: 0.9,
-          evidence: ['关联告警数量 > 5', '置信度 > 80%'],
-        });
-      }
-
-      if (selectedEntityId) {
-        contextSuggestions.push({
-          action: '查询实体历史',
-          reasoning: `选中了实体 ${selectedEntityId}，可以查看该实体的历史活动记录`,
+    // 1. 基于当前页面添加建议
+    switch (pageContext.page) {
+      case 'dashboard':
+        newSuggestions.push({
+          action: '查看高危告警',
+          reasoning: '当前在仪表盘，建议查看最新的高危和严重告警',
           confidence: 0.85,
-          evidence: ['实体类型匹配', '最近 24 小时有活动'],
+          evidence: ['仪表盘视图', '实时告警'],
         });
-      }
-
-      setSuggestions(contextSuggestions);
+        break;
+      case 'alerts':
+        newSuggestions.push({
+          action: '筛选高危告警',
+          reasoning: '当前在告警列表页面，可以按严重度筛选查看关键告警',
+          confidence: 0.8,
+          evidence: ['告警列表', '支持多维度筛选'],
+        });
+        break;
+      case 'analysis':
+        newSuggestions.push({
+          action: '查看告警详情',
+          reasoning: '在分析工作台中，选择告警故事线以查看详细攻击链',
+          confidence: 0.75,
+          evidence: ['分析工作台', '故事线聚类'],
+        });
+        break;
+      case 'attack-graph':
+        newSuggestions.push({
+          action: '分析攻击路径',
+          reasoning: '当前在攻击路径分析视图，可以深入理解攻击链',
+          confidence: 0.9,
+          evidence: ['攻击路径图', '实体关联'],
+        });
+        break;
+      case 'timeline':
+        newSuggestions.push({
+          action: '查看时间线',
+          reasoning: '在时间线视图中，可以按时间顺序查看告警序列',
+          confidence: 0.85,
+          evidence: ['时间线分析', '时序关联'],
+        });
+        break;
+      case 'hunting':
+        newSuggestions.push({
+          action: '执行威胁狩猎',
+          reasoning: '在威胁狩猎模块，可以基于 IoC 指标进行主动搜索',
+          confidence: 0.8,
+          evidence: ['威胁狩猎', 'IoC 搜索'],
+        });
+        break;
+      case 'assets':
+        newSuggestions.push({
+          action: '查看资产详情',
+          reasoning: '在资产视图中，选择资产以查看其告警历史和关联实体',
+          confidence: 0.75,
+          evidence: ['资产视图', '实体分析'],
+        });
+        break;
+      case 'settings':
+        newSuggestions.push({
+          action: '配置告警规则',
+          reasoning: '在设置页面，可以配置告警规则和通知渠道',
+          confidence: 0.7,
+          evidence: ['系统设置', '规则配置'],
+        });
+        break;
     }
-  }, [selectedStorylineId, selectedEntityId]);
+
+    // 2. 基于选中的故事线添加建议
+    if (selectedStorylineId) {
+      newSuggestions.push({
+        action: '查看攻击路径',
+        reasoning: `当前选择了故事线 ${selectedStorylineId}，建议查看详细攻击路径以了解攻击链全貌`,
+        confidence: 0.9,
+        evidence: ['关联告警数量 > 5', '置信度 > 80%'],
+      });
+    }
+
+    // 3. 基于选中的实体添加建议
+    if (selectedEntityId) {
+      const entityTypeLabel = selectedEntityType || '未知类型';
+      newSuggestions.push({
+        action: `查询 ${entityTypeLabel} 历史`,
+        reasoning: `选中了实体 ${selectedEntityId}，可以查看该实体的历史活动记录`,
+        confidence: 0.85,
+        evidence: ['实体类型匹配', '最近 24 小时有活动'],
+      });
+    }
+
+    // 如果没有任何上下文，显示默认建议
+    if (newSuggestions.length === 0) {
+      newSuggestions.push({
+        action: '开始分析',
+        reasoning: '选择一个告警或实体，AI 将为您提供深入分析',
+        confidence: 0.5,
+        evidence: ['等待用户选择'],
+      });
+    }
+
+    setSuggestions(newSuggestions);
+  }, [pageContext, selectedStorylineId, selectedEntityId, selectedEntityType]);
 
   // 处理查询提交
   const handleSubmit = async () => {
@@ -66,17 +180,17 @@ export function AIPanel({ onExport }: AIPanelProps) {
 
     setStatus('querying');
     // TODO: 实现实际的 AI 查询功能
-    console.log('[AI Panel] Query submitted:', query, 'Context:', copilotContext);
+    console.log('[AI Panel] Query submitted:', query, 'Context:', copilotContext, 'Page:', pageContext);
 
     // 模拟响应
     setTimeout(() => {
       setStatus('responding');
       setSuggestions([
         {
-          action: '建议分析',
-          reasoning: '基于当前上下文和查询内容，AI 建议进行以下分析步骤',
+          action: 'AI 分析结果',
+          reasoning: `基于当前页面「${pageContext.name}」和查询内容「${query.substring(0, 20)}...」，AI 建议进行以下分析步骤`,
           confidence: 0.75,
-          evidence: ['数据源完整', '时间范围合理'],
+          evidence: ['数据源完整', '上下文已同步'],
         },
       ]);
       setStatus('idle');
@@ -95,7 +209,12 @@ export function AIPanel({ onExport }: AIPanelProps) {
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-heading font-semibold text-slate-200">AI Copilot</h3>
-          <p className="text-xs text-slate-500">智能告警分析助手</p>
+          <p className="text-xs text-slate-500 flex items-center gap-1">
+            <span className="inline-flex items-center gap-1 text-accent/70">
+              {pageContext.icon}
+              {pageContext.name}
+            </span>
+          </p>
         </div>
         <button
           onClick={toggleCopilot}
