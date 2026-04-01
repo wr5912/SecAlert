@@ -68,7 +68,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
             <Button variant="ghost" onClick={handleClose}>
               取消
             </Button>
-            {step < 3 && (
+            {step < 4 && (
               <Button onClick={nextStep} disabled={!canGoNext()}>
                 下一步
               </Button>
