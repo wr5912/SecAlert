@@ -107,13 +107,26 @@
 
 ---
 
+## v1.4 数据接入前端界面 🚧
+
+### Phase 14: 数据接入前端界面 (DI-01 ~ DI-06)
+
+- **DI-01**: 数据源模板创建 UI
+- **DI-02**: 数据源模板编辑 UI
+- **DI-03**: 数据源模板删除 UI
+- **DI-04**: 数据源模板列表查询 UI
+- **DI-05**: 数据接入向导（4步骤）UI
+- **DI-06**: 接入状态监控和诊断 UI
+
+---
+
 ## Traceability
 
 | REQ-ID | Description | Phase | Status |
 |--------|-------------|-------|--------|
-| AG-01 | claude-agent-sdk 安装与配置 | 13 | Pending |
-| AG-02 | WebSocket 流式对话服务 | 13 | Completed (13-02) |
-| AG-03 | 自定义安全工具 | 13 | Completed (13-01) |
-| AG-04 | DeepSeek API Key 配置 | 13 | Completed (13-02) |
-| AG-05 | 集成测试与验证 | 13 | Completed (13-03) |
-
+| DI-01 | 数据源模板创建 UI | 14 | Pending |
+| DI-02 | 数据源模板编辑 UI | 14 | Pending |
+| DI-03 | 数据源模板删除 UI | 14 | Pending |
+| DI-04 | 数据源模板列表查询 UI | 14 | Pending |
+| DI-05 | 数据接入向导（4步骤）UI | 14 | Pending |
+| DI-06 | 接入状态监控和诊断 UI | 14 | Pending |

@@ -38,12 +38,12 @@ created: 2026-04-01
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 14-01-01 | 01 | 1 | DS-01 | unit | `pytest tests/test_ingestion/ -k test_create_template` | ❌ W0 | ⬜ pending |
-| 14-01-02 | 01 | 1 | DS-02 | unit | `pytest tests/test_ingestion/ -k test_update_template` | ❌ W0 | ⬜ pending |
-| 14-01-03 | 01 | 1 | DS-03 | unit | `pytest tests/test_ingestion/ -k test_delete_template` | ❌ W0 | ⬜ pending |
-| 14-01-04 | 01 | 1 | DS-04 | unit | `pytest tests/test_ingestion/ -k test_list_templates` | ❌ W0 | ⬜ pending |
-| 14-02-01 | 02 | 2 | DS-05 | unit | `pytest tests/test_ingestion/ -k test_wizard_step` | ❌ W0 | ⬜ pending |
-| 14-02-02 | 02 | 2 | DS-06 | unit | `pytest tests/test_ingestion/ -k test_component` | ❌ W0 | ⬜ pending |
+| 14-01-01 | 01 | 1 | DI-01 | unit | `pytest tests/test_ingestion/ -k test_create_template` | ❌ W0 | ⬜ pending |
+| 14-01-02 | 01 | 1 | DI-02 | unit | `pytest tests/test_ingestion/ -k test_update_template` | ❌ W0 | ⬜ pending |
+| 14-01-03 | 01 | 1 | DI-03 | unit | `pytest tests/test_ingestion/ -k test_delete_template` | ❌ W0 | ⬜ pending |
+| 14-01-04 | 01 | 1 | DI-04 | unit | `pytest tests/test_ingestion/ -k test_list_templates` | ❌ W0 | ⬜ pending |
+| 14-02-01 | 02 | 2 | DI-05 | unit | `pytest tests/test_ingestion/ -k test_wizard_step` | ❌ W0 | ⬜ pending |
+| 14-02-02 | 02 | 2 | DI-06 | unit | `pytest tests/test_ingestion/ -k test_component` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -63,8 +63,8 @@ created: 2026-04-01
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| 向导视觉效果 | DS-05 | 需要视觉确认 | 在浏览器中运行前端，执行完整的4步骤向导流程 |
-| 模板管理页面布局 | DS-06 | UI 布局需要人眼确认 | 访问 /ingestion/templates 检查卡片布局 |
+| 向导视觉效果 | DI-05 | 需要视觉确认 | 在浏览器中运行前端，执行完整的4步骤向导流程 |
+| 模板管理页面布局 | DI-06 | UI 布局需要人眼确认 | 访问 /ingestion/templates 检查卡片布局 |
 
 ---
 
