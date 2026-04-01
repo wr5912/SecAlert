@@ -23,27 +23,9 @@
 - [x] 系统能给出简单明确的处置建议 — v1.0 (Phase 4, UAT ✅)
 - [x] 界面简洁，面向非专业运维人员 — v1.0 (Phase 4, UAT ✅)
 
-## Current Milestone: v1.3 Claude Code AI 后端 🚧
+## Current Milestone: v1.4 (待定义)
 
-**Goal:** 使用 claude-agent-sdk 替换 DeepSeek API，实现 Claude Code 驱动的 AI Copilot
-
-**Target features:**
-- claude-agent-sdk Python SDK 集成
-- WebSocket 流式对话服务
-- 配置 DeepSeek API Key (通过 ANTHROPIC_BASE_URL)
-- 自定义安全工具 (告警查询、攻击链分析)
-- 会话管理与上下文记忆
-- Fallback 机制
-
-### Active
-
-- [x] v1.1 多数据源支持 — 扩展三层解析架构，支持更多设备类型 (Phase 5 ✅)
-- [x] v1.1 产品级 Web UI — 响应式布局、交互体验、组件复用 (Phase 6 ✅)
-- [x] v1.1 AI 助手对话框 — 上下文动态关联 (Phase 7 ✅)
-- [x] v1.1 报表统计 — 日报/周报自动生成、趋势分析、PDF/Excel 导出、数据源健康报表 (Phase 8 ✅)
-- [x] v1.2 智能分析工作台 — 故事线聚合、攻击链路图、多轨道时间线、威胁狩猎、资产上下文、AI调查助手 (Phase 9 ✅)
-- [x] v1.2 Tech Debt 清理 — Button组件、formatDate、updateLastMessage类型、Vite alias配置 (Phase 10 ✅)
-- [ ] v1.3 Claude Code AI 后端 — claude-agent-sdk 集成、自定义工具、流式对话
+**规划中** — 运行 `/gsd:new-milestone` 开始新 milestone 规划
 
 ### Out of Scope
 

@@ -1,5 +1,17 @@
 # Milestones
 
+## v1.3 Claude Code AI 后端 (Shipped: 2026-04-01)
+
+**Phases completed:** 1 phases, 3 plans, 12 tasks
+
+**Key accomplishments:**
+
+- claude-agent-sdk 集成完成，Agent 配置模块、自定义安全工具、MCP Server 注册、流式对话客户端封装均已实现
+- WebSocket 流式对话端点和 Fallback 机制实现完成，Agent 路由已注册到 FastAPI
+- 创建 Agent 模块完整测试套件，验证工具注册、客户端、WebSocket 端点和 Fallback 机制
+
+---
+
 ## v1.2 智能分析工作台 (Shipped: 2026-03-30)
 
 **Phases completed:** 4 phases, 5 plans, 43 tasks
