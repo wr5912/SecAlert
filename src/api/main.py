@@ -15,6 +15,8 @@ from src.api.health import router as health_router
 from src.api.chat_endpoints import router as chat_router
 from src.api.reports import router as reports_router
 from src.api.analysis_endpoints import router as analysis_endpoints_router
+from src.api.metrics_endpoints import router as metrics_router
+from src.api.agent_endpoints import router as agent_router
 
 # 配置日志
 logging.basicConfig(
@@ -81,8 +83,10 @@ app.include_router(chain_router)
 app.include_router(remediation_router)
 app.include_router(health_router)
 app.include_router(chat_router)
+app.include_router(agent_router)
 app.include_router(reports_router)
 app.include_router(analysis_endpoints_router)
+app.include_router(metrics_router)
 
 
 @app.get("/health")
