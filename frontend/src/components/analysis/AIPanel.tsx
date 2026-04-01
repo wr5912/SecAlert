@@ -10,7 +10,7 @@ import { Bot, Send, X, AlertCircle, BarChart3, Shield, Settings, Loader2 } from 
 import { useLocation } from 'react-router-dom';
 import { useAnalysisStore } from '../../stores/analysisStore';
 import { useChatStore } from '../../stores/chatStore';
-import { createSession, streamChat, filterSensitiveInfo } from '../../api/chat';
+import { createSession, streamChatWebSocket, filterSensitiveInfo } from '../../api/chat';
 import type { AISuggestion } from '../../types/analysis';
 
 // 页面上下文类型
@@ -229,8 +229,8 @@ export function AIPanel({ onExport }: AIPanelProps) {
     addMessage({ role: 'assistant', content: '' });
     setStreaming(true);
 
-    // 流式获取响应
-    await streamChat(
+    // 流式获取响应 (使用 WebSocket)
+    streamChatWebSocket(
       userMessage,
       currentSessionId,
       chatContext,
@@ -262,7 +262,7 @@ export function AIPanel({ onExport }: AIPanelProps) {
   if (!copilotOpen) return null;
 
   return (
-    <aside className="w-80 bg-surface border-l border-border flex flex-col relative shrink-0">
+    <aside className="w-80 bg-surface border-l border-border flex flex-col fixed right-0 top-0 h-screen z-50">
       {/* 顶部 accent 线 */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-accent via-accent/50 to-transparent" />
 
@@ -287,32 +287,6 @@ export function AIPanel({ onExport }: AIPanelProps) {
         >
           <X className="w-4 h-4" />
         </button>
-      </div>
-
-      {/* 查询输入 */}
-      <div className="p-3 border-b border-border">
-        <div className="relative">
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="输入您的安全问题..."
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 resize-none"
-            rows={2}
-            disabled={isStreaming}
-          />
-          <button
-            onClick={handleSubmit}
-            disabled={!query.trim() || isStreaming}
-            className="absolute right-2 bottom-2 p-2 bg-accent/10 rounded-lg border border-accent/50 text-accent hover:bg-accent/20 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isStreaming ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-          </button>
-        </div>
       </div>
 
       {/* 内容区域：聊天消息 或 智能推荐 */}
@@ -398,6 +372,32 @@ export function AIPanel({ onExport }: AIPanelProps) {
             </div>
           </div>
         )}
+
+        {/* 查询输入 - 放在底部 */}
+        <div className="p-3 border-t border-border shrink-0">
+          <div className="relative">
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="输入您的安全问题..."
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 resize-none"
+              rows={2}
+              disabled={isStreaming}
+            />
+            <button
+              onClick={handleSubmit}
+              disabled={!query.trim() || isStreaming}
+              className="absolute right-2 bottom-2 p-2 bg-accent/10 rounded-lg border border-accent/50 text-accent hover:bg-accent/20 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isStreaming ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 导出功能 */}

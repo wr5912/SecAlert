@@ -286,7 +286,7 @@ export function streamChatWebSocket(
     }
   };
 
-  ws.onerror = (event) => {
+  ws.onerror = (_event) => {
     onError(new Error('WebSocket connection error'));
   };
 
