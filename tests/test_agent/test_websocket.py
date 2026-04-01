@@ -3,15 +3,15 @@
 import pytest
 import sys
 import json
+import importlib
 from unittest.mock import MagicMock, patch, AsyncMock
 
-# Mock claude_agent_sdk before importing client
-mock_sdk = MagicMock()
-mock_sdk.CLINotFoundError = Exception
-mock_sdk.CLIConnectionError = Exception
-mock_sdk.ClaudeAgentOptions.return_value = MagicMock()
-mock_sdk.ClaudeSDKClient.return_value = MagicMock()
-sys.modules['claude_agent_sdk'] = mock_sdk
+# 确保 mock 已设置 (由 conftest.py 设置)
+import claude_agent_sdk
+
+# 重新加载 agent_endpoints 模块以确保使用 mock
+import src.api.agent_endpoints
+importlib.reload(src.api.agent_endpoints)
 
 # 导入被测试的模块
 from src.api.agent_endpoints import router, call_deepseek_fallback

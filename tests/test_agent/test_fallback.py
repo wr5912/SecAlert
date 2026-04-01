@@ -2,11 +2,15 @@
 
 import pytest
 import sys
+import importlib
 from unittest.mock import patch, AsyncMock, MagicMock
 
-# Mock claude_agent_sdk before importing
-mock_sdk = MagicMock()
-sys.modules['claude_agent_sdk'] = mock_sdk
+# 确保 mock 已设置 (由 conftest.py 设置)
+import claude_agent_sdk
+
+# 重新加载 agent_endpoints 模块以确保使用 mock
+import src.api.agent_endpoints
+importlib.reload(src.api.agent_endpoints)
 
 # 导入被测试的模块
 from src.api.agent_endpoints import call_deepseek_fallback

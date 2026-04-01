@@ -2,40 +2,16 @@
 
 import pytest
 import sys
+import importlib
 from unittest.mock import MagicMock
 
-# Mock claude_agent_sdk before importing tools
-mock_sdk = MagicMock()
+# 确保 mock 已设置 (由 conftest.py 设置)
+import claude_agent_sdk
 
-# query_alerts 工具
-mock_query_alerts = MagicMock()
-mock_query_alerts.name = "query_alerts"
-mock_query_alerts.description = "查询安全告警列表，支持按严重度筛选"
-mock_query_alerts.input_schema = {
-    "severity": str,
-    "limit": int
-}
+# 重新加载 tools 模块以确保使用 mock
+import src.agent.tools
+importlib.reload(src.agent.tools)
 
-# analyze_chain 工具
-mock_analyze_chain = MagicMock()
-mock_analyze_chain.name = "analyze_chain"
-mock_analyze_chain.description = "分析攻击链详情，包括攻击阶段、关联实体、告警时间线"
-mock_analyze_chain.input_schema = {
-    "chain_id": str
-}
-
-# 配置 create_sdk_mcp_server 返回的对象属性
-mock_mcp_server = MagicMock()
-mock_mcp_server.name = "security"
-mock_mcp_server.version = "1.0.0"
-mock_mcp_server.tools = [mock_query_alerts, mock_analyze_chain]
-
-mock_sdk.tool.return_value = lambda fn: fn
-mock_sdk.create_sdk_mcp_server.return_value = mock_mcp_server
-
-sys.modules['claude_agent_sdk'] = mock_sdk
-
-# 现在导入被测试的模块
 from src.agent.tools import security_tools, query_alerts, analyze_chain
 
 
