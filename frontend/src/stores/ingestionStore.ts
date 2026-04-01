@@ -3,12 +3,16 @@
  */
 
 import { create } from 'zustand';
-import type { DeviceType, LogFormat, ConnectionConfig } from '../types/ingestion';
+import type { DeviceType, LogFormat, ConnectionConfig, DataSourceTemplate } from '../types/ingestion';
 
 interface IngestionState {
   // 向导状态
   isWizardOpen: boolean;
   step: number;
+
+  // 编辑模式
+  isEditMode: boolean;
+  editingTemplate: DataSourceTemplate | null;
 
   // Step 1: 设备类型
   deviceType: DeviceType | null;
@@ -27,6 +31,7 @@ interface IngestionState {
   openWizard: () => void;
   closeWizard: () => void;
   resetWizard: () => void;
+  openEditWizard: (template: DataSourceTemplate) => void;
   setStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
@@ -40,6 +45,8 @@ interface IngestionState {
 const initialState = {
   isWizardOpen: false,
   step: 1,
+  isEditMode: false,
+  editingTemplate: null,
   deviceType: null,
   connection: null,
   logFormat: null,
@@ -50,11 +57,23 @@ const initialState = {
 export const useIngestionStore = create<IngestionState>((set) => ({
   ...initialState,
 
-  openWizard: () => set({ isWizardOpen: true }),
+  openWizard: () => set({ isWizardOpen: true, isEditMode: false, editingTemplate: null }),
 
-  closeWizard: () => set({ isWizardOpen: false }),
+  closeWizard: () => set({ isWizardOpen: false, isEditMode: false, editingTemplate: null, step: 1 }),
 
-  resetWizard: () => set(initialState),
+  resetWizard: () => set({ ...initialState }),
+
+  openEditWizard: (template) => set({
+    isWizardOpen: true,
+    isEditMode: true,
+    editingTemplate: template,
+    step: 4, // 直接跳到完成步骤，显示编辑确认
+    deviceType: template.device_type,
+    connection: template.connection,
+    logFormat: template.log_format,
+    customRegex: template.custom_regex || null,
+    templateName: template.name,
+  }),
 
   setStep: (step) => set({ step }),
 

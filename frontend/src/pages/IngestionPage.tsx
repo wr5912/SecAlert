@@ -21,7 +21,7 @@ const mockStatuses: Record<string, DataSourceStatus> = {};
 export function IngestionPage() {
   const { data: templates = [], isLoading } = useTemplates();
   const deleteTemplate = useDeleteTemplate();
-  const { isWizardOpen, openWizard, closeWizard } = useIngestionStore();
+  const { isWizardOpen, openWizard, closeWizard, openEditWizard } = useIngestionStore();
 
   const [deleteTarget, setDeleteTarget] = useState<DataSourceTemplate | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -42,8 +42,7 @@ export function IngestionPage() {
   };
 
   const handleEdit = (template: DataSourceTemplate) => {
-    // TODO: 实现编辑功能
-    console.log('编辑模板:', template.name);
+    openEditWizard(template);
   };
 
   const handleDeleteClick = (templateId: string) => {

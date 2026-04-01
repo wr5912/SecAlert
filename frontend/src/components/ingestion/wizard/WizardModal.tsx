@@ -19,8 +19,10 @@ const stepTitles: Record<number, string> = {
   4: '配置完成',
 };
 
+const editModeTitle = '编辑模板';
+
 export function WizardModal({ open, onOpenChange }: WizardModalProps) {
-  const { step, deviceType, connection, logFormat, nextStep, prevStep, resetWizard } = useIngestionStore();
+  const { step, deviceType, connection, logFormat, nextStep, prevStep, resetWizard, isEditMode } = useIngestionStore();
 
   const handleClose = () => {
     resetWizard();
@@ -50,15 +52,21 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-[640px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <StepIndicator />
-          <h2 className="text-base font-medium text-slate-200">{stepTitles[step]}</h2>
+          {isEditMode ? (
+            <h2 className="text-base font-medium text-accent">{editModeTitle}</h2>
+          ) : (
+            <>
+              <StepIndicator />
+              <h2 className="text-base font-medium text-slate-200">{stepTitles[step]}</h2>
+            </>
+          )}
         </DialogHeader>
 
         <div className="py-4">
           {renderStep()}
         </div>
 
-        {step < 4 && (
+        {!isEditMode && step < 4 && (
           <DialogFooter>
             {step > 1 && (
               <Button variant="ghost" onClick={prevStep}>
