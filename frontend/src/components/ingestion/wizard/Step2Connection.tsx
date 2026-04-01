@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useIngestionStore } from '@/stores/ingestionStore';
 
 export function Step2Connection() {
