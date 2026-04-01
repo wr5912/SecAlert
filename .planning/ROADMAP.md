@@ -27,12 +27,12 @@
 **Goal:** 为 IT 运维人员提供直观的数据接入配置界面，简化新安全设备的接入流程
 **Requirements**: DI-01, DI-02, DI-03, DI-04, DI-05, DI-06
 **Depends on:** Phase 13
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 14-00-PLAN.md — Wave 0: 测试基础设施
-- [ ] 14-01-PLAN.md — Wave 1: 后端 API + 模板 CRUD (DI-01~04)
-- [ ] 14-02-PLAN.md — Wave 2: 前端向导 UI + 组件 (DI-05~06)
+- [x] 14-01-PLAN.md — Wave 1: 后端 API + 模板 CRUD (DI-01~04)
+- [x] 14-02-PLAN.md — Wave 2: 前端向导 UI + 组件 (DI-05~06)
 
 ---
 
