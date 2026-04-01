@@ -120,6 +120,14 @@ class TestStorage:
         """Test Redis deduplication with 24h window."""
         redis_dedup = pytest.importorskip("storage.redis.dedup")
         from storage.redis.dedup import RedisDedup
+        import redis as redis_lib
+
+        # 检查 Redis 是否可用
+        try:
+            test_client = redis_lib.Redis(host=REDIS_HOST, port=REDIS_PORT)
+            test_client.ping()
+        except redis_lib.exceptions.ConnectionError:
+            pytest.skip("Redis not available")
 
         dedup = RedisDedup(host=REDIS_HOST, port=REDIS_PORT)
 
@@ -139,9 +147,17 @@ class TestStorage:
     @pytest.mark.skipif("CI" in os.environ, reason="Requires running PostgreSQL")
     def test_postgres_alert_record(self):
         """Test alert record can be created and validated."""
-        from storage.postgres.models import AlertRecord
+        from storage.postgres.models import AlertRecord, OCSFAlert
         from uuid import uuid4
 
+        ocsf_event = OCSFAlert(
+            event_id=uuid4(),
+            timestamp=datetime.now(timezone.utc),
+            source_type="suricata",
+            source_name="suricata-01",
+            event_type="alert",
+            raw_event={"test": "data"}
+        )
         record = AlertRecord(
             id=uuid4(),
             timestamp=datetime.now(timezone.utc),
@@ -154,7 +170,7 @@ class TestStorage:
             dst_port=443,
             severity="medium",
             raw_event={"test": "data"},
-            ocsf_event=None,  # Simplified for test
+            ocsf_event=ocsf_event,
             created_at=datetime.now(timezone.utc)
         )
 

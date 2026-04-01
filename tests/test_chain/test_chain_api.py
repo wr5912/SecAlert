@@ -51,6 +51,7 @@ class TestChainEndpoints:
                         "end_time": "2026-03-23T10:30:00Z",
                         "alert_count": 3,
                         "max_severity": 4,
+                        "severity_label": "critical",
                         "status": "active",
                         "asset_ip": "10.0.0.50",
                         "alerts": []
@@ -84,7 +85,8 @@ class TestChainEndpoints:
         """测试获取存在的攻击链"""
         with patch('src.api.chain_endpoints.get_service') as mock_get:
             mock_service = MagicMock()
-            mock_service.get_chain.return_value = MagicMock(
+            # 使用 configure_mock 确保所有属性都是正确的类型
+            mock_chain = MagicMock(
                 chain_id="chain-1",
                 start_time="2026-03-23T10:00:00Z",
                 end_time="2026-03-23T10:30:00Z",
@@ -94,6 +96,11 @@ class TestChainEndpoints:
                 asset_ip="10.0.0.50",
                 alerts=[]
             )
+            mock_chain.severity_label = "high"
+            mock_chain.mitre_tactic = "initial-access"
+            mock_chain.mitre_technique_id = "T1190"
+            mock_chain.mitre_technique_name = "Exploit Public-Facing Application"
+            mock_service.get_chain.return_value = mock_chain
             mock_get.return_value = mock_service
 
             response = client.get("/api/chains/chain-1")

@@ -62,10 +62,10 @@ SYSTEM_PROMPT_TEMPLATE = """你是 SecAlert 安全分析助手，帮助运维人
 
 当前上下文：
 - 页面类型: {context_type}
-{context_chain_id f'- 攻击链ID: {context_chain_id}' if context_chain_id else ''}
-{context_severity f'- 严重度: {context_severity}' if context_severity else ''}
-{context_alert_count f'- 告警数量: {context_alert_count}' if context_alert_count else ''}
-{context_asset_ip f'- 目标资产: {context_asset_ip}' if context_asset_ip else ''}
+{chain_id_line}
+{severity_line}
+{alert_count_line}
+{asset_ip_line}
 
 规则：
 1. 只读取当前上下文中的信息，禁止自行查询数据库
@@ -95,12 +95,17 @@ def save_message(session_id: str, role: str, content: str, context: Optional[Dic
 
 def build_system_prompt(context: ChatContext) -> str:
     """构建System Prompt"""
+    chain_id_line = f"- 攻击链ID: {context.chain_id}" if context.chain_id else ""
+    severity_line = f"- 严重度: {context.severity}" if context.severity else ""
+    alert_count_line = f"- 告警数量: {context.alert_count}" if context.alert_count else ""
+    asset_ip_line = f"- 目标资产: {context.asset_ip}" if context.asset_ip else ""
+
     return SYSTEM_PROMPT_TEMPLATE.format(
         context_type=context.type,
-        context_chain_id=context.chain_id or "",
-        context_severity=context.severity or "",
-        context_alert_count=context.alert_count or "",
-        context_asset_ip=context.asset_ip or ""
+        chain_id_line=chain_id_line,
+        severity_line=severity_line,
+        alert_count_line=alert_count_line,
+        asset_ip_line=asset_ip_line
     )
 
 # ========== NL 查询意图识别 ==========
@@ -460,27 +465,8 @@ async def chat_stream(request: StreamRequest):
             full_prompt = f"{system_prompt}\n\n用户: {request.message}\n\n助手:"
 
             try:
-                from src.analysis.remediation import RemediationAdvisor
-                advisor = RemediationAdvisor()
-
-                if request.context.chain_id:
-                    # 需要先获取完整的 chain_data 才能调用 get_recommendation
-                    chain_data = await call_chain_api({}, chain_id=request.context.chain_id, api_type="detail")
-                    if "error" in chain_data:
-                        response_text = chain_data["error"]
-                    else:
-                        recommendation = advisor.get_recommendation(chain_data)
-                        response_text = f"根据当前上下文，我为您生成以下处置建议：\n\n"
-                        response_text += f"**处置动作**: {recommendation.get('short_action', '查看详情')}\n\n"
-
-                        if recommendation.get('detailed_steps'):
-                            response_text += "**详细步骤**:\n"
-                            for i, step in enumerate(recommendation['detailed_steps'], 1):
-                                response_text += f"{i}. {step}\n"
-
-                        response_text += f"\n**ATT&CK**: {recommendation.get('attck_ref', 'N/A')}"
-                else:
-                    response_text = "我目前显示的是全局上下文。如果您想获取具体的告警处置建议，请先选择一个告警或在告警列表页面与我对话。"
+                # 直接调用 DeepSeek API
+                response_text = await call_deepseek_api(system_prompt, request.message)
 
                 for chunk in split_into_chunks(response_text):
                     yield f"data: {json.dumps({'token': chunk, 'type': 'chunk'})}\n\n"
@@ -507,6 +493,44 @@ async def chat_stream(request: StreamRequest):
             "X-Accel-Buffering": "no"
         }
     )
+
+
+async def call_deepseek_api(system_prompt: str, user_message: str) -> str:
+    """直接调用 DeepSeek API"""
+    import os
+    import httpx
+
+    api_key = os.getenv("DEEPSEEK_API_KEY")
+    base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+    model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+
+    if not api_key:
+        return "错误: 未配置 DeepSeek API Key"
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{base_url}/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message}
+                    ],
+                    "stream": False
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data.get("choices", [{}])[0].get("message", {}).get("content", "无响应")
+    except httpx.HTTPError as e:
+        return f"API 调用失败: {str(e)}"
+    except Exception as e:
+        return f"错误: {str(e)}"
 
 @router.get("/sessions")
 async def list_sessions():
