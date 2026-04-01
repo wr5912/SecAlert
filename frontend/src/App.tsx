@@ -13,6 +13,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { AlertListPage } from './pages/AlertListPage';
 import { AlertDetailPage } from './pages/AlertDetailPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { IngestionPage } from './pages/IngestionPage';
 import { AlertCenterPage } from './pages/AlertCenterPage';
 import { AttackGraphPage } from './pages/AttackGraphPage';
 import { TimelinePage } from './pages/TimelinePage';
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <SettingsPage />,
+      },
+      {
+        path: 'ingestion',
+        element: <IngestionPage />,
       },
     ],
   },

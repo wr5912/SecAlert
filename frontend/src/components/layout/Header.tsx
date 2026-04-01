@@ -10,6 +10,7 @@ import { useAnalysisStore } from '../../stores/analysisStore';
 const navItems = [
   { path: '/', label: '仪表盘' },
   { path: '/alerts', label: '告警列表' },
+  { path: '/ingestion', label: '数据接入' },
   { path: '/analysis', label: '分析工作台' },
   { path: '/settings', label: '设置' },
 ];
