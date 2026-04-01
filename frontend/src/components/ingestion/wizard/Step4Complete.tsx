@@ -1,6 +1,7 @@
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Server, Network, Globe } from 'lucide-react';
 import { useIngestionStore } from '@/stores/ingestionStore';
 import { useCreateTemplate } from '@/api/ingestionEndpoints';
+import { DEVICE_TYPES, LOG_FORMATS } from '@/types/ingestion';
 
 interface Step4CompleteProps {
   onFinish: () => void;
@@ -9,6 +10,12 @@ interface Step4CompleteProps {
 export function Step4Complete({ onFinish }: Step4CompleteProps) {
   const { deviceType, connection, logFormat, customRegex, templateName, resetWizard } = useIngestionStore();
   const createTemplate = useCreateTemplate();
+
+  // 获取设备类型标签
+  const deviceTypeLabel = DEVICE_TYPES.find(d => d.id === deviceType)?.label || deviceType;
+
+  // 获取日志格式标签
+  const logFormatLabel = LOG_FORMATS.find(f => f.id === logFormat)?.label || logFormat;
 
   const handleFinish = async () => {
     if (!deviceType || !connection || !logFormat) return;
@@ -26,32 +33,85 @@ export function Step4Complete({ onFinish }: Step4CompleteProps) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <CheckCircle className="w-16 h-16 text-accent mb-4" />
-      <h3 className="text-lg font-medium text-slate-200 mb-2">配置完成</h3>
-      <p className="text-sm text-slate-400 mb-6">
-        数据源「{templateName || deviceType}」已成功创建
-      </p>
-      <div className="w-full p-4 rounded-lg bg-slate-800 text-left text-sm space-y-2">
-        <div className="flex justify-between">
-          <span className="text-slate-400">设备类型:</span>
-          <span className="text-slate-200">{deviceType}</span>
+    <div className="space-y-4">
+      <div className="flex flex-col items-center text-center mb-6">
+        <CheckCircle className="w-12 h-12 text-accent mb-3" />
+        <h3 className="text-lg font-medium text-slate-200">确认配置信息</h3>
+        <p className="text-sm text-slate-400">请确认以下配置后点击完成</p>
+      </div>
+
+      <div className="p-4 rounded-lg bg-slate-800 space-y-3">
+        {/* 模板名称 */}
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded bg-accent/20 flex items-center justify-center flex-shrink-0">
+            <Server className="w-4 h-4 text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-slate-500">模板名称</div>
+            <div className="text-sm text-slate-200 font-medium truncate">
+              {templateName || `${deviceTypeLabel}-${Date.now()}`}
+            </div>
+          </div>
         </div>
-        <div className="flex justify-between">
-          <span className="text-slate-400">主机:</span>
-          <span className="text-slate-200 font-mono">{connection?.host}</span>
+
+        {/* 设备类型 */}
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded bg-accent/20 flex items-center justify-center flex-shrink-0">
+            <Network className="w-4 h-4 text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-slate-500">设备类型</div>
+            <div className="text-sm text-slate-200">{deviceTypeLabel}</div>
+          </div>
         </div>
-        <div className="flex justify-between">
-          <span className="text-slate-400">日志格式:</span>
-          <span className="text-slate-200">{logFormat}</span>
+
+        {/* 连接参数 */}
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded bg-accent/20 flex items-center justify-center flex-shrink-0">
+            <Globe className="w-4 h-4 text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-slate-500">连接参数</div>
+            <div className="text-sm text-slate-200 font-mono">
+              {connection?.protocol}://{connection?.host}:{connection?.port}
+            </div>
+            <div className="text-xs text-slate-500 mt-1">
+              用户: {connection?.username}
+            </div>
+          </div>
+        </div>
+
+        {/* 日志格式 */}
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded bg-accent/20 flex items-center justify-center flex-shrink-0">
+            <Server className="w-4 h-4 text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-slate-500">日志格式</div>
+            <div className="text-sm text-slate-200">{logFormatLabel}</div>
+            {logFormat === 'Custom' && customRegex && (
+              <div className="text-xs text-slate-500 mt-1 font-mono truncate">
+                正则: {customRegex}
+              </div>
+            )}
+            {logFormat === 'CustomPython' && customRegex && (
+              <div className="text-xs text-emerald-400 mt-1">
+                ✓ 自定义解析器已上传
+              </div>
+            )}
+          </div>
         </div>
       </div>
-      <button
-        onClick={handleFinish}
-        className="mt-6 px-6 py-2 bg-accent text-background rounded-lg font-medium"
-      >
-        完成
-      </button>
+
+      <div className="flex justify-end gap-3 pt-2">
+        <button
+          onClick={handleFinish}
+          disabled={createTemplate.isPending}
+          className="px-6 py-2 bg-accent text-background rounded-lg font-medium hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {createTemplate.isPending ? '创建中...' : '完成'}
+        </button>
+      </div>
     </div>
   );
 }
