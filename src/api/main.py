@@ -17,6 +17,7 @@ from src.api.reports import router as reports_router
 from src.api.analysis_endpoints import router as analysis_endpoints_router
 from src.api.metrics_endpoints import router as metrics_router
 from src.api.agent_endpoints import router as agent_router
+from src.api.ingestion_endpoints import router as ingestion_router
 
 # 配置日志
 logging.basicConfig(
@@ -87,6 +88,7 @@ app.include_router(agent_router)
 app.include_router(reports_router)
 app.include_router(analysis_endpoints_router)
 app.include_router(metrics_router)
+app.include_router(ingestion_router)
 
 
 @app.get("/health")
