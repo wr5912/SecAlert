@@ -8,6 +8,19 @@
 
 - React Flow 攻击链路图 + Zustand 全局状态 + 完整分析工作台前端框架（9个可视化组件、5个页面路由）
 - 修复所有 pre-existing TypeScript 编译错误，确保前端构建通过
+- Tactical Command Center 设计系统基础设施完成 - CSS 变量、字体包、4 个视觉组件、Badge 和 StatCard 升级
+- 完成 Card、Button、AlertList、Header、Input、Select、Dialog、Tooltip、Charts 和 AIPanel 组件的 Tactical Command Center 视觉升级
+
+---
+
+## v1.1 多数据源支持 + 产品级 UI + AI 助手 (Shipped: 2026-03-25)
+
+**Phases completed:** 4 phases, 5 plans, 43 tasks
+
+**Key accomplishments:**
+
+- React Flow 攻击链路图 + Zustand 全局状态 + 完整分析工作台前端框架（9个可视化组件、5个页面路由）
+- 修复所有 pre-existing TypeScript 编译错误，确保前端构建通过
 - Phase:
 - Tactical Command Center 设计系统基础设施完成 - CSS 变量、字体包、4 个视觉组件、Badge 和 StatCard 升级
 - 完成 Card、Button、AlertList、Header、Input、Select、Dialog、Tooltip、Charts 和 AIPanel 组件的 Tactical Command Center 视觉升级

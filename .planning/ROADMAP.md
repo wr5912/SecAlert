@@ -10,7 +10,8 @@
 
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-03-25)
 - ✅ **v1.1** — 多数据源支持 + 产品级 UI + AI 助手 (shipped 2026-03-25)
-- 🚧 **v1.2** — (planned)
+- ✅ **v1.2** — 智能分析工作台 (shipped 2026-03-30)
+- 🚧 **v1.3** — Claude Code AI 后端 (in progress)
 
 ---
 
@@ -29,7 +30,8 @@
 | 9. 智能分析工作台 | v1.2 | 1/1 | Complete | 2026-03-26 |
 | 10. 后端联调 + Tech Debt | v1.2 | 1/1 | Complete | 2026-03-26 |
 | 11. 后端 API 完善 | v1.2 | 0/1 | Not Started | — |
-| 12. 前端视觉升级 | v1.2 | 2/2 | Complete    | 2026-03-30 |
+| 12. 前端视觉升级 | v1.2 | 2/2 | Complete | 2026-03-30 |
+| 13. Claude Code AI 后端 | v1.3 | 0/1 | Not Started | — |
 
 ---
 
@@ -37,6 +39,7 @@
 
 - [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) — Phases 1-4
 - [v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md) — Phases 5-8
+- [v1.2-ROADMAP.md](./milestones/v1.2-ROADMAP.md) — Phases 9-12
 
 ---
 
@@ -66,17 +69,14 @@ Phase 10 (后端联调 + Tech Debt)
 Phase 11 (后端 API 完善)
     ↓
 Phase 12 (前端视觉升级)
+    ↓
+Phase 13 (Claude Code AI 后端)
 ```
-
-## Phase 11 Plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 11 to break down)
 
 ---
 
-## Phase 12 Plans
+## Phase 13 Plans
 
 Plans:
-- [x] 12-01-PLAN.md — 全局样式 + 新组件 + P0 组件升级 (StatCard, AlertBadge)
-- [x] 12-02-PLAN.md — P1/P2/P3 组件改造 (Card, Button, AlertRow, Header, Charts, AIPanel)
+- [ ] TBD (run /gsd:plan-phase 13 to break down)
+

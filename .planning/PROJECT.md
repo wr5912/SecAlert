@@ -23,17 +23,17 @@
 - [x] 系统能给出简单明确的处置建议 — v1.0 (Phase 4, UAT ✅)
 - [x] 界面简洁，面向非专业运维人员 — v1.0 (Phase 4, UAT ✅)
 
-## Current Milestone: v1.2 智能分析工作台 ✅
+## Current Milestone: v1.3 Claude Code AI 后端 🚧
 
-**Goal:** 构建专业威胁分析工作台，帮助运维人员快速定位、理解和处置真实攻击
+**Goal:** 使用 claude-agent-sdk 替换 DeepSeek API，实现 Claude Code 驱动的 AI Copilot
 
 **Target features:**
-- 智能告警中心 — AI 驱动的告警故事线聚合，按置信度排序
-- 攻击链路分析画布 — 交互式攻击链路可视化（React Flow + dagre）
-- 溯源时间线 — 多轨道事件时间线（网络/端点/身份/应用）
-- 威胁狩猎工作台 — 可视化三元组查询构建器
-- 资产上下文面板 — 360度资产信息
-- AI 调查助手 — 上下文感知 AI 辅助分析，带推理过程解释
+- claude-agent-sdk Python SDK 集成
+- WebSocket 流式对话服务
+- 配置 DeepSeek API Key (通过 ANTHROPIC_BASE_URL)
+- 自定义安全工具 (告警查询、攻击链分析)
+- 会话管理与上下文记忆
+- Fallback 机制
 
 ### Active
 
@@ -43,6 +43,7 @@
 - [x] v1.1 报表统计 — 日报/周报自动生成、趋势分析、PDF/Excel 导出、数据源健康报表 (Phase 8 ✅)
 - [x] v1.2 智能分析工作台 — 故事线聚合、攻击链路图、多轨道时间线、威胁狩猎、资产上下文、AI调查助手 (Phase 9 ✅)
 - [x] v1.2 Tech Debt 清理 — Button组件、formatDate、updateLastMessage类型、Vite alias配置 (Phase 10 ✅)
+- [ ] v1.3 Claude Code AI 后端 — claude-agent-sdk 集成、自定义工具、流式对话
 
 ### Out of Scope
 

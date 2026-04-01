@@ -21,7 +21,7 @@
 
 ---
 
-## v1.1 多数据源支持 + 产品级 UI + AI 助手
+## v1.1 多数据源支持 + 产品级 UI + AI 助手 (Completed)
 
 ### Phase 5: 多数据源支持 (DS-01 ~ DS-06)
 - **DS-01**: 支持SSH Syslog数据源接入
@@ -51,3 +51,69 @@
 - **RP-03**: 告警趋势分析图
 - **RP-04**: 数据源健康报表
 - **RP-05**: 报表导出功能（PDF/Excel）
+
+---
+
+## v1.2 智能分析工作台 (Completed)
+
+### Phase 9: 智能分析工作台
+- 攻击链路图 (React Flow + dagre)
+- 告警故事线聚合
+- 多轨道时间线
+- 威胁狩猎工作台
+- 资产上下文面板
+- AI 调查助手
+
+### Phase 10: 后端联调 + Tech Debt
+- Button 组件重构
+- formatDate 工具函数
+- Vite alias 配置
+
+### Phase 12: 前端视觉升级
+- Tactical Command Center 设计系统
+- CSS 变量、字体包
+- 全组件视觉升级
+
+---
+
+## v1.3 Claude Code AI 后端 🚧
+
+### Phase 13: Claude Code AI 后端 (AG-01 ~ AG-05)
+
+- **AG-01**: claude-agent-sdk 安装与配置
+  - 安装 Python SDK
+  - 配置 ANTHROPIC_BASE_URL (DeepSeek 兼容)
+  - 验证 SDK 连接
+
+- **AG-02**: WebSocket 流式对话服务
+  - 复用现有 /api/chat 接口
+  - WebSocket 支持流式响应
+  - 会话管理
+
+- **AG-03**: 自定义安全工具
+  - register_tool 注册内部 API 工具
+  - 告警查询工具
+  - 攻击链分析工具
+
+- **AG-04**: DeepSeek API Key 配置
+  - 配置 DEEPSEEK_API_KEY
+  - 配置 ANTHROPIC_BASE_URL=https://api.deepseek.com
+  - Fallback 机制
+
+- **AG-05**: 集成测试与验证
+  - E2E 测试
+  - Fallback 降级测试
+  - 性能测试
+
+---
+
+## Traceability
+
+| REQ-ID | Description | Phase | Status |
+|--------|-------------|-------|--------|
+| AG-01 | claude-agent-sdk 安装与配置 | 13 | Pending |
+| AG-02 | WebSocket 流式对话服务 | 13 | Pending |
+| AG-03 | 自定义安全工具 | 13 | Pending |
+| AG-04 | DeepSeek API Key 配置 | 13 | Pending |
+| AG-05 | 集成测试与验证 | 13 | Pending |
+
