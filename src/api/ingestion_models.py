@@ -25,7 +25,9 @@ class LogFormat(str, Enum):
     CEF = "CEF"
     SYSLOG = "Syslog"
     JSON = "JSON"
+    AUTO = "Auto"
     CUSTOM = "Custom"
+    CUSTOM_PYTHON = "CustomPython"
 
 
 class ConnectionConfig(BaseModel):

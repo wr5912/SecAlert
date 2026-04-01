@@ -13,7 +13,7 @@ export interface DeviceTypeInfo {
 }
 
 // 日志格式
-export type LogFormat = 'CEF' | 'Syslog' | 'JSON' | 'Custom';
+export type LogFormat = 'CEF' | 'Syslog' | 'JSON' | 'Auto' | 'Custom' | 'CustomPython';
 
 // 日志格式元数据
 export interface LogFormatInfo {
@@ -85,7 +85,9 @@ export const LOG_FORMATS: LogFormatInfo[] = [
   { id: 'CEF', label: 'CEF (Common Event Format)', description: '通用事件格式' },
   { id: 'Syslog', label: 'Syslog (标准格式)', description: '标准 syslog 格式' },
   { id: 'JSON', label: 'JSON (结构化日志)', description: 'JSON 结构化日志' },
+  { id: 'Auto', label: '自动识别', description: '系统自动识别日志格式' },
   { id: 'Custom', label: '自定义正则', description: '用户自定义正则表达式' },
+  { id: 'CustomPython', label: '自定义解析器', description: '用户上传 Python 代码解析日志' },
 ];
 
 // 向导步骤
