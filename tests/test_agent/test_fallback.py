@@ -67,9 +67,47 @@ async def test_fallback_with_mock_api(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_fallback_handles_network_error(monkeypatch):
-    """验证 fallback 处理网络错误 - 跳过因为 httpx mock 复杂"""
+    """验证 fallback 处理网络错误"""
+    import httpx
+
     monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
-    pytest.skip("httpx mock 复杂，跳过此测试")
+
+    # 创建一个 AsyncClient mock，其 post 方法抛出 ConnectError
+    mock_response = MagicMock()
+    mock_response.raise_for_status = MagicMock()
+    mock_response.json = MagicMock(return_value={
+        "choices": [{"message": {"content": "OK"}}]
+    })
+
+    async def mock_post(*args, **kwargs):
+        raise httpx.ConnectError("Connection failed")
+
+    async def mock_aenter(self):
+        return self
+
+    async def mock_aexit(self, *args):
+        pass
+
+    # 使用 spec 让 MagicMock 行为更像真实的 AsyncClient
+    mock_client = MagicMock()
+    mock_client.post = mock_post
+    mock_client.__aenter__ = mock_aenter
+    mock_client.__aexit__ = mock_aexit
+    mock_client.response = mock_response
+
+    def create_mock_client(*args, **kwargs):
+        return mock_client
+
+    # Patch httpx.AsyncClient - 它是一个 class，所以 patch 会替换整个类
+    with patch("httpx.AsyncClient", create_mock_client):
+        result = await call_deepseek_fallback(
+            system_prompt="You are a helpful assistant.",
+            user_message="Hello"
+        )
+
+        # Fallback 应该返回包含错误信息的结果
+        assert result is not None
+        assert "DeepSeek API" in result or "失败" in result or "error" in result.lower()
 
 
 @pytest.mark.asyncio
