@@ -115,5 +115,5 @@
 | AG-02 | WebSocket 流式对话服务 | 13 | Completed (13-02) |
 | AG-03 | 自定义安全工具 | 13 | Completed (13-01) |
 | AG-04 | DeepSeek API Key 配置 | 13 | Completed (13-02) |
-| AG-05 | 集成测试与验证 | 13 | Pending |
+| AG-05 | 集成测试与验证 | 13 | Completed (13-03) |
 
