@@ -4,12 +4,14 @@
  */
 
 import { useState } from 'react';
+import { Plus, Database, Upload } from 'lucide-react';
 import { useTemplates, useDeleteTemplate } from '@/api/ingestionEndpoints';
 import { useIngestionStore } from '@/stores/ingestionStore';
 import { TemplateCard } from '@/components/ingestion/TemplateCard';
 import { TemplateEmptyState } from '@/components/ingestion/TemplateEmptyState';
 import { WizardModal } from '@/components/ingestion/wizard/WizardModal';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import type { DataSourceTemplate, DataSourceStatus, HealthStatus } from '@/types/ingestion';
 
@@ -64,38 +66,111 @@ export function IngestionPage() {
     }
   };
 
+  // 计算统计数据
+  const onlineCount = templates.filter(t => {
+    const status = getTemplateStatus(t.id);
+    return status?.status === 'online';
+  }).length;
+
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-6">
       {/* 页面标题和操作栏 */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-200">数据接入</h1>
-          <p className="text-sm text-slate-400 mt-1">管理安全设备的日志接入</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+            <Upload className="w-6 h-6 text-accent" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">数据接入</h1>
+            <p className="text-sm text-text-muted mt-0.5">管理安全设备的日志接入</p>
+          </div>
         </div>
-        <Button onClick={openWizard}>
+
+        <Button onClick={openWizard} size="lg" className="gap-2">
+          <Plus className="w-4 h-4" />
           新建模板
         </Button>
       </div>
 
+      {/* 统计概览 */}
+      {!isLoading && templates.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-surface/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Database className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-text-primary">{templates.length}</p>
+                  <p className="text-xs text-text-muted">数据源模板</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-surface/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-success-bg flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-success" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-text-primary">{onlineCount}</p>
+                  <p className="text-xs text-text-muted">在线数据源</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-surface/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                  <Upload className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-text-primary">
+                    {templates.reduce((sum, t) => {
+                      const status = getTemplateStatus(t.id);
+                      return sum + (status?.events_received || 0);
+                    }, 0).toLocaleString()}
+                  </p>
+                  <p className="text-xs text-text-muted">总事件数</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* 加载状态 */}
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="text-slate-400">加载中...</div>
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+            <p className="text-text-muted">加载数据源...</p>
+          </div>
         </div>
       ) : templates.length === 0 ? (
         /* 空状态 */
         <TemplateEmptyState onCreateClick={openWizard} />
       ) : (
         /* 模板列表 */
-        <div className="grid gap-4">
-          {templates.map((template) => (
-            <TemplateCard
+        <div className="space-y-3">
+          {templates.map((template, index) => (
+            <div
               key={template.id}
-              template={template}
-              status={getTemplateStatus(template.id)}
-              onEdit={handleEdit}
-              onDelete={handleDeleteClick}
-            />
+              className="animate-slide-in-up"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <TemplateCard
+                template={template}
+                status={getTemplateStatus(template.id)}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -105,7 +180,7 @@ export function IngestionPage() {
 
       {/* 删除确认对话框 */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent size="sm">
           <DialogHeader>
             <DialogTitle>删除模板</DialogTitle>
             <DialogDescription>

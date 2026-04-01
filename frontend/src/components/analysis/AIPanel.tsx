@@ -6,11 +6,13 @@
  */
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Bot, Send, X, AlertCircle, BarChart3, Shield, Settings, Loader2 } from 'lucide-react';
+import { Bot, Send, X, AlertCircle, BarChart3, Shield, Settings, Loader2, MessageSquare, Sparkles, FileText, FileCode, FileJson } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAnalysisStore } from '../../stores/analysisStore';
 import { useChatStore } from '../../stores/chatStore';
 import { createSession, streamChatWebSocket, filterSensitiveInfo } from '../../api/chat';
+import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 import type { AISuggestion } from '../../types/analysis';
 
 // 页面上下文类型
@@ -262,105 +264,138 @@ export function AIPanel({ onExport }: AIPanelProps) {
   if (!copilotOpen) return null;
 
   return (
-    <aside className="w-80 bg-surface border-l border-border flex flex-col fixed right-0 top-0 h-screen z-50">
-      {/* 顶部 accent 线 */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-accent via-accent/50 to-transparent" />
+    <aside className="w-80 bg-surface/95 backdrop-blur-md border-l border-border/50 flex flex-col fixed right-0 top-0 h-screen z-50 shadow-xl">
+      {/* 顶部渐变线 */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
 
       {/* 头部 */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-        <div className="p-2 bg-accent/10 rounded-lg border border-accent/20">
-          <Bot className="w-4 h-4 text-accent" />
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
+        <div className={cn(
+          "p-2.5 rounded-xl border transition-all",
+          "bg-accent/10 border-accent/20 text-accent",
+          "shadow-[0_0_15px_rgba(0,240,255,0.15)]"
+        )}>
+          <Bot className="w-5 h-5" />
         </div>
-        <div className="flex-1">
-          <h3 className="text-sm font-heading font-semibold text-slate-200">AI Copilot</h3>
-          <p className="text-xs text-slate-500 flex items-center gap-1">
-            <span className="inline-flex items-center gap-1 text-accent/70">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-heading font-semibold text-text-primary">AI Copilot</h3>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-accent/10 border border-accent/20 rounded text-accent">
               {pageContext.icon}
               {pageContext.name}
             </span>
-          </p>
+          </div>
         </div>
-        <button
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={toggleCopilot}
-          className="p-1.5 rounded hover:bg-accent/10 text-slate-400 hover:text-accent transition-colors duration-150"
-          title="关闭"
+          className="text-text-muted hover:text-text-primary"
         >
           <X className="w-4 h-4" />
-        </button>
+        </Button>
       </div>
 
       {/* 内容区域：聊天消息 或 智能推荐 */}
       <div className="flex-1 overflow-hidden flex flex-col">
         {showChat ? (
           /* 聊天消息视图 */
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && !isStreaming && (
-              <div className="text-center text-slate-500 text-sm py-8">
-                <p>开始对话吧！</p>
-                <p className="text-xs mt-1">当前上下文：{pageContext.name}</p>
+              <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-4">
+                  <MessageSquare className="w-7 h-7 text-accent" />
+                </div>
+                <p className="text-sm font-medium text-text-primary mb-1">开始对话</p>
+                <p className="text-xs text-text-muted">当前上下文：{pageContext.name}</p>
               </div>
             )}
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={cn(
+                  "flex animate-fade-in",
+                  msg.role === 'user' ? 'justify-end' : 'justify-start'
+                )}
               >
                 <div
-                  className={`max-w-[85%] p-3 rounded-lg ${
+                  className={cn(
+                    "max-w-[85%] p-4 rounded-2xl transition-all",
                     msg.role === 'user'
-                      ? 'bg-accent/20 border border-accent/30 text-accent'
-                      : 'bg-surface/50 border border-border text-slate-300'
-                  }`}
+                      ? 'bg-accent/15 border border-accent/20 text-text-primary rounded-tr-md'
+                      : 'bg-surface-hover border border-border/50 text-text-primary rounded-tl-md'
+                  )}
                 >
                   {msg.role === 'assistant' && (
-                    <div className="flex items-center gap-1 mb-1 text-xs text-accent/70">
-                      <Bot className="w-3 h-3" />
-                      <span>AI</span>
+                    <div className="flex items-center gap-1.5 mb-2 text-xs text-accent/70">
+                      <Sparkles className="w-3 h-3" />
+                      <span>AI 助手</span>
                     </div>
                   )}
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                 </div>
               </div>
             ))}
+            {isStreaming && (
+              <div className="flex justify-start animate-fade-in">
+                <div className="bg-surface-hover border border-border/50 p-4 rounded-2xl rounded-tl-md max-w-[85%]">
+                  <div className="flex items-center gap-2 text-xs text-accent/70">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>AI 正在分析...</span>
+                  </div>
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
         ) : (
           /* 智能推荐视图 */
-          <div className="flex-1 overflow-y-auto p-3">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-heading font-medium text-slate-400 uppercase tracking-wide">智能推荐</h3>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-accent" />
+                <h3 className="text-xs font-heading font-medium text-text-secondary uppercase tracking-wide">智能推荐</h3>
+              </div>
               {messages.length > 0 && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowChat(true)}
-                  className="text-xs text-accent hover:text-accent/80 transition-colors"
+                  className="text-xs h-7 gap-1"
                 >
+                  <MessageSquare className="w-3 h-3" />
                   查看对话 ({messages.length})
-                </button>
+                </Button>
               )}
             </div>
             <div className="space-y-3">
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className="p-3 bg-surface/50 border border-border rounded-lg"
+                  className={cn(
+                    "p-4 rounded-xl border transition-all duration-200",
+                    "bg-surface/50 border-border/50 hover:border-accent/30 hover:bg-surface-hover",
+                    "animate-slide-in-up"
+                  )}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-accent">
+                    <span className="font-medium text-accent text-sm">
                       {suggestion.action}
                     </span>
-                    <span className="text-xs text-slate-500 font-mono">
+                    <span className="inline-flex items-center px-2 py-0.5 text-xs bg-surface-hover border border-border rounded text-text-muted font-mono">
                       {Math.round(suggestion.confidence * 100)}%
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mb-2">
+                  <p className="text-xs text-text-muted mb-3 leading-relaxed">
                     {suggestion.reasoning}
                   </p>
                   {suggestion.evidence.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {suggestion.evidence.map((e, i) => (
                         <span
                           key={i}
-                          className="px-1.5 py-0.5 text-xs bg-accent/10 border border-accent/20 rounded text-slate-400"
+                          className="px-2 py-0.5 text-xs bg-accent/5 border border-accent/10 rounded-md text-text-muted"
                         >
                           {e}
                         </span>
@@ -372,56 +407,59 @@ export function AIPanel({ onExport }: AIPanelProps) {
             </div>
           </div>
         )}
+      </div>
 
-        {/* 查询输入 - 放在底部 */}
-        <div className="p-3 border-t border-border shrink-0">
-          <div className="relative">
-            <textarea
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="输入您的安全问题..."
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 resize-none"
-              rows={2}
-              disabled={isStreaming}
-            />
-            <button
-              onClick={handleSubmit}
-              disabled={!query.trim() || isStreaming}
-              className="absolute right-2 bottom-2 p-2 bg-accent/10 rounded-lg border border-accent/50 text-accent hover:bg-accent/20 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isStreaming ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </button>
-          </div>
+      {/* 查询输入 - 放在底部 */}
+      <div className="p-4 border-t border-border/50 shrink-0">
+        <div className="relative">
+          <textarea
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="输入您的安全问题..."
+            className="w-full rounded-xl border border-border bg-background/80 px-4 py-3 pr-12 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 resize-none transition-all"
+            rows={2}
+            disabled={isStreaming}
+          />
+          <Button
+            variant="default"
+            size="icon"
+            onClick={handleSubmit}
+            disabled={!query.trim() || isStreaming}
+            className="absolute right-2 bottom-2 shadow-md"
+          >
+            {isStreaming ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+          </Button>
         </div>
       </div>
 
       {/* 导出功能 */}
-      <div className="p-3 border-t border-border">
-        <h3 className="text-xs font-heading font-medium text-slate-400 mb-2 uppercase tracking-wide">证据导出</h3>
-        <div className="flex gap-2">
-          <button
-            onClick={() => onExport?.('pdf')}
-            className="flex-1 py-1.5 px-3 bg-accent/10 border border-accent/30 hover:bg-accent/20 text-accent text-xs rounded transition-colors duration-150"
-          >
-            PDF
-          </button>
-          <button
-            onClick={() => onExport?.('markdown')}
-            className="flex-1 py-1.5 px-3 bg-accent/10 border border-accent/30 hover:bg-accent/20 text-accent text-xs rounded transition-colors duration-150"
-          >
-            Markdown
-          </button>
-          <button
-            onClick={() => onExport?.('json')}
-            className="flex-1 py-1.5 px-3 bg-accent/10 border border-accent/30 hover:bg-accent/20 text-accent text-xs rounded transition-colors duration-150"
-          >
-            JSON
-          </button>
+      <div className="px-4 pb-4 shrink-0">
+        <div className="flex items-center gap-2 mb-3">
+          <FileText className="w-3.5 h-3.5 text-text-muted" />
+          <h3 className="text-xs font-heading font-medium text-text-secondary uppercase tracking-wide">证据导出</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { format: 'pdf', icon: FileText, label: 'PDF' },
+            { format: 'markdown', icon: FileCode, label: 'MD' },
+            { format: 'json', icon: FileJson, label: 'JSON' },
+          ].map(({ format, icon: Icon, label }) => (
+            <Button
+              key={format}
+              variant="outline"
+              size="sm"
+              onClick={() => onExport?.(format as 'pdf' | 'markdown' | 'json')}
+              className="gap-1.5 text-xs h-8"
+            >
+              <Icon className="w-3 h-3" />
+              {label}
+            </Button>
+          ))}
         </div>
       </div>
     </aside>

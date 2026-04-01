@@ -85,31 +85,32 @@ export async function fetchChainById(chainId: string): Promise<RemediationRespon
 
 /**
  * 获取 Dashboard 指标数据
- * TODO: 后端实现后替换为真实 API
+ * 从后端 API 获取真实的统计指标
  */
 export async function fetchMetrics(): Promise<DashboardMetrics> {
-  // 模拟数据 - 后端实现前使用
-  return {
-    total: 1234,
-    truePositives: 89,
-    falsePositiveRate: 72.8,
-    resolutionRate: 85.3,
-    trends: [
-      { time: '2024-01-01', count: 120 },
-      { time: '2024-01-02', count: 98 },
-      { time: '2024-01-03', count: 145 },
-      { time: '2024-01-04', count: 87 },
-      { time: '2024-01-05', count: 112 },
-      { time: '2024-01-06', count: 156 },
-      { time: '2024-01-07', count: 134 },
-    ],
-    bySeverity: [
-      { severity: 'critical', count: 45 },
-      { severity: 'high', count: 123 },
-      { severity: 'medium', count: 234 },
-      { severity: 'low', count: 456 },
-    ],
-  };
+  try {
+    const response = await fetch(`${API_BASE}/metrics/dashboard`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch metrics: ${response.statusText}`);
+    }
+    return response.json();
+  } catch (error) {
+    console.error('Failed to fetch metrics:', error);
+    // 返回空数据而不是硬编码值
+    return {
+      total: 0,
+      truePositives: 0,
+      falsePositiveRate: 0,
+      resolutionRate: 0,
+      trends: [],
+      bySeverity: [
+        { severity: 'critical', count: 0 },
+        { severity: 'high', count: 0 },
+        { severity: 'medium', count: 0 },
+        { severity: 'low', count: 0 },
+      ],
+    };
+  }
 }
 
 /**

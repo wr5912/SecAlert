@@ -9,7 +9,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       type={type}
       data-slot="input"
       className={cn(
-        "flex h-9 w-full rounded-lg border border-border bg-surface px-3 py-1 text-sm text-slate-200 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:border-accent/50 disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-150 font-body",
+        "flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:border-accent/50 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-150 font-body",
         className
       )}
       {...props}
@@ -17,4 +17,18 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   )
 }
 
-export { Input }
+function InputWithIcon({ className, icon, ...props }: React.ComponentProps<"input"> & { icon: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <Input
+        className={cn("pl-10", className)}
+        {...props}
+      />
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+        {icon}
+      </div>
+    </div>
+  )
+}
+
+export { Input, InputWithIcon }
