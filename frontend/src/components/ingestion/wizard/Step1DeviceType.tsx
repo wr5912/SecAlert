@@ -1,10 +1,10 @@
-import { Firewall, Network, Key, Server, Globe, Shield, MoreHorizontal } from 'lucide-react';
+import { ShieldAlert, Network, Key, Server, Globe, Shield, MoreHorizontal } from 'lucide-react';
 import { useIngestionStore } from '@/stores/ingestionStore';
 import { DEVICE_TYPES } from '@/types/ingestion';
 import type { DeviceType } from '@/types/ingestion';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Firewall, Network, Key, Server, Globe, Shield, MoreHorizontal
+  ShieldAlert, Network, Key, Server, Globe, Shield, MoreHorizontal
 };
 
 export function Step1DeviceType() {

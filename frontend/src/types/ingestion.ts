@@ -71,7 +71,7 @@ export interface WizardStep {
 
 // 设备类型列表
 export const DEVICE_TYPES: DeviceTypeInfo[] = [
-  { id: 'firewall', label: '防火墙', icon: 'Firewall' },
+  { id: 'firewall', label: '防火墙', icon: 'ShieldAlert' },
   { id: 'ids', label: '入侵检测系统', icon: 'Network' },
   { id: 'vpn', label: 'VPN', icon: 'Key' },
   { id: 'switch', label: '交换机', icon: 'Server' },

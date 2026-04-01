@@ -1,5 +1,4 @@
 import { Pencil, Trash2, RefreshCw, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import type { DataSourceTemplate, DataSourceStatus, HealthStatus } from '@/types/ingestion';
 
 interface TemplateCardProps {

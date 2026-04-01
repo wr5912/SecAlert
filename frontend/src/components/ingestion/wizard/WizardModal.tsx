@@ -20,7 +20,7 @@ const stepTitles: Record<number, string> = {
 };
 
 export function WizardModal({ open, onOpenChange }: WizardModalProps) {
-  const { step, setStep, deviceType, connection, logFormat, nextStep, prevStep, resetWizard } = useIngestionStore();
+  const { step, deviceType, connection, logFormat, nextStep, prevStep, resetWizard } = useIngestionStore();
 
   const handleClose = () => {
     resetWizard();
