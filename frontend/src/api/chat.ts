@@ -12,7 +12,7 @@ import type { ChatContext, ChatMessage } from '../stores/chatStore';
 const API_BASE = '/api/chat';
 
 // 是否使用模拟模式（后端未运行时）
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 interface CreateSessionResponse {
   session_id: string;
@@ -228,4 +228,72 @@ export function filterSensitiveInfo(text: string): string {
     .replace(/10\.\d+\.\d+\.\d+/g, '[内网IP]')
     .replace(/192\.168\.\d+\.\d+/g, '[内网IP]')
     .replace(/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+/g, '[内网IP]');
+}
+
+/**
+ * WebSocket 流式对话
+ *
+ * 使用 WebSocket 获取 Agent 流式响应
+ *
+ * @param message - 用户消息
+ * @param sessionId - 会话ID (作为 user_id)
+ * @param context - 当前上下文
+ * @param onChunk - 每个 chunk 的回调
+ * @param onDone - 完成时的回调
+ * @param onError - 错误时的回调
+ * @returns WebSocket 连接，可用于关闭
+ */
+export function streamChatWebSocket(
+  message: string,
+  sessionId: string,
+  context: ChatContext,
+  onChunk: (token: string) => void,
+  onDone: () => void,
+  onError: (error: Error) => void
+): WebSocket {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.host;
+  const wsUrl = `${protocol}//${host}/ws/chat/${sessionId}`;
+
+  const ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    // 发送消息
+    ws.send(JSON.stringify({
+      message,
+      context
+    }));
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      const msgType = data.type;
+      const content = data.content || '';
+
+      if (msgType === 'text') {
+        onChunk(content);
+      } else if (msgType === 'tool_use') {
+        // 工具执行中，可选显示
+        onChunk(content);
+      } else if (msgType === 'done') {
+        onDone();
+      } else if (msgType === 'error') {
+        onError(new Error(content || 'Unknown error'));
+      }
+    } catch (e) {
+      // 忽略解析错误
+    }
+  };
+
+  ws.onerror = (event) => {
+    onError(new Error('WebSocket connection error'));
+  };
+
+  ws.onclose = () => {
+    // 连接关闭时调用 onDone
+    onDone();
+  };
+
+  return ws;
 }
