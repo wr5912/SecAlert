@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Claude Code AI 后端
 current_phase: 13
-status: defining
+status: planning
 last_updated: "2026-04-01"
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -32,7 +32,7 @@ Plan: Not started
 | Last Updated | 2026-04-01 |
 | Last Milestone | v1.2 智能分析工作台 (4 phases, completed) |
 | Current Milestone | v1.3 Claude Code AI 后端 |
-| Next Action | 定义 v1.3 需求并创建路线图 |
+| Next Action | /gsd:plan-phase 13 细分执行计划 |
 
 ---
 
@@ -44,18 +44,12 @@ Plan: Not started
 - Vite @ alias 配置支持 @/lib/utils 导入
 
 ---
-- [Phase 12]: 使用 @fontsource-variable 字体包替代 Google Fonts (离线部署场景)
-- [Phase 12]: AIPanel 设计为可折叠 320px 右侧面板，通过 AppShell 状态管理
-- [Phase 12]: AIPanel 根据当前页面状态 (dashboard/alert/analysis) 显示不同欢迎语
 
-## v1.2 Phase Breakdown
+## v1.3 Phase Breakdown
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 9 | 智能分析工作台 | New feature | Completed |
-| 10 | 后端联调 | Tech debt | Completed |
-| 11 | 后端 API 完善 | Backend API | Not Started |
-| 12 | 前端视觉升级 | Frontend redesign | Completed |
+| 13 | Claude Code AI 后端 | AG-01, AG-02, AG-03, AG-04, AG-05 | Not Started |
 
 ---
 
@@ -64,6 +58,7 @@ Plan: Not started
 - Phase 11 added: 后端 API 完善
 - Phase 12 added: 前端视觉升级
 - Phase 12 UI-SPEC.md approved (Tactical Command Center aesthetic)
+- Phase 13 added: Claude Code AI 后端 (v1.3 milestone start)
 
 ---
 
@@ -86,4 +81,5 @@ Plan: Not started
 | .planning/phases/09-analysis-workbench | Completed |
 | .planning/phases/10-backend-integration | Completed |
 | .planning/phases/11-backend-api | Active |
-| .planning/phases/12-frontend-redesign | Active (UI-SPEC approved) |
+| .planning/phases/12-frontend-redesign | Completed |
+| .planning/phases/13-claude-code-backend | To be created |

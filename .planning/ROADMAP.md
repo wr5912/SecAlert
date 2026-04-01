@@ -3,6 +3,7 @@
 **Project:** Security Alert Analysis System
 **Granularity:** Standard
 **Created:** 2026-03-22
+**Updated:** 2026-04-01
 
 ---
 
@@ -12,6 +13,12 @@
 - ✅ **v1.1** — 多数据源支持 + 产品级 UI + AI 助手 (shipped 2026-03-25)
 - ✅ **v1.2** — 智能分析工作台 (shipped 2026-03-30)
 - 🚧 **v1.3** — Claude Code AI 后端 (in progress)
+
+---
+
+## Phases
+
+- [ ] **Phase 13: Claude Code AI 后端** — claude-agent-sdk 集成、WebSocket 流式对话、自定义安全工具
 
 ---
 
@@ -35,11 +42,28 @@
 
 ---
 
-## Archived Milestones
+## Phase Details
 
-- [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) — Phases 1-4
-- [v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md) — Phases 5-8
-- [v1.2-ROADMAP.md](./milestones/v1.2-ROADMAP.md) — Phases 9-12
+### Phase 13: Claude Code AI 后端
+
+**Goal:** Users can use Claude Code SDK for AI-powered security analysis with streaming dialogue
+
+**Depends on:** Phase 12
+
+**Requirements:** AG-01, AG-02, AG-03, AG-04, AG-05
+
+**Success Criteria** (what must be TRUE):
+
+1. User can install and configure claude-agent-sdk with DeepSeek API credentials
+2. User can engage in streaming AI conversation via WebSocket with real-time responses
+3. User can invoke custom security tools (alert queries, attack chain analysis) during conversation
+4. System maintains conversation context across sessions
+5. System gracefully handles API failures with fallback mechanism
+6. E2E tests verify all integrations work correctly
+
+**Plans:** TBD
+
+**UI hint:** yes
 
 ---
 
@@ -80,3 +104,10 @@ Phase 13 (Claude Code AI 后端)
 Plans:
 - [ ] TBD (run /gsd:plan-phase 13 to break down)
 
+---
+
+## Archived Milestones
+
+- [v1.0-ROADMAP.md](./milestones/v1.0-ROADMAP.md) — Phases 1-4
+- [v1.1-ROADMAP.md](./milestones/v1.1-ROADMAP.md) — Phases 5-8
+- [v1.2-ROADMAP.md](./milestones/v1.2-ROADMAP.md) — Phases 9-12
