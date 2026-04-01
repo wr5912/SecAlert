@@ -87,3 +87,19 @@ class DeleteResponse(BaseModel):
     """删除响应"""
     success: bool
     message: str
+
+
+class HealthStatus(str, Enum):
+    """健康状态"""
+    ONLINE = "online"
+    OFFLINE = "offline"
+    WARNING = "warning"
+
+
+class DataSourceStatus(BaseModel):
+    """数据源健康状态 (DI-06)"""
+    template_id: str = Field(..., description="模板 ID")
+    status: HealthStatus = Field(..., description="状态: online/offline/warning")
+    last_sync: Optional[str] = Field(None, description="最后同步时间 (ISO)")
+    events_received: int = Field(0, description="接收事件数")
+    error_message: Optional[str] = Field(None, description="错误信息")

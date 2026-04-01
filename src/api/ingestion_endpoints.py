@@ -15,13 +15,18 @@ from .ingestion_models import (
     TemplateUpdate,
     TemplateListResponse,
     DeleteResponse,
-    ConnectionConfig
+    ConnectionConfig,
+    DataSourceStatus,
+    HealthStatus
 )
 
 router = APIRouter(prefix="/api/ingestion", tags=["ingestion"])
 
 # 内存存储 (生产环境应使用数据库)
 _templates: Dict[str, DataSourceTemplate] = {}
+
+# 状态存储 (生产环境应从实际监控服务获取)
+_template_status: Dict[str, DataSourceStatus] = {}
 
 
 def _generate_id() -> str:
@@ -133,4 +138,36 @@ async def delete_template(template_id: str) -> DeleteResponse:
         raise HTTPException(status_code=404, detail=f"Template {template_id} not found")
 
     del _templates[template_id]
+    # 同时删除状态
+    if template_id in _template_status:
+        del _template_status[template_id]
     return DeleteResponse(success=True, message=f"Template {template_id} deleted")
+
+
+@router.get("/templates/{template_id}/status", response_model=DataSourceStatus)
+async def get_template_status(template_id: str) -> DataSourceStatus:
+    """
+    DI-06: 获取数据源健康状态
+
+    - **template_id**: 模板 ID
+
+    Returns:
+        数据源状态信息
+
+    Raises:
+        404: 模板不存在
+    """
+    if template_id not in _templates:
+        raise HTTPException(status_code=404, detail=f"Template {template_id} not found")
+
+    # 如果没有状态记录，创建一个默认状态
+    if template_id not in _template_status:
+        _template_status[template_id] = DataSourceStatus(
+            template_id=template_id,
+            status=HealthStatus.ONLINE,
+            last_sync=None,
+            events_received=0,
+            error_message=None
+        )
+
+    return _template_status[template_id]

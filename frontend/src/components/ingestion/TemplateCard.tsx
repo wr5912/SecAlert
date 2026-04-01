@@ -1,5 +1,6 @@
 import { Pencil, Trash2, RefreshCw, AlertCircle, Server, Database, Globe, Shield, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
-import type { DataSourceTemplate, DataSourceStatus, HealthStatus } from '@/types/ingestion';
+import type { DataSourceTemplate, HealthStatus } from '@/types/ingestion';
+import { useTemplateStatus } from '@/api/ingestionEndpoints';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 
@@ -23,12 +24,14 @@ const statusConfig: Record<HealthStatus, { label: string; icon: React.ReactNode;
 
 interface TemplateCardProps {
   template: DataSourceTemplate;
-  status?: DataSourceStatus;
   onEdit: (template: DataSourceTemplate) => void;
   onDelete: (templateId: string) => void;
 }
 
-export function TemplateCard({ template, status, onEdit, onDelete }: TemplateCardProps) {
+export function TemplateCard({ template, onEdit, onDelete }: TemplateCardProps) {
+  // DI-06: 使用真实 API 获取状态
+  const { data: status } = useTemplateStatus(template.id);
+
   const lastSyncDisplay = status?.last_sync
     ? new Date(status.last_sync).toLocaleString('zh-CN', {
         month: '2-digit',

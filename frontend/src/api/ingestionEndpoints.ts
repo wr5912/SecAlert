@@ -4,7 +4,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { DataSourceTemplate, ConnectionConfig, DeviceType, LogFormat } from '../types/ingestion';
+import type { DataSourceTemplate, ConnectionConfig, DeviceType, LogFormat, DataSourceStatus } from '../types/ingestion';
 
 const API_BASE = '/api/ingestion';
 
@@ -69,6 +69,15 @@ async function deleteTemplate(id: string): Promise<void> {
   }
 }
 
+// Fetch template status (DI-06)
+async function fetchTemplateStatus(templateId: string): Promise<DataSourceStatus> {
+  const response = await fetch(`${API_BASE}/templates/${templateId}/status`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch template status: ${response.statusText}`);
+  }
+  return response.json();
+}
+
 // Hooks
 export function useTemplates() {
   return useQuery({
@@ -105,5 +114,14 @@ export function useDeleteTemplate() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['templates'] });
     },
+  });
+}
+
+export function useTemplateStatus(templateId: string) {
+  return useQuery({
+    queryKey: ['template-status', templateId],
+    queryFn: () => fetchTemplateStatus(templateId),
+    enabled: !!templateId,
+    refetchInterval: 30000, // 每 30 秒刷新状态
   });
 }
