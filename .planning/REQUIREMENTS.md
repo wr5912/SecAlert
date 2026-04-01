@@ -85,17 +85,17 @@
   - 配置 ANTHROPIC_BASE_URL (DeepSeek 兼容)
   - 验证 SDK 连接
 
-- **AG-02**: WebSocket 流式对话服务
+- **~~AG-02~~**: WebSocket 流式对话服务 ✅ (13-02)
   - 复用现有 /api/chat 接口
   - WebSocket 支持流式响应
   - 会话管理
 
-- **AG-03**: 自定义安全工具
+- **~~AG-03~~**: 自定义安全工具 ✅ (13-01)
   - register_tool 注册内部 API 工具
   - 告警查询工具
   - 攻击链分析工具
 
-- **AG-04**: DeepSeek API Key 配置
+- **~~AG-04~~**: DeepSeek API Key 配置 ✅ (13-02)
   - 配置 DEEPSEEK_API_KEY
   - 配置 ANTHROPIC_BASE_URL=https://api.deepseek.com
   - Fallback 机制
@@ -112,8 +112,8 @@
 | REQ-ID | Description | Phase | Status |
 |--------|-------------|-------|--------|
 | AG-01 | claude-agent-sdk 安装与配置 | 13 | Pending |
-| AG-02 | WebSocket 流式对话服务 | 13 | Pending |
-| AG-03 | 自定义安全工具 | 13 | Pending |
-| AG-04 | DeepSeek API Key 配置 | 13 | Pending |
+| AG-02 | WebSocket 流式对话服务 | 13 | Completed (13-02) |
+| AG-03 | 自定义安全工具 | 13 | Completed (13-01) |
+| AG-04 | DeepSeek API Key 配置 | 13 | Completed (13-02) |
 | AG-05 | 集成测试与验证 | 13 | Pending |
 
