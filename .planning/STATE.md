@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 16
 status: unknown
-last_updated: "2026-04-02T13:05:33.936Z"
+last_updated: "2026-04-02T14:28:02.421Z"
 progress:
   total_phases: 2
   completed_phases: 2
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 13
+  completed_plans: 13
 ---
 
 # SecAlert State
@@ -37,6 +37,7 @@ _Accumulated context from previous milestones preserved below_
 ---
 - [Phase 16]: MetadataEnricher 注入元数据到 _collection_metadata 子对象而非顶层字段
 - [Phase 16]: DataSourceTemplate 需要 metadata 字段以支持模板存储 OCSF 映射
+- [Phase 15]: 向导从 6 步压缩到 4 步：WIZARD_STEPS 更新，步骤 4 合并模板设置和解析测试
 
 ## v1.5 Phase Breakdown
 
@@ -82,6 +83,8 @@ _Accumulated context from previous milestones preserved below_
 | Phase 16 P01 | 3 | 2 tasks | 1 files |
 | Phase 16 P02 | 3 | 1 tasks | 1 files |
 | Phase 16 P03 | 3 | 3 tasks | 2 files |
+| Phase 15 P10 | 2 | 4 tasks | 1 files |
+| Phase 15 P10 | 2 | 4 tasks | 3 files |
 
 ## File Inventory
 

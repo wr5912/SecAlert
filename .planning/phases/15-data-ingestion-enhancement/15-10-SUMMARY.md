@@ -1,87 +1,114 @@
 ---
 phase: 15-data-ingestion-enhancement
-plan: "10"
-subsystem: ui
-tags: [wizard, wizardmodal, ux, frontend, react]
-
-# Dependency graph
-requires: []
-provides:
-  - WizardModal Step5 显示"跳过批量导入"按钮
-  - canGoNext(4) 返回 true（与独立完成按钮逻辑一致）
-  - stepTitles 改用 WIZARD_STEPS 单点来源
-affects: [data-ingestion-ui, wizard-components]
-
-# Tech tracking
-tech-stack:
+plan: "15-10"
+subsystem: ingestion-ui
+tags: [wizard, refactor, parse-test]
+dependency_graph:
+  requires: []
+  provides:
+    - WizardModal 4 步向导
+    - Step4Complete 内部状态机
+  affects:
+    - ingestion.ts
+    - WizardModal.tsx
+    - Step4Complete.tsx
+tech_stack:
   added: []
   patterns:
-    - WIZARD_STEPS 单点来源模式（避免重复定义）
-
-key-files:
+    - 内部状态机 (settings/testing/confirmed)
+    - 向导步骤压缩
+key_files:
+  created: []
   modified:
+    - frontend/src/types/ingestion.ts
     - frontend/src/components/ingestion/wizard/WizardModal.tsx
-
-key-decisions:
-  - "Step5 跳过按钮使用 variant="ghost" 与其他按钮保持一致"
-  - "canGoNext(4)=true 确保 Step4 导航逻辑与其他步骤一致"
-
-requirements-completed: []
-
-# Metrics
-duration: 2min
-completed: 2026-04-02
+    - frontend/src/components/ingestion/wizard/Step4Complete.tsx
+decisions:
+  - D-01: 向导从 6 步压缩到 4 步
+  - D-03: 解析测试必须在点击「完成」前通过
+  - D-04: 模板设置 → 开始解析测试 → 测试通过 → 显示确认页 → 点「完成」关闭
+  - D-05: 解析测试未通过时，「完成」按钮禁用
+  - D-08: 解析测试通过后，显示确认页（有「完成」按钮和「再次测试」选项）
+  - D-09: 点击「完成」关闭弹窗，数据保存
+metrics:
+  duration: 2 min
+  tasks_completed: 4
+  completed_date: "2026-04-02T14:22:40Z"
 ---
 
-# Phase 15 Plan 10: WizardModal Gap Closure Summary
+# Phase 15 Plan 10: WizardModal 4 步重构总结
 
-**WizardModal 6步向导 footer 导航逻辑统一：跳过批量导入按钮显示、canGoNext Step4 支持、WIZARD_STEPS 单点来源**
+## 一句话描述
+将数据接入向导从 6 步压缩到 4 步，步骤 4 合并模板设置和解析测试功能
 
-## Performance
+## 任务完成情况
 
-- **Duration:** 2 min
-- **Started:** 2026-04-02T13:07:00Z
-- **Completed:** 2026-04-02T13:09:00Z
-- **Tasks:** 4
-- **Files modified:** 1
+| Task | Name | Commit | Files |
+| ---- | ---- | ------ | ----- |
+| 1 | 更新 WIZARD_STEPS 从 6 步到 4 步 | f6697af | ingestion.ts |
+| 2 | 重构 Step4Complete 合并 ParseTestPanel | eda41f4 | Step4Complete.tsx |
+| 3 | 重构 WizardModal 移除步骤 5 和 6 | b7e59d5 | WizardModal.tsx |
+| 4 | 验证 StepIndicator 支持 4 步显示 | - | (无需修改) |
 
-## Accomplishments
+## 变更详情
 
-- Step5 显示"跳过批量导入"按钮（footer 条件 step < 5 → step <= 5）
-- canGoNext() 对 Step4 返回 true（与独立完成按钮逻辑一致）
-- 消除本地 stepTitles 重复定义，改用 WIZARD_STEPS 单点来源
-- Step5 跳过逻辑正确绑定 nextStep() 跳转 Step6
+### Task 1: WIZARD_STEPS 更新
+- **前:** 6 步 (设备类型 → 连接参数 → 日志格式 → 模板设置 → 批量导入 → 完成)
+- **后:** 4 步 (设备类型 → 连接参数 → 日志格式 → 完成)
+- **commit:** f6697af
 
-## Task Commits
+### Task 2: Step4Complete 重构
+- 实现内部状态机：`settings` → `testing` → `confirmed`
+- **settings 阶段:** 显示配置摘要和「开始解析测试」按钮
+- **testing 阶段:** 显示 ParseTestPanel 进行解析测试
+- **confirmed 阶段:** 测试通过后显示成功提示和「完成」按钮
+- 完成按钮 `disabled={!isTestQualified}` 实现 D-05
+- commit: eda41f4
 
-所有 4 个任务合并为 1 次提交：
+### Task 3: WizardModal 重构
+- 移除 Step5BatchImport 和 Step6ParseTest 导入
+- renderStep 仅保留 case 1-4
+- 移除「跳过批量导入」按钮
+- Footer 条件改为 `step <= 4`
+- **commit:** b7e59d5
 
-1. **Task 1-4: WizardModal gap closure** - `f95aff2` (feat)
+### Task 4: StepIndicator 验证
+- StepIndicator 使用 `WIZARD_STEPS.map()` 动态渲染
+- WIZARD_STEPS 更新后自动显示 4 步
+- 无需代码修改
 
-**Plan metadata:** 无独立 plan commit（gap closure plan）
+## 决策实现
 
-## Files Created/Modified
+| 决策 | 描述 | 实现 |
+| ---- | ---- | ---- |
+| D-01 | 向导 6 步→4 步 | WIZARD_STEPS 更新 |
+| D-03 | 解析测试必须通过才能完成 | disabled={!isTestQualified} |
+| D-04 | 流程：设置→测试→确认→完成 | 内部状态机 |
+| D-05 | 测试未通过时完成按钮禁用 | confirmed 阶段检查 |
+| D-08 | 确认页有完成和再次测试按钮 | confirmed 阶段 UI |
+| D-09 | 点完成关闭弹窗保存数据 | handleFinish 调用 resetWizard |
 
-- `frontend/src/components/ingestion/wizard/WizardModal.tsx` - 6步向导 footer 导航逻辑修复
+## 验证命令
 
-## Decisions Made
+```bash
+# 检查 WIZARD_STEPS
+grep -A 6 "WIZARD_STEPS" frontend/src/types/ingestion.ts
 
-- Step5 跳过按钮使用 `variant="ghost"` 与其他按钮保持视觉一致
-- `canGoNext(4)=true` 确保 Step4 导航逻辑与其他步骤一致，footer 按钮因 `step <= 5` 条件仍不显示 next 按钮（Step4 有独立完成按钮）
+# 检查 Step4Complete 状态机
+grep "ParseTestPanel\|step4Phase" frontend/src/components/ingestion/wizard/Step4Complete.tsx
 
-## Deviations from Plan
+# 检查 WizardModal 无步骤 5/6
+grep "Step5BatchImport\|Step6ParseTest" frontend/src/components/ingestion/wizard/WizardModal.tsx
+```
 
-None - plan executed exactly as written.
+## 备注
 
-## Issues Encountered
+- 批量导入作为独立功能（不在弹窗内）将在单独的 phase 中规划
+- StepIndicator 无需修改，自动适应 4 步配置
 
-- npm build 存在 Step5BatchImport.tsx 中 pre-existing 类型错误，与本次修改无关，未影响执行
+## Self-Check: PASSED
 
-## Next Phase Readiness
-
-- WizardModal gap closure 完成，Step5 跳过逻辑正常
-- 15-09 遗留 UX 问题全部修复完成
-
----
-*Phase: 15-data-ingestion-enhancement plan 10*
-*Completed: 2026-04-02*
+- WIZARD_STEPS 包含 4 个步骤
+- Step4Complete 包含 3 个内部阶段
+- WizardModal 无 Step5BatchImport 和 Step6ParseTest
+- 所有 commit 已创建
