@@ -99,10 +99,78 @@ export const LOG_FORMATS: LogFormatInfo[] = [
   { id: 'CustomPython', label: '自定义解析器', description: '用户上传 Python 代码解析日志' },
 ];
 
-// 向导步骤
-export const WIZARD_STEPS: WizardStep[] = [
-  { num: 1, label: '设备类型' },
-  { num: 2, label: '连接参数' },
-  { num: 3, label: '日志格式' },
-  { num: 4, label: '完成' },
-];
+// 批量导入设备类型
+export interface BatchDevice {
+  name: string;
+  device_type: string;
+  host: string;
+  port: number;
+  protocol: string;
+  log_format: string;
+}
+
+// 批量创建请求
+export interface BatchCreateRequest {
+  devices: BatchDevice[];
+  apply_template_id?: string;
+}
+
+// 批量创建结果
+export interface BatchCreateResult {
+  name: string;
+  template_id?: string;
+  status: 'success' | 'failure';
+  error?: string;
+}
+
+// 批量创建响应
+export interface BatchCreateResponse {
+  success_count: number;
+  failure_count: number;
+  results: BatchCreateResult[];
+}
+
+// 批量导入状态
+export type BatchImportState = 'closed' | 'file-select' | 'parsing' | 'complete' | 'error';
+
+// 设备行状态
+export type DeviceRowState = 'normal' | 'selected' | 'error';
+
+// 解析测试相关类型 (DI-09)
+
+// 解析测试请求
+export interface ParseTestRequest {
+  template_id: string;
+  test_logs: string[];
+  ground_truth?: Record<string, string>[];
+}
+
+// 字段级别准确率
+export interface FieldAccuracy {
+  field_name: string;
+  correct: number;
+  total: number;
+  accuracy: number;
+}
+
+// 解析测试结果
+export interface ParseTestResult {
+  total_logs: number;
+  success_count: number;
+  failure_count: number;
+  overall_accuracy: number;
+  field_accuracies: FieldAccuracy[];
+  failed_samples: FailedSample[];
+  is_qualified: boolean;
+}
+
+// 失败样例
+export interface FailedSample {
+  log: string;
+  error?: string;
+  parsed?: Record<string, unknown>;
+  expected?: Record<string, unknown>;
+}
+
+// 解析测试状态
+export type ParseTestState = 'idle' | 'testing' | 'success' | 'failure';
