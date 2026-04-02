@@ -26,7 +26,8 @@ from .parse_test_models import (
     LogFormatRecognitionRequest,
     LogFormatRecognitionResponse,
     ParseTestRequest,
-    ParseTestResult
+    ParseTestResult,
+    FieldAccuracy
 )
 
 # 批量导入模型
@@ -420,3 +421,158 @@ async def preview_parse(
         "results": results,
         "total": len(results)
     }
+
+
+@router.post("/test-parse", response_model=ParseTestResult)
+async def test_parse(
+    request: ParseTestRequest
+) -> ParseTestResult:
+    """
+    DI-09: 解析测试接口
+
+    用历史日志测试解析准确率，达标后开启实时接入。
+
+    Args:
+        request: 解析测试请求 { template_id, test_logs, ground_truth }
+
+    Returns:
+        ParseTestResult: 包含整体和字段级准确率
+
+    Raises:
+        404: 模板不存在
+    """
+    import os
+
+    # 检查模板是否存在
+    if request.template_id not in _templates:
+        raise HTTPException(status_code=404, detail=f"Template {request.template_id} not found")
+
+    template = _templates[request.template_id]
+
+    # 获取准确率阈值
+    min_confidence = float(os.environ.get("PARSE_MIN_CONFIDENCE", "0.85"))
+
+    # 初始化 ThreeTierParser
+    try:
+        from parser.pipeline import ThreeTierParser
+        parser = ThreeTierParser()
+    except Exception as e:
+        # 如果 parser 初始化失败，返回错误
+        raise HTTPException(status_code=500, detail=f"Parser initialization failed: {str(e)}")
+
+    # 解析日志
+    parsed_results = []
+    field_names = set()
+
+    for log in request.test_logs:
+        try:
+            result = parser.parse(log, template.device_type)
+            parsed_results.append({
+                "success": result.get("parse_status") != "fallback",
+                "raw": log,
+                "parsed": result
+            })
+            # 收集所有字段名
+            if isinstance(result, dict):
+                field_names.update(result.keys())
+        except Exception as e:
+            parsed_results.append({
+                "success": False,
+                "raw": log,
+                "parsed": {"error": str(e)}
+            })
+
+    # 计算准确率
+    total_logs = len(request.test_logs)
+    success_count = sum(1 for r in parsed_results if r["success"])
+    failure_count = total_logs - success_count
+    overall_accuracy = success_count / total_logs if total_logs > 0 else 0.0
+
+    # 字段级准确率计算
+    field_accuracies = []
+    failed_samples = []
+
+    # 如果有 ground truth，进行字段级对比
+    if request.ground_truth and len(request.ground_truth) == total_logs:
+        # 统计每个字段的正确次数
+        field_correct = {field: 0 for field in field_names}
+        field_total = {field: 0 for field in field_names}
+
+        for i, (parsed_result, ground) in enumerate(zip(parsed_results, request.ground_truth)):
+            if not parsed_result["success"]:
+                failed_samples.append({
+                    "log": parsed_result["raw"][:200],  # 截断避免过大
+                    "error": "Parse failed"
+                })
+                continue
+
+            parsed = parsed_result["parsed"]
+            has_field_error = False
+
+            for field_name in field_names:
+                field_total[field_name] += 1
+                expected = ground.get(field_name)
+                actual = parsed.get(field_name)
+
+                # 比较字段值（考虑 None 和空字符串的等价性）
+                if expected == actual or (not expected and not actual):
+                    field_correct[field_name] += 1
+                else:
+                    has_field_error = True
+
+            if has_field_error:
+                failed_samples.append({
+                    "log": parsed_result["raw"][:200],
+                    "parsed": parsed,
+                    "expected": ground
+                })
+
+        # 计算每个字段的准确率
+        for field_name in field_names:
+            if field_total[field_name] > 0:
+                accuracy = field_correct[field_name] / field_total[field_name]
+                field_accuracies.append(FieldAccuracy(
+                    field_name=field_name,
+                    correct=field_correct[field_name],
+                    total=field_total[field_name],
+                    accuracy=accuracy
+                ))
+    else:
+        # 无 ground truth 时，只计算整体成功率
+        for parsed_result in parsed_results:
+            if not parsed_result["success"]:
+                failed_samples.append({
+                    "log": parsed_result["raw"][:200],
+                    "error": "Parse failed"
+                })
+
+        # 收集主要字段的准确率（基于成功解析的日志）
+        for field_name in ["src_endpoint.ip", "dst_endpoint.ip", "src_endpoint.port",
+                          "dst_endpoint.port", "message", "severity_id"]:
+            if field_name in field_names:
+                # 简单统计：有多少日志包含此字段
+                field_present = sum(1 for r in parsed_results
+                                  if r["success"] and r["parsed"].get(field_name))
+                field_accuracies.append(FieldAccuracy(
+                    field_name=field_name,
+                    correct=field_present,
+                    total=success_count,
+                    accuracy=field_present / success_count if success_count > 0 else 0.0
+                ))
+
+    # 限制失败样例数量
+    if len(failed_samples) > 5:
+        failed_samples = failed_samples[:5]
+
+    # 判断是否达标
+    is_qualified = overall_accuracy >= min_confidence
+
+    return ParseTestResult(
+        total_logs=total_logs,
+        success_count=success_count,
+        failure_count=failure_count,
+        overall_accuracy=round(overall_accuracy, 4),
+        field_accuracies=field_accuracies,
+        failed_samples=failed_samples,
+        is_qualified=is_qualified
+    )
