@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 15
 status: unknown
-last_updated: "2026-04-02T03:37:55.303Z"
+last_updated: "2026-04-02T06:57:41.159Z"
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 9
-  completed_plans: 8
+  total_plans: 12
+  completed_plans: 10
 ---
 
 # SecAlert State
@@ -23,7 +23,7 @@ progress:
 ## Current Position
 
 Phase: 15 (data-ingestion-enhancement) — EXECUTING
-Plan: 4 of 4
+Plan: 1 of 9
 
 ## Session Continuity
 
@@ -54,6 +54,7 @@ Plan: 4 of 4
 - [Phase 15]: 使用 @dnd-kit 实现拖拽映射（React 生态最佳，无障碍支持）
 - [Phase 15]: 使用 @radix-ui/react-checkbox 替代不存在的 @/components/ui/checkbox
 - [Phase 15]: DI-09 解析测试：使用 ThreeTierParser.parse() 测试准确率，阈值 85%，支持字段级准确率对比
+- [Phase 15]: field_mappings 统一使用 {sourceField: OCSFField} 方向，后端返回 {OCSF: source} 时在前端反转
 
 ## v1.3 Phase Breakdown
 
@@ -89,6 +90,7 @@ Plan: 4 of 4
 | Phase 15 P01 | 7 | 3 tasks | 6 files |
 | Phase 15 P02 | 9 | 3 tasks | 9 files |
 | Phase 15 P03 | 11 | 3 tasks | 6 files |
+| Phase 15 P07 | 295 | 3 tasks | 7 files |
 
 ## File Inventory
 
