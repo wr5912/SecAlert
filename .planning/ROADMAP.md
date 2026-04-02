@@ -3,7 +3,7 @@
 **Project:** Security Alert Analysis System
 **Granularity:** Standard
 **Created:** 2026-03-22
-**Updated:** 2026-04-01
+**Updated:** 2026-04-02
 
 ---
 
@@ -33,6 +33,19 @@ Plans:
 - [x] 14-00-PLAN.md — Wave 0: 测试基础设施
 - [x] 14-01-PLAN.md — Wave 1: 后端 API + 模板 CRUD (DI-01~04)
 - [x] 14-02-PLAN.md — Wave 2: 前端向导 UI + 组件 (DI-05~06)
+
+### Phase 15: 数据接入用户体验增强
+
+**Goal:** 实现 AI 自动识别、可视化字段映射、批量接入、解析测试功能
+**Requirements**: DI-07, DI-08, DI-09
+**Depends on:** Phase 14
+**Plans:** 4/4 plans
+
+Plans:
+- [x] 15-01-PLAN.md — Wave 1: AI 自动识别 (DI-07)
+- [x] 15-02-PLAN.md — Wave 1: 可视化字段映射
+- [x] 15-03-PLAN.md — Wave 2: 批量接入 (DI-08)
+- [x] 15-04-PLAN.md — Wave 2: 解析测试 (DI-09)
 
 ---
 
