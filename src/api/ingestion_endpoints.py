@@ -20,7 +20,8 @@ from .ingestion_models import (
     DeleteResponse,
     ConnectionConfig,
     DataSourceStatus,
-    HealthStatus
+    HealthStatus,
+    CollectionMetadata,
 )
 from .parse_test_models import (
     LogFormatRecognitionRequest,
@@ -313,6 +314,10 @@ async def update_template(
     # 部分更新
     update_data = template_update.model_dump(exclude_unset=True)
     updated = existing.model_copy(update=update_data)
+
+    # model_copy 可能将 metadata 转成 dict，需要转回 CollectionMetadata
+    if isinstance(updated.metadata, dict):
+        updated.metadata = CollectionMetadata(**updated.metadata)
 
     # 如果更新涉及 device_type 或 log_format，重新推断 OCSF
     if "device_type" in update_data or "log_format" in update_data:

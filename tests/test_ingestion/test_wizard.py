@@ -24,7 +24,7 @@ def test_create_template_multi_step_flow(test_client: TestClient):
     }
 
     # Step 3: 选择日志格式
-    log_format = "syslog"
+    log_format = "Syslog"
 
     # Step 4: 完成 (提交完整模板)
     template_data = {
@@ -32,7 +32,14 @@ def test_create_template_multi_step_flow(test_client: TestClient):
         "device_type": device_type,
         "connection": connection,
         "log_format": log_format,
-        "custom_regex": None
+        "custom_regex": None,
+        "metadata": {
+            "vendor_name": "unknown",
+            "product_name": "unknown",
+            "device_type": device_type,
+            "tenant_id": "default",
+            "environment": "prod"
+        }
     }
 
     response = test_client.post("/api/ingestion/templates", json=template_data)
@@ -58,7 +65,14 @@ def test_wizard_device_types(test_client: TestClient):
                 "password": "secret",
                 "protocol": "ssh"
             },
-            "log_format": "syslog"
+            "log_format": "Syslog",
+            "metadata": {
+                "vendor_name": "unknown",
+                "product_name": "unknown",
+                "device_type": device_type,
+                "tenant_id": "default",
+                "environment": "prod"
+            }
         }
         response = test_client.post("/api/ingestion/templates", json=template)
         assert response.status_code == 201, f"设备类型 {device_type} 失败"
@@ -80,7 +94,14 @@ def test_wizard_log_formats(test_client: TestClient):
                 "protocol": "ssh"
             },
             "log_format": log_format,
-            "custom_regex": "/.*/" if log_format == "Custom" else None
+            "custom_regex": "/.*/" if log_format == "Custom" else None,
+            "metadata": {
+                "vendor_name": "unknown",
+                "product_name": "unknown",
+                "device_type": "firewall",
+                "tenant_id": "default",
+                "environment": "prod"
+            }
         }
         response = test_client.post("/api/ingestion/templates", json=template)
         assert response.status_code == 201, f"日志格式 {log_format} 失败"
@@ -96,7 +117,14 @@ def test_wizard_connection_validation(test_client: TestClient):
             "host": "192.168.1.1"
             # 缺少 port, username, password
         },
-        "log_format": "syslog"
+        "log_format": "Syslog",
+        "metadata": {
+            "vendor_name": "unknown",
+            "product_name": "unknown",
+            "device_type": "firewall",
+            "tenant_id": "default",
+            "environment": "prod"
+        }
     }
     response = test_client.post("/api/ingestion/templates", json=invalid_template)
     assert response.status_code == 422  # Validation error

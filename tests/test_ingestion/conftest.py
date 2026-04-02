@@ -19,7 +19,7 @@ def test_client() -> Generator[TestClient, None, None]:
 
 @pytest.fixture
 def sample_template() -> dict:
-    """示例数据源模板"""
+    """示例数据源模板（含 metadata）"""
     return {
         "name": "测试防火墙",
         "device_type": "firewall",
@@ -30,8 +30,15 @@ def sample_template() -> dict:
             "password": "secret",
             "protocol": "ssh"
         },
-        "log_format": "syslog",
-        "custom_regex": None
+        "log_format": "Syslog",
+        "custom_regex": None,
+        "metadata": {
+            "vendor_name": "unknown",
+            "product_name": "unknown",
+            "device_type": "firewall",
+            "tenant_id": "default",
+            "environment": "prod"
+        }
     }
 
 
