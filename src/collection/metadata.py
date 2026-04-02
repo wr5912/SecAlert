@@ -6,7 +6,7 @@ GM-02: OCSFMapper 组件 - 规则推断 + AI 兜底的 OCSF 映射
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 from dataclasses import dataclass
 
@@ -41,7 +41,7 @@ class MetadataEnricher:
             "target_category_uid": self.metadata.target_category_uid,
             "target_class_uid": self.metadata.target_class_uid,
             "collector_id": self.collector_id,
-            "ingest_timestamp": datetime.utcnow().isoformat(),
+            "ingest_timestamp": datetime.now(timezone.utc).isoformat(),
         }
         return enriched
 
@@ -63,12 +63,12 @@ class OCSFMapper:
         # IDS/IPS
         ("ids", "JSON"): (1, 2001),        # Network Activity / Alert
         ("ids", "CEF"): (1, 2001),
-        ("ids", "Syslog"): (1, 2001),
+        ("ids", "SYSLOG"): (1, 2001),
         ("ips", "JSON"): (1, 2001),
         ("ips", "CEF"): (1, 2001),
         # Firewall
         ("firewall", "CEF"): (1, 4001),    # Network Activity / Network Activity
-        ("firewall", "Syslog"): (1, 4001),
+        ("firewall", "SYSLOG"): (1, 4001),
         ("firewall", "JSON"): (1, 4001),
         # WAF
         ("waf", "CEF"): (1, 4001),
@@ -78,11 +78,11 @@ class OCSFMapper:
         # Antivirus
         ("antivirus", "JSON"): (2, 2003),  # File Activity
         # VPN
-        ("vpn", "Syslog"): (6, 6001),       # Entity / Authentication
+        ("vpn", "SYSLOG"): (6, 6001),       # Entity / Authentication
         ("vpn", "CEF"): (6, 6001),
         # Switch/Router
-        ("switch", "Syslog"): (1, 4001),
-        ("router", "Syslog"): (1, 4001),
+        ("switch", "SYSLOG"): (1, 4001),
+        ("router", "SYSLOG"): (1, 4001),
         # SIEM
         ("siem", "JSON"): (2, 2001),
     }
