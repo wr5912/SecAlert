@@ -4,7 +4,7 @@
 Pydantic 模型定义
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
@@ -22,8 +22,7 @@ class AlertModel(BaseModel):
     mitre_technique_id: Optional[str] = None
     mitre_technique_name: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AttackChainModel(BaseModel):
@@ -42,8 +41,7 @@ class AttackChainModel(BaseModel):
     mitre_technique_id: Optional[str] = None
     mitre_technique_name: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AttackChainCreate(BaseModel):
