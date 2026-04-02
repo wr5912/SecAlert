@@ -53,6 +53,15 @@ export interface DataSourceStatus {
   error_message?: string;  // 错误信息
 }
 
+// AI 识别结果 (DI-07)
+export interface LogFormatRecognitionResult {
+  detected_format: string;  // 检测到的格式：CEF/Syslog/JSON/Custom
+  regex_pattern: string;  // Python 正则表达式，包含命名捕获组
+  field_mappings: Record<string, string>;  // 字段映射 {目标字段: 源字段}
+  confidence: number;  // 置信度 0.0-1.0
+  reasoning: string;  // 识别理由
+}
+
 // 向导状态
 export interface WizardState {
   step: number;
