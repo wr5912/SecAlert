@@ -28,6 +28,41 @@ from .parse_test_models import (
     ParseTestRequest,
     ParseTestResult
 )
+
+# 批量导入模型
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
+
+class BatchDevice(BaseModel):
+    """批量导入设备信息"""
+    name: str = Field(..., description="设备名称")
+    device_type: str = Field(..., description="设备类型")
+    host: str = Field(..., description="主机地址")
+    port: int = Field(default=514, ge=1, le=65535, description="端口号")
+    protocol: str = Field(default="ssh", description="连接协议")
+    log_format: str = Field(default="Auto", description="日志格式")
+
+
+class BatchCreateRequest(BaseModel):
+    """批量创建模板请求"""
+    devices: List[BatchDevice] = Field(..., description="设备列表")
+    apply_template_id: Optional[str] = Field(None, description="统一应用的模板ID")
+
+
+class BatchCreateResult(BaseModel):
+    """批量创建单个结果"""
+    name: str = Field(..., description="设备名称")
+    template_id: Optional[str] = Field(None, description="创建的模板ID")
+    status: str = Field(..., description="状态: success/failure")
+    error: Optional[str] = Field(None, description="错误信息")
+
+
+class BatchCreateResponse(BaseModel):
+    """批量创建响应"""
+    success_count: int = Field(..., description="成功数量")
+    failure_count: int = Field(..., description="失败数量")
+    results: List[BatchCreateResult] = Field(..., description="每个设备的结果")
 from src.analysis.llm_config import get_lm, is_llm_available, DSPY_AVAILABLE
 
 router = APIRouter(prefix="/api/ingestion", tags=["ingestion"])
@@ -81,6 +116,82 @@ async def create_template(template: TemplateCreate) -> DataSourceTemplate:
     )
     _templates[template_id] = new_template
     return new_template
+
+
+@router.post("/templates/batch", response_model=BatchCreateResponse, status_code=201)
+async def batch_create_templates(request: BatchCreateRequest) -> BatchCreateResponse:
+    """
+    DI-08: 批量创建数据源模板
+
+    - **devices**: 设备列表
+    - **apply_template_id**: 统一应用的模板ID（可选）
+
+    Returns:
+        批量创建结果：成功数、失败数、每个设备的状态
+    """
+    results = []
+    success_count = 0
+    failure_count = 0
+
+    # 如果指定了统一模板，获取模板配置
+    base_template = None
+    if request.apply_template_id and request.apply_template_id in _templates:
+        base_template = _templates[request.apply_template_id]
+
+    for device in request.devices:
+        try:
+            # 构建连接配置
+            connection = ConnectionConfig(
+                host=device.host,
+                port=device.port,
+                username="",  # 批量导入时留空
+                password="",  # 批量导入时留空
+                protocol=device.protocol
+            )
+
+            # 确定日志格式和自定义正则
+            log_format = device.log_format
+            custom_regex = None
+
+            # 如果指定了统一模板，使用模板的配置
+            if base_template:
+                log_format = base_template.log_format
+                custom_regex = base_template.custom_regex
+
+            # 创建模板
+            template_id = _generate_id()
+            new_template = DataSourceTemplate(
+                id=template_id,
+                name=device.name,
+                device_type=device.device_type,
+                connection=connection,
+                log_format=log_format,
+                custom_regex=custom_regex
+            )
+            _templates[template_id] = new_template
+
+            results.append(BatchCreateResult(
+                name=device.name,
+                template_id=template_id,
+                status="success",
+                error=None
+            ))
+            success_count += 1
+
+        except Exception as e:
+            results.append(BatchCreateResult(
+                name=device.name,
+                template_id=None,
+                status="failure",
+                error=str(e)
+            ))
+            failure_count += 1
+
+    return BatchCreateResponse(
+        success_count=success_count,
+        failure_count=failure_count,
+        results=results
+    )
 
 
 @router.get("/templates/{template_id}", response_model=DataSourceTemplate)
