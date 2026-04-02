@@ -138,6 +138,71 @@
 
 ---
 
+## v1.5 多源异构安全日志采集优化 🚧
+
+### MC: 多渠道采集后端 (MC-01 ~ MC-03)
+
+- **MC-01**: Kafka Topic 订阅采集
+  - 外部 Kafka Topic 订阅（Consumer Group 隔离）
+  - 支持 SASL/PLAINTEXT/SSL 认证
+  - Offset 管理（从头/从尾/从指定时间）
+  - 多分区并发消费
+
+- **MC-02**: Webhook 接收网关
+  - HTTP POST 接收云平台/SaaS 安全产品告警
+  - IP 白名单鉴权
+  - Header Secret 校验
+  - 幂等去重（基于 message_id）
+
+- **MC-03**: REST API / 数据库定时轮询
+  - REST API 定时轮询（可配置间隔）
+  - 支持 OAuth/Token/Basic 认证
+  - 数据库 JDBC 轮询（支持 MySQL/PostgreSQL/达梦/openGauss/TiDB/Kingbase）
+  - 递增游标字段配置（时间戳/自增ID）
+  - 限流重试策略（Rate Limit / Backoff）
+
+### SM: 采集监控与死信队列 (SM-01 ~ SM-02)
+
+- **SM-01**: 死信队列 (DLQ) 机制
+  - 解析失败日志自动路由到 DLQ Topic
+  - 重试机制（默认 3 次，间隔 1min/5min/30min）
+  - 超过重试上限后归档到 MinIO
+  - DLQ 告警通知（管理员通知）
+  - DLQ 消息重处理（人工/自动）
+
+- **SM-02**: 采集可观测性监控
+  - EPS（每秒事件数）监控：in/out 双向计数
+  - 采集延迟（collection_lag_ms）监控
+  - 解析成功率（parse_success_rate）监控
+  - DLQ 大小（dlq_size）监控
+  - 数据源健康状态（datasource_health）监控
+  - Prometheus metrics 端点暴露
+
+### GM: 全局元数据体系 (GM-01 ~ GM-02)
+
+- **GM-01**: 全局元数据强制注入
+  - 强制要求 vendor_name / product_name / device_type
+  - 强制要求 tenant_id（MSSP 多租户）/ environment（prod/dev/test）
+  - 元数据验证与默认值填充
+  - 模板级别的元数据覆盖
+
+- **GM-02**: OCSF Target Mapping
+  - target_category_uid / target_class_uid 映射
+  - 设备类型到 OCSF 事件类别的自动推断
+  - OCSF 格式校验与合规性检查
+
+---
+
+## Future Requirements
+
+- 配置版本化与回滚 — v1.6
+- 背压机制（HTTP 429 反馈控制） — v1.6+
+- 自适应采集速率 — v1.6+
+- DLQ 自动重试与回刷 — v1.6+
+- 国产数据库驱动完整适配验证 — v1.6+
+
+---
+
 ## Traceability
 
 | REQ-ID | Description | Phase | Status |
@@ -151,3 +216,10 @@
 | DI-07 | AI 自动识别日志格式 | 15 | Completed |
 | DI-08 | 批量接入设备 | 15 | Completed |
 | DI-09 | 解析测试 | 15 | Completed |
+| MC-01 | Kafka Topic 订阅采集 | TBD | Pending |
+| MC-02 | Webhook 接收网关 | TBD | Pending |
+| MC-03 | REST API / 数据库定时轮询 | TBD | Pending |
+| SM-01 | 死信队列 (DLQ) 机制 | TBD | Pending |
+| SM-02 | 采集可观测性监控 | TBD | Pending |
+| GM-01 | 全局元数据强制注入 | TBD | Pending |
+| GM-02 | OCSF Target Mapping | TBD | Pending |
