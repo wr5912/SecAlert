@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Upload, FileSpreadsheet } from 'lucide-react';
 import { BatchImportModal } from './BatchImportModal';
 import { useIngestionStore } from '@/stores/ingestionStore';
+import { BatchDevice } from '@/types/ingestion';
 
 interface Step5BatchImportProps {
   onBatchImportComplete?: () => void;
@@ -90,7 +91,7 @@ export function Step5BatchImport({ onBatchImportComplete }: Step5BatchImportProp
           }
 
           // 更新 batchDevices
-          setBatchDevices(prev => [...prev, ...result.results.filter(r => r.status === 'success').map(r => ({ name: r.name } as any))]);
+          setBatchDevices([...batchDevices, ...result.results.filter(r => r.status === 'success').map(r => ({ name: r.name } as BatchDevice))]);
 
           // 通知父组件
           onBatchImportComplete?.();
