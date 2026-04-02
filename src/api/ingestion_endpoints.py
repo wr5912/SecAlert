@@ -365,17 +365,23 @@ async def recognize_log_format(
         raise HTTPException(status_code=500, detail=f"Recognition failed: {str(e)}")
 
 
+class PreviewParseRequest(BaseModel):
+    """解析预览请求"""
+    logs: List[str] = Field(..., description="日志列表")
+    template_id: str = Field(..., description="模板ID")
+
+
 @router.post("/preview-parse", response_model=Dict)
 async def preview_parse(
-    request: Dict
+    request: PreviewParseRequest,
 ) -> Dict:
     """
-    解析预览接口
+    解析预览接口 - 使用真实 ThreeTierParser
 
     用于 FieldMappingPreview 实时预览解析效果。
 
     Args:
-        request: 包含 logs 和 template_id 的字典
+        request: PreviewParseRequest 包含 logs 和 template_id
 
     Returns:
         解析结果字典列表
@@ -383,29 +389,39 @@ async def preview_parse(
     Raises:
         404: 模板不存在
     """
-    logs = request.get("logs", [])
-    template_id = request.get("template_id")
+    # 获取模板
+    template = _templates.get(request.template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail=f"Template {request.template_id} not found")
 
-    if template_id and template_id not in _templates:
-        raise HTTPException(status_code=404, detail=f"Template {template_id} not found")
+    # 使用真实 ThreeTierParser 进行解析
+    try:
+        from parser.pipeline import ThreeTierParser
+        parser = ThreeTierParser()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Parser initialization failed: {str(e)}")
 
-    # 获取模板信息（如果提供了 template_id）
-    template = _templates.get(template_id) if template_id else None
-
-    # 简单解析实现（实际应使用 ThreeTierParser）
     results = []
-    for log in logs:
-        parsed = {
-            "raw": log,
-            "format": template.log_format if template else "Unknown",
-            "success": True,
-            "fields": {}
-        }
-        results.append(parsed)
+    for log in request.logs:
+        try:
+            parsed = parser.parse(log, template.device_type)
+            results.append({
+                "raw": log,
+                "parsed": parsed,
+                "status": "success",
+                "error": None
+            })
+        except Exception as e:
+            results.append({
+                "raw": log,
+                "parsed": None,
+                "status": "failure",
+                "error": str(e)
+            })
 
     return {
         "results": results,
-        "total": len(results)
+        "template_id": request.template_id
     }
 
 
