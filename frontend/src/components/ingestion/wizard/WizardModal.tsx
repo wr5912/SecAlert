@@ -76,7 +76,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[640px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[1000px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           {isEditMode ? (
             <h2 className="text-base font-medium text-accent">{editModeTitle}</h2>
