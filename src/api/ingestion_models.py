@@ -103,3 +103,21 @@ class DataSourceStatus(BaseModel):
     last_sync: Optional[str] = Field(None, description="最后同步时间 (ISO)")
     events_received: int = Field(0, description="接收事件数")
     error_message: Optional[str] = Field(None, description="错误信息")
+
+
+class Environment(str, Enum):
+    """环境枚举"""
+    PROD = "prod"
+    DEV = "dev"
+    TEST = "test"
+
+
+class CollectionMetadata(BaseModel):
+    """采集元数据（GM-01 强制字段）"""
+    vendor_name: str = Field(..., min_length=1, max_length=100, description="厂商名，如 Suricata")
+    product_name: str = Field(..., min_length=1, max_length=100, description="产品名，如 EVE JSON")
+    device_type: DeviceType = Field(..., description="设备类型")
+    tenant_id: str = Field(default="default", description="租户标识（MSSP 多租户）")
+    environment: Environment = Field(default=Environment.PROD, description="环境")
+    target_category_uid: Optional[int] = Field(None, description="OCSF 目标类别 UID")
+    target_class_uid: Optional[int] = Field(None, description="OCSF 事件类 UID")
