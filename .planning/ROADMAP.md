@@ -39,15 +39,20 @@ Plans:
 **Goal:** 实现 AI 自动识别、可视化字段映射、批量接入、解析测试功能
 **Requirements**: DI-07, DI-08, DI-09
 **Depends on:** Phase 14
-**Plans:** 6/6 plans (5 completed + 1 gap closure)
+**Plans:** 6/6 plans complete + 3/3 gap closure plans
 
-Plans:
+**Plans (Original):**
 - [x] 15-01-PLAN.md — Wave 1: AI 自动识别 (DI-07)
 - [x] 15-02-PLAN.md — Wave 1: 可视化字段映射
 - [x] 15-03-PLAN.md — Wave 2: 批量接入 (DI-08)
 - [x] 15-04-PLAN.md — Wave 2: 解析测试 (DI-09)
 - [x] 15-05-PLAN.md — Gap closure: AI 识别 + MappingPreview 修复
 - [x] 15-06-PLAN.md — Gap closure: REQUIREMENTS.md 条目补充
+
+**Gap Closure Plans (Reviews Mode):**
+- [ ] 15-07-PLAN.md — Wave 1: 统一 field_mappings 方向 + detected_fields + templateId race condition
+- [ ] 15-08-PLAN.md — Wave 2: preview-parse 端点完善 + 批量导入错误处理 + Step 数据流
+- [ ] 15-09-PLAN.md — Wave 2: WizardModal 状态管理策略 + 验证脚本修复
 
 ---
 
