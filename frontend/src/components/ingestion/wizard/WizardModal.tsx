@@ -1,3 +1,30 @@
+/**
+ * WizardModal 6 步骤状态管理策略：
+ *
+ * 1. 步骤导航状态 (step)
+ *    - 使用 useIngestionStore 中的 step 状态管理
+ *    - next()/prev() 控制步骤切换
+ *    - 跳转时不做数据验证（用户可自由导航）
+ *
+ * 2. 各步骤数据 (ingestionStore)
+ *    - Step1-2: deviceType, connection -> 立即持久化到 store
+ *    - Step3: logFormat, customRegex -> 实时保存
+ *    - Step4: templateName -> 保存到 store
+ *    - Step5: batchDevices, batchImportResult -> 导入成功后保存
+ *    - Step6: parseTestResult -> 测试完成后保存
+ *
+ * 3. 数据保持策略
+ *    - 用户在任意步骤关闭 Wizard，数据保留在 store 中
+ *    - 用户再次打开 Wizard，从 store 恢复数据（如 isEditMode）
+ *    - 用户点击"取消"或"X"时，调用 resetWizard() 清空 store
+ *    - 用户点击"重新开始"时，调用 resetWizard() 清空 store
+ *
+ * 4. 模板 ID 传递
+ *    - AI 识别后自动创建模板 -> currentTemplateId
+ *    - 批量导入后 -> batchCreatedTemplateIds[]
+ *    - Step6 使用 selectedTemplateIdForTest
+ */
+
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useIngestionStore } from '@/stores/ingestionStore';
