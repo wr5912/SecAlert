@@ -6,6 +6,8 @@ import { Step1DeviceType } from './Step1DeviceType';
 import { Step2Connection } from './Step2Connection';
 import { Step3LogFormat } from './Step3LogFormat';
 import { Step4Complete } from './Step4Complete';
+import { Step5BatchImport } from './Step5BatchImport';
+import { Step6ParseTest } from './Step6ParseTest';
 
 interface WizardModalProps {
   open: boolean;
@@ -16,7 +18,9 @@ const stepTitles: Record<number, string> = {
   1: '选择设备类型',
   2: '配置连接参数',
   3: '选择日志格式',
-  4: '配置完成',
+  4: '模板设置',
+  5: '批量导入',
+  6: '完成',
 };
 
 const editModeTitle = '编辑模板';
@@ -44,6 +48,8 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
       case 2: return <Step2Connection />;
       case 3: return <Step3LogFormat />;
       case 4: return <Step4Complete onFinish={handleClose} />;
+      case 5: return <Step5BatchImport />;
+      case 6: return <Step6ParseTest onFinish={handleClose} />;
       default: return null;
     }
   };
@@ -66,7 +72,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
           {renderStep()}
         </div>
 
-        {!isEditMode && step < 4 && (
+        {!isEditMode && step < 5 && (
           <DialogFooter>
             {step > 1 && (
               <Button variant="ghost" onClick={prevStep}>
@@ -76,7 +82,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
             <Button variant="ghost" onClick={handleClose}>
               取消
             </Button>
-            {step < 4 && (
+            {step < 5 && (
               <Button onClick={nextStep} disabled={!canGoNext()}>
                 下一步
               </Button>

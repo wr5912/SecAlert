@@ -3,7 +3,7 @@
  */
 
 import { create } from 'zustand';
-import type { DeviceType, LogFormat, ConnectionConfig, DataSourceTemplate } from '../types/ingestion';
+import type { DeviceType, LogFormat, ConnectionConfig, DataSourceTemplate, BatchDevice, BatchCreateResponse } from '../types/ingestion';
 
 // AI 识别结果类型
 export interface LogFormatRecognitionResult {
@@ -20,6 +20,27 @@ export interface ParsePreviewResult {
   success: boolean;
   parsed_fields: Record<string, string>;
   raw: string;
+}
+
+// 解析测试结果类型 (DI-09)
+export interface ParseTestResult {
+  total_logs: number;
+  success_count: number;
+  failure_count: number;
+  overall_accuracy: number;
+  field_accuracies: Array<{
+    field_name: string;
+    correct: number;
+    total: number;
+    accuracy: number;
+  }>;
+  failed_samples: Array<{
+    log: string;
+    error?: string;
+    parsed?: Record<string, unknown>;
+    expected?: Record<string, unknown>;
+  }>;
+  is_qualified: boolean;
 }
 
 interface IngestionState {
@@ -54,6 +75,14 @@ interface IngestionState {
   // 解析预览结果
   parsePreviewResult: ParsePreviewResult | null;
 
+  // 解析测试结果 (DI-09)
+  parseTestResult: ParseTestResult | null;
+  isTestQualified: boolean;
+
+  // 批量导入状态 (DI-08)
+  batchDevices: BatchDevice[];
+  batchImportResult: BatchCreateResponse | null;
+
   // Actions
   openWizard: () => void;
   closeWizard: () => void;
@@ -71,6 +100,9 @@ interface IngestionState {
   setAiRecognitionResult: (result: LogFormatRecognitionResult) => void;
   setFieldMappings: (mappings: Record<string, string>) => void;
   setParsePreviewResult: (result: ParsePreviewResult | null) => void;
+  setParseTestResult: (result: ParseTestResult | null, isQualified: boolean) => void;
+  setBatchDevices: (devices: BatchDevice[]) => void;
+  setBatchImportResult: (result: BatchCreateResponse | null) => void;
 }
 
 const initialState = {
@@ -90,6 +122,12 @@ const initialState = {
   fieldMappings: {},
   // 解析预览结果
   parsePreviewResult: null,
+  // 解析测试结果
+  parseTestResult: null,
+  isTestQualified: false,
+  // 批量导入状态
+  batchDevices: [],
+  batchImportResult: null,
 };
 
 export const useIngestionStore = create<IngestionState>((set) => ({
@@ -115,7 +153,7 @@ export const useIngestionStore = create<IngestionState>((set) => ({
 
   setStep: (step) => set({ step }),
 
-  nextStep: () => set((state) => ({ step: Math.min(state.step + 1, 4) })),
+  nextStep: () => set((state) => ({ step: Math.min(state.step + 1, 6) })),
 
   prevStep: () => set((state) => ({ step: Math.max(state.step - 1, 1) })),
 
@@ -136,4 +174,13 @@ export const useIngestionStore = create<IngestionState>((set) => ({
   setFieldMappings: (fieldMappings) => set({ fieldMappings }),
 
   setParsePreviewResult: (parsePreviewResult) => set({ parsePreviewResult }),
+
+  setParseTestResult: (result, isQualified) => set({
+    parseTestResult: result,
+    isTestQualified: isQualified
+  }),
+
+  setBatchDevices: (batchDevices) => set({ batchDevices }),
+
+  setBatchImportResult: (batchImportResult) => set({ batchImportResult }),
 }));
