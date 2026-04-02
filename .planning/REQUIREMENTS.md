@@ -216,10 +216,10 @@
 | DI-07 | AI 自动识别日志格式 | 15 | Completed |
 | DI-08 | 批量接入设备 | 15 | Completed |
 | DI-09 | 解析测试 | 15 | Completed |
-| MC-01 | Kafka Topic 订阅采集 | TBD | Pending |
-| MC-02 | Webhook 接收网关 | TBD | Pending |
-| MC-03 | REST API / 数据库定时轮询 | TBD | Pending |
-| SM-01 | 死信队列 (DLQ) 机制 | TBD | Pending |
-| SM-02 | 采集可观测性监控 | TBD | Pending |
-| GM-01 | 全局元数据强制注入 | TBD | Pending |
-| GM-02 | OCSF Target Mapping | TBD | Pending |
+| MC-01 | Kafka Topic 订阅采集 | 17 | Pending |
+| MC-02 | Webhook 接收网关 | 17 | Pending |
+| MC-03 | REST API / 数据库定时轮询 | 17 | Pending |
+| SM-01 | 死信队列 (DLQ) 机制 | 18 | Pending |
+| SM-02 | 采集可观测性监控 | 19 | Pending |
+| GM-01 | 全局元数据强制注入 | 16 | Pending |
+| GM-02 | OCSF Target Mapping | 16 | Pending |
