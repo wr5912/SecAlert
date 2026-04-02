@@ -53,6 +53,7 @@ Plans:
 - [x] 15-07-PLAN.md — Wave 1: 统一 field_mappings 方向 + detected_fields + templateId race condition
 - [x] 15-08-PLAN.md — Wave 2: preview-parse 端点完善 + 批量导入错误处理 + Step 数据流
 - [x] 15-09-PLAN.md — Wave 2: WizardModal 状态管理策略 + 验证脚本修复
+- [x] 15-10-PLAN.md — Gap closure: WizardModal Step5 跳过按钮 + canGoNext + WIZARD_STEPS
 
 ---
 
