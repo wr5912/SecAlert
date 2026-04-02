@@ -335,46 +335,28 @@ async def recognize_log_format(
             # 构建输入
             raw_logs_text = "\n".join(request.logs)
 
-            # 模拟 DSPy Predict 调用（实际实现依赖 DSPy 版本）
-            # 注意：这里使用简化实现，真正的 DSPy 集成需要完整 dspy context
-            if DSPY_AVAILABLE:
-                import dspy
-                with dspy.context(lm=lm):
-                    predictor = dspy.Predict(LogFormatRecognition)
-                    result = predictor(
-                        raw_logs=raw_logs_text,
-                        source_type="unknown"
-                    )
-
-                    # 解析返回结果
-                    field_mappings = json.loads(result.ocsf_field_mappings) if isinstance(result.ocsf_field_mappings, str) else result.ocsf_field_mappings
-
-                    return LogFormatRecognitionResponse(
-                        detected_format=result.detected_format,
-                        regex_pattern=result.regex_pattern,
-                        field_mappings=field_mappings,
-                        confidence=float(result.confidence),
-                        reasoning=result.reasoning
-                    )
-            else:
-                # DSPy 不可用时的模拟响应（用于测试/演示）
-                # 实际生产环境应移除此分支
-                return LogFormatRecognitionResponse(
-                    detected_format="CEF",
-                    regex_pattern=r"CEF:(?P<version>\d+)\|(?P<vendor>[^|]+)\|(?P<product>[^|]+)\|(?P<version2>[^|]+)\|(?P<event_id>[^|]+)\|(?P<name>[^|]+)\|(?P<severity>[^|]+)",
-                    field_mappings={
-                        "src_endpoint.ip": "src",
-                        "dst_endpoint.ip": "dst",
-                        "src_endpoint.port": "spt",
-                        "dst_endpoint.port": "dpt",
-                        "message": "msg",
-                        "severity_id": "sev",
-                        "raw_data": "raw"
-                    },
-                    confidence=0.85,
-                    reasoning="基于示例日志分析，识别为 CEF 格式。CEF (Common Event Format) 是一种广泛使用的日志格式，包含版本、设备厂商、产品名称等标准字段。"
+            # 调用 DSPy 进行日志格式识别
+            import dspy
+            with dspy.context(lm=lm):
+                predictor = dspy.Predict(LogFormatRecognition)
+                result = predictor(
+                    raw_logs=raw_logs_text,
+                    source_type="unknown"
                 )
 
+                # 解析返回结果
+                field_mappings = json.loads(result.ocsf_field_mappings) if isinstance(result.ocsf_field_mappings, str) else result.ocsf_field_mappings
+
+                return LogFormatRecognitionResponse(
+                    detected_format=result.detected_format,
+                    regex_pattern=result.regex_pattern,
+                    field_mappings=field_mappings,
+                    confidence=float(result.confidence),
+                    reasoning=result.reasoning
+                )
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Recognition failed: {str(e)}")
 
