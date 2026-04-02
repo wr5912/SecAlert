@@ -39,7 +39,7 @@ Plans:
 **Goal:** 实现 AI 自动识别、可视化字段映射、批量接入、解析测试功能
 **Requirements**: DI-07, DI-08, DI-09
 **Depends on:** Phase 14
-**Plans:** 9/9 plans complete
+**Plans:** 9/9 plans (15-10 replanned)
 
 **Plans (Original):**
 - [x] 15-01-PLAN.md — Wave 1: AI 自动识别 (DI-07)
@@ -53,7 +53,7 @@ Plans:
 - [x] 15-07-PLAN.md — Wave 1: 统一 field_mappings 方向 + detected_fields + templateId race condition
 - [x] 15-08-PLAN.md — Wave 2: preview-parse 端点完善 + 批量导入错误处理 + Step 数据流
 - [x] 15-09-PLAN.md — Wave 2: WizardModal 状态管理策略 + 验证脚本修复
-- [x] 15-10-PLAN.md — Gap closure: WizardModal Step5 跳过按钮 + canGoNext + WIZARD_STEPS
+- [ ] 15-10-PLAN.md — **Replanned**: WizardModal 4步重构 + Step4Complete 合并解析测试 (D-01, D-03~D-05, D-08~D-09)
 
 ---
 
