@@ -131,12 +131,18 @@ class TestStorage:
 
         dedup = RedisDedup(host=REDIS_HOST, port=REDIS_PORT)
 
+        # 使用带时间戳的唯一 event 避免与历史数据冲突
+        import uuid
+        unique_sig = f"ET SCAN {uuid.uuid4().hex[:8]}"
         event = {
             "source_type": "suricata",
-            "alert_signature": "ET SCAN",
+            "alert_signature": unique_sig,
             "src_ip": "192.168.1.100",
             "dest_ip": "10.0.0.1"
         }
+
+        # 确保测试前清理可能的旧数据
+        test_client.delete(dedup._make_key(event))
 
         # First call should be NOT duplicate
         assert dedup.is_duplicate(event) == False

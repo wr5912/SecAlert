@@ -1,0 +1,135 @@
+- generic [ref=e2]:
+  - generic [ref=e110]:
+    - banner [ref=e111]:
+      - generic [ref=e113]:
+        - link "SecAlert 智能安全分析" [ref=e114] [cursor=pointer]:
+          - /url: /
+          - img [ref=e116]
+          - generic [ref=e118]:
+            - text: SecAlert
+            - paragraph [ref=e119]: 智能安全分析
+        - navigation [ref=e120]:
+          - link "仪表盘" [ref=e121] [cursor=pointer]:
+            - /url: /
+            - img [ref=e123]
+            - text: 仪表盘
+          - link "告警列表" [ref=e128] [cursor=pointer]:
+            - /url: /alerts
+            - img [ref=e130]
+            - text: 告警列表
+          - link "数据接入" [ref=e132] [cursor=pointer]:
+            - /url: /ingestion
+            - img [ref=e134]
+            - text: 数据接入
+          - link "分析工作台" [ref=e138] [cursor=pointer]:
+            - /url: /analysis
+            - img [ref=e140]
+            - text: 分析工作台
+          - link "设置" [ref=e144] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e146]
+            - text: 设置
+        - generic [ref=e149]:
+          - button [ref=e150] [cursor=pointer]:
+            - img
+          - button "AI Copilot" [ref=e152] [cursor=pointer]:
+            - img
+            - generic [ref=e153]: AI Copilot
+          - img [ref=e155] [cursor=pointer]
+    - generic [ref=e158]:
+      - complementary [ref=e159]:
+        - navigation [ref=e160]:
+          - list [ref=e161]:
+            - listitem [ref=e162]:
+              - link "告警中心" [ref=e163] [cursor=pointer]:
+                - /url: /analysis/alerts
+                - img [ref=e164]
+                - generic [ref=e166]: 告警中心
+            - listitem [ref=e167]:
+              - link "威胁狩猎" [ref=e168] [cursor=pointer]:
+                - /url: /analysis/hunting
+                - img [ref=e169]
+                - generic [ref=e172]: 威胁狩猎
+            - listitem [ref=e173]:
+              - link "溯源时间线" [ref=e174] [cursor=pointer]:
+                - /url: /analysis/timeline
+                - img [ref=e175]
+                - generic [ref=e178]: 溯源时间线
+            - listitem [ref=e179]:
+              - link "资产图谱" [ref=e180] [cursor=pointer]:
+                - /url: /analysis/assets
+                - img [ref=e181]
+                - generic [ref=e184]: 资产图谱
+      - main [ref=e185]:
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - generic [ref=e188]:
+              - generic [ref=e189]: "时间:"
+              - textbox [ref=e190]: 2026-03-31T14:06
+              - generic [ref=e191]: "-"
+              - textbox [ref=e192]: 2026-04-01T14:06
+            - generic [ref=e193]:
+              - generic [ref=e194]: "严重:"
+              - generic [ref=e195]:
+                - button "Critical" [ref=e196] [cursor=pointer]
+                - button "High" [ref=e197] [cursor=pointer]
+                - button "Medium" [ref=e198] [cursor=pointer]
+                - button "Low" [ref=e199] [cursor=pointer]
+            - generic [ref=e200]:
+              - generic [ref=e201]: "来源:"
+              - combobox [ref=e202]:
+                - option "全部" [selected]
+                - option "防火墙"
+                - option "IDS"
+                - option "EDR"
+                - option "WAF"
+                - option "云安全"
+            - generic [ref=e203]:
+              - generic [ref=e204]: "置信度:"
+              - spinbutton [ref=e205]: "0"
+              - generic [ref=e206]: "-"
+              - spinbutton [ref=e207]: "100"
+          - generic [ref=e208]:
+            - generic [ref=e210]:
+              - generic [ref=e211]:
+                - generic [ref=e212]:
+                  - generic [ref=e213]: "严重:"
+                  - generic [ref=e214]:
+                    - button "Critical" [ref=e215] [cursor=pointer]
+                    - button "High" [ref=e216] [cursor=pointer]
+                    - button "Medium" [ref=e217] [cursor=pointer]
+                    - button "Low" [ref=e218] [cursor=pointer]
+                - generic [ref=e219]:
+                  - generic [ref=e220]: "战术:"
+                  - combobox [ref=e221]:
+                    - option "全部" [selected]
+                    - option "侦察"
+                    - option "资源开发"
+                    - option "初始访问"
+                    - option "执行"
+                    - option "持久化"
+                    - option "权限提升"
+                    - option "防御规避"
+                    - option "凭据访问"
+                    - option "发现"
+                    - option "横向移动"
+                    - option "收集"
+                    - option "命令与控制"
+                    - option "数据泄露"
+                    - option "影响"
+                - generic [ref=e222]:
+                  - generic [ref=e223]: "置信度:"
+                  - spinbutton [ref=e224]: "0"
+                  - generic [ref=e225]: "-"
+                  - spinbutton [ref=e226]: "100"
+              - generic [ref=e228]:
+                - paragraph [ref=e229]: 暂无告警
+                - paragraph [ref=e230]: 尝试调整筛选条件
+            - generic [ref=e232]:
+              - heading "上下文面板" [level=2] [ref=e234]
+              - generic [ref=e235]:
+                - button "资产" [ref=e236] [cursor=pointer]
+                - button "威胁情报" [ref=e237] [cursor=pointer]
+                - button "行为" [ref=e238] [cursor=pointer]
+              - generic [ref=e241]: 选择实体查看详情
+  - region "Notifications alt+T"

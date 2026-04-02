@@ -1,0 +1,146 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "SecAlert 智能安全分析" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img [ref=e9]
+          - generic [ref=e11]:
+            - text: SecAlert
+            - paragraph [ref=e12]: 智能安全分析
+        - navigation [ref=e13]:
+          - link "仪表盘" [ref=e14] [cursor=pointer]:
+            - /url: /
+            - img [ref=e16]
+            - text: 仪表盘
+          - link "告警列表" [ref=e21] [cursor=pointer]:
+            - /url: /alerts
+            - img [ref=e23]
+            - text: 告警列表
+          - link "数据接入" [ref=e26] [cursor=pointer]:
+            - /url: /ingestion
+            - img [ref=e28]
+            - text: 数据接入
+          - link "分析工作台" [ref=e32] [cursor=pointer]:
+            - /url: /analysis
+            - img [ref=e34]
+            - text: 分析工作台
+          - link "设置" [ref=e37] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e39]
+            - text: 设置
+        - generic [ref=e42]:
+          - button [ref=e43] [cursor=pointer]:
+            - img
+          - button "AI Copilot" [ref=e45] [cursor=pointer]:
+            - img
+            - generic [ref=e46]: AI Copilot
+          - img [ref=e48] [cursor=pointer]
+    - main [ref=e51]:
+      - generic [ref=e53]:
+        - generic [ref=e54]:
+          - tablist [ref=e56]:
+            - tab "活跃告警" [selected] [ref=e57] [cursor=pointer]
+            - tab "已抑制告警" [ref=e58] [cursor=pointer]
+          - generic [ref=e59]:
+            - combobox [ref=e60] [cursor=pointer]: 全部严重度
+            - combobox [ref=e61] [cursor=pointer]: 全部来源
+            - generic [ref=e62]:
+              - img [ref=e63]
+              - textbox "搜索关键词..." [ref=e66]
+        - generic [ref=e67]:
+          - paragraph [ref=e68]: 共 10 条告警
+          - button "刷新" [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+        - generic [ref=e75]:
+          - generic [ref=e78] [cursor=pointer]:
+            - generic [ref=e79]: CRITICAL
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - generic [ref=e82]: 未知
+                - generic [ref=e83]: "->"
+                - generic [ref=e84]: 未知
+              - generic [ref=e85]: 未知行为
+            - generic [ref=e86]: 2026/04/02 06:00:23
+          - generic [ref=e89] [cursor=pointer]:
+            - generic [ref=e90]: CRITICAL
+            - generic [ref=e91]:
+              - generic [ref=e92]:
+                - generic [ref=e93]: 未知
+                - generic [ref=e94]: "->"
+                - generic [ref=e95]: 172.20.0.20
+              - generic [ref=e96]: 未知行为
+            - generic [ref=e97]: 2026/03/30 18:22:18
+          - generic [ref=e100] [cursor=pointer]:
+            - generic [ref=e101]: CRITICAL
+            - generic [ref=e102]:
+              - generic [ref=e103]:
+                - generic [ref=e104]: 未知
+                - generic [ref=e105]: "->"
+                - generic [ref=e106]: 10.0.0.50
+              - generic [ref=e107]: 未知行为
+            - generic [ref=e108]: 2026/03/30 03:22:18
+          - generic [ref=e111] [cursor=pointer]:
+            - generic [ref=e112]: CRITICAL
+            - generic [ref=e113]:
+              - generic [ref=e114]:
+                - generic [ref=e115]: 未知
+                - generic [ref=e116]: "->"
+                - generic [ref=e117]: 10.0.0.10
+              - generic [ref=e118]: 未知行为
+            - generic [ref=e119]: 2026/03/28 07:55:08
+          - generic [ref=e122] [cursor=pointer]:
+            - generic [ref=e123]: CRITICAL
+            - generic [ref=e124]:
+              - generic [ref=e125]:
+                - generic [ref=e126]: 未知
+                - generic [ref=e127]: "->"
+                - generic [ref=e128]: 10.0.0.25
+              - generic [ref=e129]: 未知行为
+            - generic [ref=e130]: 2026/03/27 23:22:18
+          - generic [ref=e133] [cursor=pointer]:
+            - generic [ref=e134]: MEDIUM
+            - generic [ref=e135]:
+              - generic [ref=e136]:
+                - generic [ref=e137]: 未知
+                - generic [ref=e138]: "->"
+                - generic [ref=e139]: 10.0.0.10
+              - generic [ref=e140]: 未知行为
+            - generic [ref=e141]: 2026/03/25 11:48:04
+          - generic [ref=e144] [cursor=pointer]:
+            - generic [ref=e145]: HIGH
+            - generic [ref=e146]:
+              - generic [ref=e147]:
+                - generic [ref=e148]: 未知
+                - generic [ref=e149]: "->"
+                - generic [ref=e150]: 10.0.0.25
+              - generic [ref=e151]: 未知行为
+            - generic [ref=e152]: 2026/03/25 11:48:01
+          - generic [ref=e155] [cursor=pointer]:
+            - generic [ref=e156]: HIGH
+            - generic [ref=e157]:
+              - generic [ref=e158]:
+                - generic [ref=e159]: 未知
+                - generic [ref=e160]: "->"
+                - generic [ref=e161]: 10.0.0.30
+              - generic [ref=e162]: 未知行为
+            - generic [ref=e163]: 2026/03/25 11:47:58
+          - generic [ref=e166] [cursor=pointer]:
+            - generic [ref=e167]: CRITICAL
+            - generic [ref=e168]:
+              - generic [ref=e169]:
+                - generic [ref=e170]: 未知
+                - generic [ref=e171]: "->"
+                - generic [ref=e172]: 10.0.0.100
+              - generic [ref=e173]: 未知行为
+            - generic [ref=e174]: 2026/03/25 11:47:54
+          - generic [ref=e177] [cursor=pointer]:
+            - generic [ref=e178]: CRITICAL
+            - generic [ref=e179]:
+              - generic [ref=e180]:
+                - generic [ref=e181]: 未知
+                - generic [ref=e182]: "->"
+                - generic [ref=e183]: 10.0.0.50
+              - generic [ref=e184]: 未知行为
+            - generic [ref=e185]: 2026/03/25 11:47:25
+  - region "Notifications alt+T"

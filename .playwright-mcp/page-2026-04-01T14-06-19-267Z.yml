@@ -1,0 +1,148 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - banner [ref=e4]:
+        - generic [ref=e6]:
+          - link "SecAlert 智能安全分析" [ref=e7] [cursor=pointer]:
+            - /url: /
+            - img [ref=e9]
+            - generic [ref=e11]:
+              - text: SecAlert
+              - paragraph [ref=e12]: 智能安全分析
+          - navigation [ref=e13]:
+            - link "仪表盘" [ref=e14] [cursor=pointer]:
+              - /url: /
+              - img [ref=e16]
+              - text: 仪表盘
+            - link "告警列表" [active] [ref=e22] [cursor=pointer]:
+              - /url: /alerts
+              - img [ref=e24]
+              - text: 告警列表
+            - link "数据接入" [ref=e26] [cursor=pointer]:
+              - /url: /ingestion
+              - img [ref=e28]
+              - text: 数据接入
+            - link "分析工作台" [ref=e32] [cursor=pointer]:
+              - /url: /analysis
+              - img [ref=e34]
+              - text: 分析工作台
+            - link "设置" [ref=e37] [cursor=pointer]:
+              - /url: /settings
+              - img [ref=e39]
+              - text: 设置
+          - generic [ref=e42]:
+            - button [ref=e43] [cursor=pointer]:
+              - img
+            - button "AI Copilot" [ref=e45] [cursor=pointer]:
+              - img
+              - generic [ref=e46]: AI Copilot
+            - img [ref=e48] [cursor=pointer]
+      - main [ref=e51]:
+        - generic [ref=e243]:
+          - generic [ref=e244]:
+            - tablist [ref=e246]:
+              - tab "活跃告警" [selected] [ref=e247] [cursor=pointer]
+              - tab "已抑制告警" [ref=e248] [cursor=pointer]
+            - generic [ref=e249]:
+              - combobox [ref=e250] [cursor=pointer]: 全部严重度
+              - combobox [ref=e251] [cursor=pointer]: 全部来源
+              - generic [ref=e252]:
+                - img [ref=e253]
+                - textbox "搜索关键词..." [ref=e256]
+          - generic [ref=e257]:
+            - paragraph [ref=e258]: 共 10 条告警
+            - button "刷新" [ref=e259] [cursor=pointer]:
+              - img [ref=e260]
+          - generic [ref=e265]:
+            - generic [ref=e268] [cursor=pointer]:
+              - generic [ref=e269]: CRITICAL
+              - generic [ref=e270]:
+                - generic [ref=e271]:
+                  - generic [ref=e272]: 未知
+                  - generic [ref=e273]: "->"
+                  - generic [ref=e274]: 未知
+                - generic [ref=e275]: 未知行为
+              - generic [ref=e276]: 2026/04/02 06:00:23
+            - generic [ref=e279] [cursor=pointer]:
+              - generic [ref=e280]: CRITICAL
+              - generic [ref=e281]:
+                - generic [ref=e282]:
+                  - generic [ref=e283]: 未知
+                  - generic [ref=e284]: "->"
+                  - generic [ref=e285]: 172.20.0.20
+                - generic [ref=e286]: 未知行为
+              - generic [ref=e287]: 2026/03/30 18:22:18
+            - generic [ref=e290] [cursor=pointer]:
+              - generic [ref=e291]: CRITICAL
+              - generic [ref=e292]:
+                - generic [ref=e293]:
+                  - generic [ref=e294]: 未知
+                  - generic [ref=e295]: "->"
+                  - generic [ref=e296]: 10.0.0.50
+                - generic [ref=e297]: 未知行为
+              - generic [ref=e298]: 2026/03/30 03:22:18
+            - generic [ref=e301] [cursor=pointer]:
+              - generic [ref=e302]: CRITICAL
+              - generic [ref=e303]:
+                - generic [ref=e304]:
+                  - generic [ref=e305]: 未知
+                  - generic [ref=e306]: "->"
+                  - generic [ref=e307]: 10.0.0.10
+                - generic [ref=e308]: 未知行为
+              - generic [ref=e309]: 2026/03/28 07:55:08
+            - generic [ref=e312] [cursor=pointer]:
+              - generic [ref=e313]: CRITICAL
+              - generic [ref=e314]:
+                - generic [ref=e315]:
+                  - generic [ref=e316]: 未知
+                  - generic [ref=e317]: "->"
+                  - generic [ref=e318]: 10.0.0.25
+                - generic [ref=e319]: 未知行为
+              - generic [ref=e320]: 2026/03/27 23:22:18
+            - generic [ref=e323] [cursor=pointer]:
+              - generic [ref=e324]: MEDIUM
+              - generic [ref=e325]:
+                - generic [ref=e326]:
+                  - generic [ref=e327]: 未知
+                  - generic [ref=e328]: "->"
+                  - generic [ref=e329]: 10.0.0.10
+                - generic [ref=e330]: 未知行为
+              - generic [ref=e331]: 2026/03/25 11:48:04
+            - generic [ref=e334] [cursor=pointer]:
+              - generic [ref=e335]: HIGH
+              - generic [ref=e336]:
+                - generic [ref=e337]:
+                  - generic [ref=e338]: 未知
+                  - generic [ref=e339]: "->"
+                  - generic [ref=e340]: 10.0.0.25
+                - generic [ref=e341]: 未知行为
+              - generic [ref=e342]: 2026/03/25 11:48:01
+            - generic [ref=e345] [cursor=pointer]:
+              - generic [ref=e346]: HIGH
+              - generic [ref=e347]:
+                - generic [ref=e348]:
+                  - generic [ref=e349]: 未知
+                  - generic [ref=e350]: "->"
+                  - generic [ref=e351]: 10.0.0.30
+                - generic [ref=e352]: 未知行为
+              - generic [ref=e353]: 2026/03/25 11:47:58
+            - generic [ref=e356] [cursor=pointer]:
+              - generic [ref=e357]: CRITICAL
+              - generic [ref=e358]:
+                - generic [ref=e359]:
+                  - generic [ref=e360]: 未知
+                  - generic [ref=e361]: "->"
+                  - generic [ref=e362]: 10.0.0.100
+                - generic [ref=e363]: 未知行为
+              - generic [ref=e364]: 2026/03/25 11:47:54
+            - generic [ref=e367] [cursor=pointer]:
+              - generic [ref=e368]: CRITICAL
+              - generic [ref=e369]:
+                - generic [ref=e370]:
+                  - generic [ref=e371]: 未知
+                  - generic [ref=e372]: "->"
+                  - generic [ref=e373]: 10.0.0.50
+                - generic [ref=e374]: 未知行为
+              - generic [ref=e375]: 2026/03/25 11:47:25
+    - region "Notifications alt+T"
+  - generic [ref=e241]: "0"

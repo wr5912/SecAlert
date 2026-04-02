@@ -21,7 +21,7 @@ class Neo4jConfig:
     """Neo4j 连接配置"""
     uri: str = "bolt://localhost:7687"
     username: str = "neo4j"
-    password: str = "neo4j"
+    password: str = "neo4j_dev"
 
 
 class Neo4jClient:

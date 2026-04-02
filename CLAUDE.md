@@ -3,6 +3,9 @@
 - 所有代码注释使用中文
 - 所有文档编写使用中文
 
+## python使用规范
+- 统一使用本地.venv
+
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 

@@ -55,7 +55,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
       case 1: return !!deviceType;
       case 2: return !!connection;
       case 3: return !!logFormat;
-      case 4: return true;  // Step4 内部状态控制完成按钮
+      case 4: return false;  // Step4 使用内部完成按钮
       default: return false;
     }
   };
@@ -98,9 +98,11 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
             <Button variant="ghost" onClick={handleClose}>
               取消
             </Button>
-            <Button onClick={nextStep} disabled={!canGoNext()}>
-              下一步
-            </Button>
+            {step < 4 && (
+              <Button onClick={nextStep} disabled={!canGoNext()}>
+                下一步
+              </Button>
+            )}
           </DialogFooter>
         )}
       </DialogContent>

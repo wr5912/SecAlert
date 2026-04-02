@@ -8,9 +8,7 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { AlertCircle, CheckCircle, AlertTriangle, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { AccuracyBadge } from './AccuracyBadge';
 import type { ParseTestResult, ParseTestState } from '@/types/ingestion';
 
@@ -55,7 +53,7 @@ export function ParseTestPanel({ templateId, onQualified }: ParseTestPanelProps)
         onQualified(data);
       }
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Parse test failed:', error);
       setParseState('failure');
     },
@@ -95,7 +93,7 @@ export function ParseTestPanel({ templateId, onQualified }: ParseTestPanelProps)
         <p className="mt-1">准确率达标后即可开启实时接入。</p>
       </div>
 
-      <Textarea
+      <textarea
         value={testLogs}
         onChange={(e) => setTestLogs(e.target.value)}
         placeholder={`粘贴测试日志，每行一条...
@@ -103,7 +101,7 @@ export function ParseTestPanel({ templateId, onQualified }: ParseTestPanelProps)
 示例:
 CEF:1|Check Point|VPN-1|123|accept|src=192.168.1.100 dst=10.0.0.1 spt=12345 dpt=443
 CEF:1|Check Point|VPN-1|124|accept|src=192.168.1.101 dst=10.0.0.2 spt=54321 dpt=80`}
-        className="min-h-[200px] font-mono text-xs bg-slate-800/50 border-slate-700"
+        className="w-full min-h-[200px] px-3 py-2 border rounded-lg bg-slate-800 text-slate-200 font-mono text-xs resize-none border-slate-700 focus:outline-none focus:ring-1 focus:ring-accent"
       />
 
       <div className="flex items-center justify-between">
@@ -129,7 +127,13 @@ CEF:1|Check Point|VPN-1|124|accept|src=192.168.1.101 dst=10.0.0.2 spt=54321 dpt=
         <p className="text-slate-300">正在测试解析...</p>
         <p className="text-xs text-slate-500 mt-1">使用 ThreeTierParser 解析日志</p>
       </div>
-      <Progress value={progress} className="h-1" />
+      {/* 简单进度条 */}
+      <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-accent transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
     </div>
   );
 
@@ -213,17 +217,16 @@ CEF:1|Check Point|VPN-1|124|accept|src=192.168.1.101 dst=10.0.0.2 spt=54321 dpt=
 
         {/* 重新测试按钮 */}
         <div className="flex justify-end">
-          <Button
-            variant="ghost"
+          <button
             onClick={() => {
               setTestLogs('');
               setTestResult(null);
               setParseState('idle');
             }}
-            className="text-slate-400 hover:text-slate-200"
+            className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
           >
             重新测试
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -242,16 +245,15 @@ CEF:1|Check Point|VPN-1|124|accept|src=192.168.1.101 dst=10.0.0.2 spt=54321 dpt=
             </p>
           </div>
           <div className="flex justify-center">
-            <Button
-              variant="ghost"
+            <button
               onClick={() => {
                 setTestResult(null);
                 setParseState('idle');
               }}
-              className="text-slate-400 hover:text-slate-200"
+              className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
             >
               重试
-            </Button>
+            </button>
           </div>
         </div>
       );
@@ -315,17 +317,16 @@ CEF:1|Check Point|VPN-1|124|accept|src=192.168.1.101 dst=10.0.0.2 spt=54321 dpt=
 
         {/* 重新测试按钮 */}
         <div className="flex justify-end">
-          <Button
-            variant="ghost"
+          <button
             onClick={() => {
               setTestLogs('');
               setTestResult(null);
               setParseState('idle');
             }}
-            className="text-slate-400 hover:text-slate-200"
+            className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
           >
             重新测试
-          </Button>
+          </button>
         </div>
       </div>
     );
