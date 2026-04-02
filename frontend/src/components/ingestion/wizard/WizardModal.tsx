@@ -35,20 +35,12 @@ import { Step3LogFormat } from './Step3LogFormat';
 import { Step4Complete } from './Step4Complete';
 import { Step5BatchImport } from './Step5BatchImport';
 import { Step6ParseTest } from './Step6ParseTest';
+import { WIZARD_STEPS } from '@/types/ingestion';
 
 interface WizardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const stepTitles: Record<number, string> = {
-  1: '选择设备类型',
-  2: '配置连接参数',
-  3: '选择日志格式',
-  4: '模板设置',
-  5: '批量导入',
-  6: '完成',
-};
 
 const editModeTitle = '编辑模板';
 
@@ -65,6 +57,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
       case 1: return !!deviceType;
       case 2: return !!connection;
       case 3: return !!logFormat;
+      case 4: return true;  // Step4 有独立完成按钮，但仍允许 canGoNext
       default: return false;
     }
   };
@@ -90,7 +83,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
           ) : (
             <>
               <StepIndicator />
-              <h2 className="text-base font-medium text-slate-200">{stepTitles[step]}</h2>
+              <h2 className="text-base font-medium text-slate-200">{WIZARD_STEPS.find(s => s.num === step)?.label ?? ''}</h2>
             </>
           )}
         </DialogHeader>
@@ -99,7 +92,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
           {renderStep()}
         </div>
 
-        {!isEditMode && step < 5 && (
+        {!isEditMode && step <= 5 && (
           <DialogFooter>
             {step > 1 && (
               <Button variant="ghost" onClick={prevStep}>
@@ -109,7 +102,11 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
             <Button variant="ghost" onClick={handleClose}>
               取消
             </Button>
-            {step < 5 && (
+            {step === 5 ? (
+              <Button variant="ghost" onClick={nextStep}>
+                跳过批量导入
+              </Button>
+            ) : (
               <Button onClick={nextStep} disabled={!canGoNext()}>
                 下一步
               </Button>
