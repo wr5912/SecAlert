@@ -76,6 +76,8 @@ updated: 2026-04-02
 | Dominant (60%) | #0a0f1a | 页面背景 |
 | Secondary (30%) | #111827 | 卡片、表面 |
 | Accent (10%) | #00f0ff | 交互元素、强调 |
+
+**Dominant/Secondary/Accent 配比: 60/30/10 split** — 全局遵循
 | Destructive | #ff2d55 | 危险操作 |
 
 **Accent 保留元素 (Phase 15):**
@@ -112,6 +114,7 @@ updated: 2026-04-02
 | Accuracy达标 | 准确率 85% 以上，配置可用 | 阈值可配置 |
 | Accuracy未达标 | 准确率未达标，请调整字段映射 | |
 | Step6 finish disabled | 请先通过解析测试 | 未达标时禁用完成按钮 |
+| Skip batch import | 跳过批量导入 | Step5 跳过按钮（WizardModal footer 条件 `step < 5` 已知缺口，见 Optimization Opportunities） |
 
 **Destructive actions:**
 - 删除设备 (批量): 需二次确认对话框
@@ -288,11 +291,11 @@ frontend/src/components/ingestion/
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS (focal point declared)
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS (consolidated to 4 sizes)
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS (FLAG resolved: "跳过批量导入" CTA added with known gap note)
+- [x] Dimension 2 Visuals: PASS (focal point declared)
+- [x] Dimension 3 Color: PASS (FLAG resolved: 60/30/10 split explicitly declared)
+- [x] Dimension 4 Typography: PASS (consolidated to 4 sizes)
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** APPROVED
