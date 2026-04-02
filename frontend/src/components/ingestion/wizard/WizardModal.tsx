@@ -33,8 +33,6 @@ import { Step1DeviceType } from './Step1DeviceType';
 import { Step2Connection } from './Step2Connection';
 import { Step3LogFormat } from './Step3LogFormat';
 import { Step4Complete } from './Step4Complete';
-import { Step5BatchImport } from './Step5BatchImport';
-import { Step6ParseTest } from './Step6ParseTest';
 import { WIZARD_STEPS } from '@/types/ingestion';
 
 interface WizardModalProps {
@@ -57,7 +55,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
       case 1: return !!deviceType;
       case 2: return !!connection;
       case 3: return !!logFormat;
-      case 4: return true;  // Step4 有独立完成按钮，但仍允许 canGoNext
+      case 4: return true;  // Step4 内部状态控制完成按钮
       default: return false;
     }
   };
@@ -68,8 +66,6 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
       case 2: return <Step2Connection />;
       case 3: return <Step3LogFormat />;
       case 4: return <Step4Complete onFinish={handleClose} />;
-      case 5: return <Step5BatchImport />;
-      case 6: return <Step6ParseTest onFinish={handleClose} />;
       default: return null;
     }
   };
@@ -92,7 +88,7 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
           {renderStep()}
         </div>
 
-        {!isEditMode && step <= 5 && (
+        {!isEditMode && step <= 4 && (
           <DialogFooter>
             {step > 1 && (
               <Button variant="ghost" onClick={prevStep}>
@@ -102,15 +98,9 @@ export function WizardModal({ open, onOpenChange }: WizardModalProps) {
             <Button variant="ghost" onClick={handleClose}>
               取消
             </Button>
-            {step === 5 ? (
-              <Button variant="ghost" onClick={nextStep}>
-                跳过批量导入
-              </Button>
-            ) : (
-              <Button onClick={nextStep} disabled={!canGoNext()}>
-                下一步
-              </Button>
-            )}
+            <Button onClick={nextStep} disabled={!canGoNext()}>
+              下一步
+            </Button>
           </DialogFooter>
         )}
       </DialogContent>
