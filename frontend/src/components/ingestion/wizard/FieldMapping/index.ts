@@ -5,4 +5,5 @@
 
 export { DraggableField } from './DraggableField';
 export { FieldMapper, STANDARD_TARGET_FIELDS } from './FieldMapper';
+export { MappingPreview } from './MappingPreview';
 export type { PreviewParseResult } from './FieldMapper';

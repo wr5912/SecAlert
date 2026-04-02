@@ -5,6 +5,7 @@ import type { LogFormat } from '@/types/ingestion';
 import { Upload, Download, Sparkles } from 'lucide-react';
 import { SampleLogInput } from './SampleLogInput';
 import { AIDetectPanel } from './AIDetectPanel';
+import { FieldMapper, MappingPreview } from './FieldMapping';
 
 const PYTHON_PARSER_TEMPLATE = `"""
 自定义日志解析器
@@ -48,7 +49,7 @@ function downloadTemplate() {
 type ConfigMode = 'auto' | 'manual';
 
 export function Step3LogFormat() {
-  const { logFormat, setLogFormat, customRegex, setCustomRegex } = useIngestionStore();
+  const { logFormat, setLogFormat, customRegex, setCustomRegex, aiRecognitionResult, fieldMappings } = useIngestionStore();
   const [localRegex, setLocalRegex] = useState(customRegex || '');
   const [pythonCode, setPythonCode] = useState('');
   const [configMode, setConfigMode] = useState<ConfigMode>('manual');
@@ -107,6 +108,53 @@ export function Step3LogFormat() {
         <div className="space-y-4">
           <SampleLogInput />
           <AIDetectPanel />
+
+          {/* AI 识别成功后显示字段映射和预览 */}
+          {aiRecognitionResult && (
+            <div className="space-y-4 border-t border-slate-700 pt-4">
+              {/* 分割线标题 */}
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1 bg-slate-700" />
+                <span className="text-xs text-slate-500 uppercase tracking-wider">字段映射与预览</span>
+                <div className="h-px flex-1 bg-slate-700" />
+              </div>
+
+              {/* 字段映射 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">拖拽调整字段映射</label>
+                <FieldMapper
+                  sourceFields={aiRecognitionResult.detected_fields || Object.keys(aiRecognitionResult.field_mappings || {})}
+                  onMappingsChange={(mappings) => {
+                    // 映射变更时可以执行额外操作
+                    console.log('Mappings changed:', mappings);
+                  }}
+                />
+              </div>
+
+              {/* 映射预览 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-300">解析预览</label>
+                <MappingPreview
+                  templateId="" // TODO: 需要从已保存的模板获取
+                  fieldMappings={fieldMappings}
+                  sampleLogs={[]}
+                />
+              </div>
+
+              {/* 应用映射按钮 */}
+              <div className="flex justify-end">
+                <button
+                  className="flex items-center gap-2 px-4 py-2 bg-accent/20 text-accent rounded-lg hover:bg-accent/30 transition-colors text-sm font-medium"
+                  onClick={() => {
+                    // TODO: 应用映射逻辑
+                    console.log('Apply mappings:', fieldMappings);
+                  }}
+                >
+                  应用映射
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
