@@ -176,12 +176,10 @@ export interface FailedSample {
 // 解析测试状态
 export type ParseTestState = 'idle' | 'testing' | 'success' | 'failure';
 
-// 向导步骤 (扩展到6步，支持批量导入和解析测试)
+// 向导步骤 (4步：设备类型 -> 连接参数 -> 日志格式 -> 完成)
 export const WIZARD_STEPS: WizardStep[] = [
   { num: 1, label: '设备类型' },
   { num: 2, label: '连接参数' },
   { num: 3, label: '日志格式' },
-  { num: 4, label: '模板设置' },
-  { num: 5, label: '批量导入' },
-  { num: 6, label: '完成' },
+  { num: 4, label: '完成' },
 ];
