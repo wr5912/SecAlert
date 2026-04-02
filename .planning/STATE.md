@@ -1,42 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-current_phase: 15
-status: unknown
-last_updated: "2026-04-02T07:13:55.033Z"
+milestone: v1.5
+milestone_name: 多源异构安全日志采集优化
+current_phase: null
+status: defining_requirements
+last_updated: "2026-04-02"
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 12
-  completed_plans: 12
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # SecAlert State
 
 **Project:** Security Alert Analysis System
 **Core Value:** 帮助非专业运维人员自动过滤海量告警，只呈现真正需要关注的安全威胁
-**Current Phase:** 15
+**Current Phase:** None (defining requirements)
 
 ---
 
 ## Current Position
 
-Phase: 15 (data-ingestion-enhancement) — EXECUTING
-Plan: Not started
-
-## Session Continuity
-
-| Field | Value |
-|-------|-------|
-| Last Updated | 2026-04-01 |
-| Last Milestone | v1.2 智能分析工作台 (4 phases, completed) |
-| Current Milestone | v1.3 Claude Code AI 后端 |
-| Next Action | /gsd:plan-phase 13 细分执行计划 |
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-02 — Milestone v1.5 started
 
 ---
 
 ## Decisions Made
+
+_Accumulated context from previous milestones preserved below_
 
 - 使用 shadcn/ui 风格 button.tsx (小写) 替代旧 Button.tsx (大写)
 - formatDate 使用 toLocaleString 实现，不依赖外部日期库
@@ -44,23 +39,14 @@ Plan: Not started
 - Vite @ alias 配置支持 @/lib/utils 导入
 
 ---
-- [Phase 13]: 使用 @tool(input_schema=...) 而非 parameters（SDK API 修正）
-- [Phase 13]: 使用 conftest.py 统一设置 mock 避免测试间状态污染
-- [Phase 13]: Python 3.8 不支持 claude-agent-sdk，使用 MagicMock 模拟
-- [Phase 14]: 使用内存存储作为临时方案（生产环境应替换为数据库）
-- [Phase 14]: Python 3.8 兼容：使用 Dict[str, ...] 而非 dict[str, ...]
-- [Phase 14]: 数据接入前端 UI 完成，包含 4 步骤向导、模板管理、导航入口
-- [Phase 15]: 使用 DSPy 可用性检测模式，Python 3.8 兼容
-- [Phase 15]: 使用 @dnd-kit 实现拖拽映射（React 生态最佳，无障碍支持）
-- [Phase 15]: 使用 @radix-ui/react-checkbox 替代不存在的 @/components/ui/checkbox
-- [Phase 15]: DI-09 解析测试：使用 ThreeTierParser.parse() 测试准确率，阈值 85%，支持字段级准确率对比
-- [Phase 15]: field_mappings 统一使用 {sourceField: OCSFField} 方向，后端返回 {OCSF: source} 时在前端反转
 
-## v1.3 Phase Breakdown
+## v1.5 Phase Breakdown
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 13 | Claude Code AI 后端 | AG-01, AG-02, AG-03, AG-04, AG-05 | Not Started |
+| TBD | 多渠道采集后端 | MC-01, MC-02, MC-03 | Not Started |
+| TBD | 采集监控与DLQ | SM-01, SM-02, SM-03 | Not Started |
+| TBD | 全局元数据体系 | GM-01, GM-02 | Not Started |
 
 ---
 
@@ -68,9 +54,10 @@ Plan: Not started
 
 - Phase 11 added: 后端 API 完善
 - Phase 12 added: 前端视觉升级
-- Phase 12 UI-SPEC.md approved (Tactical Command Center aesthetic)
 - Phase 13 added: Claude Code AI 后端 (v1.3 milestone start)
 - Phase 14 added: 数据接入前端界面 (v1.4 milestone start)
+- Phase 15 added: 数据接入用户体验增强 (v1.4 gap closure)
+- **v1.5 started:** 多源异构安全日志采集优化 (multi-channel backend, DLQ/monitoring, global metadata)
 
 ---
 
@@ -104,6 +91,8 @@ Plan: Not started
 | .planning/STATE.md | Active |
 | .planning/phases/09-analysis-workbench | Completed |
 | .planning/phases/10-backend-integration | Completed |
-| .planning/phases/11-backend-api | Active |
+| .planning/phases/11-backend-api | Completed |
 | .planning/phases/12-frontend-redesign | Completed |
-| .planning/phases/13-claude-code-backend | To be created |
+| .planning/phases/13-claude-code-backend | Completed |
+| .planning/phases/14-data-ingestion-ui | Completed |
+| .planning/phases/15-data-ingestion-enhancement | Completed |
