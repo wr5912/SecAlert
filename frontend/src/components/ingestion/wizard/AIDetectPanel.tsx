@@ -17,7 +17,7 @@ interface DetectPanelProps {
 }
 
 export function AIDetectPanel({ onSuccess }: DetectPanelProps) {
-  const { sampleLogs, setAiRecognitionResult, setFieldMappings } = useIngestionStore();
+  const { sampleLogs, setAiRecognitionResult, setFieldMappings, setCurrentTemplateId } = useIngestionStore();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const mutation = useMutation({
@@ -37,9 +37,32 @@ export function AIDetectPanel({ onSuccess }: DetectPanelProps) {
 
       return response.json() as Promise<LogFormatRecognitionResult>;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setAiRecognitionResult(data);
       setFieldMappings(data.field_mappings || {});
+
+      // 自动保存模板 (Gap-05: AI 识别成功后自动保存模板)
+      const templateName = `AI识别-${data.detected_format}-${Date.now()}`;
+      try {
+        const response = await fetch('/api/ingestion/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: templateName,
+            device_type: 'other',
+            connection: { host: '', port: 514, username: '', password: '', protocol: 'syslog' },
+            log_format: data.detected_format,
+            custom_regex: data.regex_pattern
+          }),
+        });
+        if (response.ok) {
+          const template = await response.json();
+          setCurrentTemplateId(template.id);
+        }
+      } catch (e) {
+        console.error('Auto-save template failed:', e);
+      }
+
       setErrorMessage(null);
       onSuccess?.(data);
     },

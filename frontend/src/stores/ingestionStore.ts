@@ -79,6 +79,9 @@ interface IngestionState {
   parseTestResult: ParseTestResult | null;
   isTestQualified: boolean;
 
+  // 当前模板 ID (AI 识别后自动保存模板时设置)
+  currentTemplateId: string | null;
+
   // 批量导入状态 (DI-08)
   batchDevices: BatchDevice[];
   batchImportResult: BatchCreateResponse | null;
@@ -103,6 +106,7 @@ interface IngestionState {
   setParseTestResult: (result: ParseTestResult | null, isQualified: boolean) => void;
   setBatchDevices: (devices: BatchDevice[]) => void;
   setBatchImportResult: (result: BatchCreateResponse | null) => void;
+  setCurrentTemplateId: (id: string | null) => void;
 }
 
 const initialState = {
@@ -125,6 +129,8 @@ const initialState = {
   // 解析测试结果
   parseTestResult: null,
   isTestQualified: false,
+  // 当前模板 ID
+  currentTemplateId: null,
   // 批量导入状态
   batchDevices: [],
   batchImportResult: null,
@@ -183,4 +189,6 @@ export const useIngestionStore = create<IngestionState>((set) => ({
   setBatchDevices: (batchDevices) => set({ batchDevices }),
 
   setBatchImportResult: (batchImportResult) => set({ batchImportResult }),
+
+  setCurrentTemplateId: (currentTemplateId) => set({ currentTemplateId }),
 }));

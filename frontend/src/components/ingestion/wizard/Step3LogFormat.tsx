@@ -49,7 +49,7 @@ function downloadTemplate() {
 type ConfigMode = 'auto' | 'manual';
 
 export function Step3LogFormat() {
-  const { logFormat, setLogFormat, customRegex, setCustomRegex, aiRecognitionResult, fieldMappings } = useIngestionStore();
+  const { logFormat, setLogFormat, customRegex, setCustomRegex, aiRecognitionResult, fieldMappings, currentTemplateId, sampleLogs } = useIngestionStore();
   const [localRegex, setLocalRegex] = useState(customRegex || '');
   const [pythonCode, setPythonCode] = useState('');
   const [configMode, setConfigMode] = useState<ConfigMode>('manual');
@@ -135,9 +135,9 @@ export function Step3LogFormat() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">解析预览</label>
                 <MappingPreview
-                  templateId="" // TODO: 需要从已保存的模板获取
+                  templateId={currentTemplateId || ''}
                   fieldMappings={fieldMappings}
-                  sampleLogs={[]}
+                  sampleLogs={sampleLogs}
                 />
               </div>
 
@@ -146,8 +146,22 @@ export function Step3LogFormat() {
                 <button
                   className="flex items-center gap-2 px-4 py-2 bg-accent/20 text-accent rounded-lg hover:bg-accent/30 transition-colors text-sm font-medium"
                   onClick={() => {
-                    // TODO: 应用映射逻辑
-                    console.log('Apply mappings:', fieldMappings);
+                    // 应用映射：保存映射到 store，并更新已保存模板的 custom_regex 字段
+                    if (currentTemplateId) {
+                      fetch(`/api/ingestion/templates/${currentTemplateId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          custom_regex: aiRecognitionResult?.regex_pattern
+                        }),
+                      }).then(res => {
+                        if (res.ok) {
+                          console.log('映射已保存');
+                        }
+                      }).catch(e => console.error('保存映射失败:', e));
+                    }
+                    // 映射已保存在 store 的 fieldMappings 中，可被后续步骤使用
+                    console.log('应用映射:', fieldMappings);
                   }}
                 >
                   应用映射
