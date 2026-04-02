@@ -52,19 +52,21 @@ class DataSourceTemplate(BaseModel):
 class TemplateCreate(BaseModel):
     """创建模板请求"""
     name: str = Field(..., min_length=1, max_length=100, description="模板名称")
-    device_type: str = Field(..., description="设备类型")
+    device_type: DeviceType = Field(..., description="设备类型")
     connection: ConnectionConfig = Field(..., description="连接参数")
-    log_format: str = Field(..., description="日志格式")
+    log_format: LogFormat = Field(..., description="日志格式")
     custom_regex: Optional[str] = Field(None, description="自定义正则")
+    metadata: CollectionMetadata = Field(..., description="采集元数据（vendor/product/device/tenant/environment）")
 
 
 class TemplateUpdate(BaseModel):
     """更新模板请求"""
     name: Optional[str] = Field(None, min_length=1, max_length=100)
-    device_type: Optional[str] = None
+    device_type: Optional[DeviceType] = None
     connection: Optional[ConnectionConfig] = None
-    log_format: Optional[str] = None
+    log_format: Optional[LogFormat] = None
     custom_regex: Optional[str] = None
+    metadata: Optional[CollectionMetadata] = None
 
 
 class TemplateListResponse(BaseModel):
