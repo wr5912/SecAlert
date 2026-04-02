@@ -9,9 +9,20 @@ import { Upload, FileSpreadsheet } from 'lucide-react';
 import { BatchImportModal } from './BatchImportModal';
 import { useIngestionStore } from '@/stores/ingestionStore';
 
-export function Step5BatchImport() {
+interface Step5BatchImportProps {
+  onBatchImportComplete?: () => void;
+}
+
+export function Step5BatchImport({ onBatchImportComplete }: Step5BatchImportProps) {
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
-  const { batchDevices, batchImportResult } = useIngestionStore();
+  const {
+    batchDevices,
+    batchImportResult,
+    setBatchDevices,
+    setBatchImportResult,
+    setBatchCreatedTemplateIds,
+    setSelectedTemplateIdForTest,
+  } = useIngestionStore();
 
   return (
     <div className="space-y-6">
@@ -62,8 +73,27 @@ export function Step5BatchImport() {
         open={isBatchModalOpen}
         onOpenChange={setIsBatchModalOpen}
         onImportComplete={(result) => {
-          // 导入完成后的回调
-          console.log('Batch import complete:', result);
+          // 保存导入结果
+          setBatchImportResult(result);
+
+          // 提取成功的模板 ID
+          const templateIds = result.results
+            .filter(r => r.status === 'success')
+            .map(r => r.template_id)
+            .filter((id): id is string => id !== null);
+
+          setBatchCreatedTemplateIds(templateIds);
+
+          // 如果有成功的模板，自动选择第一个用于测试
+          if (templateIds.length > 0) {
+            setSelectedTemplateIdForTest(templateIds[0]);
+          }
+
+          // 更新 batchDevices
+          setBatchDevices(prev => [...prev, ...result.results.filter(r => r.status === 'success').map(r => ({ name: r.name } as any))]);
+
+          // 通知父组件
+          onBatchImportComplete?.();
         }}
       />
 

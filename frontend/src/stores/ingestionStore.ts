@@ -87,6 +87,11 @@ interface IngestionState {
   batchDevices: BatchDevice[];
   batchImportResult: BatchCreateResponse | null;
 
+  // 批量创建的模板 ID 列表 (用于 Step6 解析测试)
+  batchCreatedTemplateIds: string[];
+  // 当前选中的模板 ID (用于 Step6 解析测试)
+  selectedTemplateIdForTest: string | null;
+
   // Actions
   openWizard: () => void;
   closeWizard: () => void;
@@ -107,6 +112,8 @@ interface IngestionState {
   setParseTestResult: (result: ParseTestResult | null, isQualified: boolean) => void;
   setBatchDevices: (devices: BatchDevice[]) => void;
   setBatchImportResult: (result: BatchCreateResponse | null) => void;
+  setBatchCreatedTemplateIds: (ids: string[]) => void;
+  setSelectedTemplateIdForTest: (id: string | null) => void;
   setCurrentTemplateId: (id: string | null) => void;
   setCurrentTemplateSaved: (saved: boolean) => void;
 }
@@ -137,6 +144,10 @@ const initialState = {
   // 批量导入状态
   batchDevices: [],
   batchImportResult: null,
+  // 批量创建的模板 ID 列表
+  batchCreatedTemplateIds: [],
+  // 当前选中的模板 ID
+  selectedTemplateIdForTest: null,
 };
 
 export const useIngestionStore = create<IngestionState>((set) => ({
@@ -192,6 +203,10 @@ export const useIngestionStore = create<IngestionState>((set) => ({
   setBatchDevices: (batchDevices) => set({ batchDevices }),
 
   setBatchImportResult: (batchImportResult) => set({ batchImportResult }),
+
+  setBatchCreatedTemplateIds: (batchCreatedTemplateIds) => set({ batchCreatedTemplateIds }),
+
+  setSelectedTemplateIdForTest: (selectedTemplateIdForTest) => set({ selectedTemplateIdForTest }),
 
   setCurrentTemplateId: (currentTemplateId) => set({ currentTemplateId }),
 

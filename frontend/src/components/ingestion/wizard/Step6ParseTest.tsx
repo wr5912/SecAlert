@@ -27,13 +27,25 @@ export function Step6ParseTest({ onFinish }: Step6ParseTestProps) {
     parseTestResult,
     isTestQualified,
     setParseTestResult,
+    // 批量导入的模板
+    batchCreatedTemplateIds,
+    selectedTemplateIdForTest,
+    setSelectedTemplateIdForTest,
   } = useIngestionStore();
 
   const createTemplate = useCreateTemplate();
   const updateTemplate = useUpdateTemplate();
 
-  // 获取模板 ID（编辑模式下使用已有模板 ID）
-  const templateId = editingTemplate?.id || '';
+  // 获取模板 ID
+  // 优先级：编辑模板 > 批量导入选中的模板 > 空
+  const templateId = editingTemplate?.id || selectedTemplateIdForTest || '';
+
+  // 批量导入时如果有多个模板，提供选择
+  const hasMultipleTemplates = batchCreatedTemplateIds.length > 1;
+  const templateOptions = batchCreatedTemplateIds.map(id => ({
+    value: id,
+    label: `模板 ${id.slice(0, 8)}...`
+  }));
 
   // 处理测试结果
   const handleTestQualified = (result: ParseTestResult) => {
@@ -83,6 +95,24 @@ export function Step6ParseTest({ onFinish }: Step6ParseTestProps) {
           使用历史日志测试解析准确率，达标后可开启实时接入
         </p>
       </div>
+
+      {/* 批量导入模板选择器 */}
+      {hasMultipleTemplates && (
+        <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+          <label className="text-sm text-slate-300 mb-2 block">
+            选择要测试的模板：
+          </label>
+          <select
+            value={selectedTemplateIdForTest || ''}
+            onChange={(e) => setSelectedTemplateIdForTest(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-slate-200 text-sm"
+          >
+            {templateOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* 解析测试面板 */}
       <ParseTestPanel
