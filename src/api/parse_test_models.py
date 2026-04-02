@@ -49,6 +49,7 @@ class LogFormatRecognitionResponse(BaseModel):
     """日志格式识别响应 (DI-07)"""
     detected_format: str = Field(..., description="检测到的格式：CEF/Syslog/JSON/Custom")
     regex_pattern: str = Field(..., description="Python 正则表达式，包含命名捕获组")
-    field_mappings: Dict[str, str] = Field(..., description="字段映射 {目标字段: 源字段}")
+    field_mappings: Dict[str, str] = Field(..., description="字段映射 {sourceField: OCSFField} - 统一方向")
+    detected_fields: List[str] = Field(default_factory=list, description="检测到的源字段列表")
     confidence: float = Field(..., ge=0.0, le=1.0, description="置信度 0.0-1.0")
     reasoning: str = Field(..., description="识别理由")

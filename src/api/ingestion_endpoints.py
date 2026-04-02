@@ -347,10 +347,14 @@ async def recognize_log_format(
                 # 解析返回结果
                 field_mappings = json.loads(result.ocsf_field_mappings) if isinstance(result.ocsf_field_mappings, str) else result.ocsf_field_mappings
 
+                # 解析 detected_fields
+                detected_fields = json.loads(result.detected_fields) if isinstance(result.detected_fields, str) else result.detected_fields
+
                 return LogFormatRecognitionResponse(
                     detected_format=result.detected_format,
                     regex_pattern=result.regex_pattern,
                     field_mappings=field_mappings,
+                    detected_fields=detected_fields,
                     confidence=float(result.confidence),
                     reasoning=result.reasoning
                 )

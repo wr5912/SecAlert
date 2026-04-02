@@ -61,6 +61,9 @@ if DSPY_AVAILABLE:
         ocsf_field_mappings = OutputField(
             desc='OCSF 归一化字段映射 JSON，如 {"src_endpoint.ip": "src", "dst_endpoint.ip": "dst", "severity_id": "sev", "time": "timestamp"}'
         )
+        detected_fields = OutputField(
+            desc='检测到的源字段列表 JSON，如 ["src", "dst", "spt", "dpt"]'
+        )
         category_uid = OutputField(desc="OCSF Category UID: 2 (Findings) / 1 (System) / 4 (Network)")
         class_uid = OutputField(desc="OCSF Class UID: 2001 (Security Finding) / 4001 (Network Activity)")
         confidence = OutputField(desc="置信度 0.0-1.0")
@@ -81,6 +84,7 @@ else:
         detected_format: str
         regex_pattern: str
         ocsf_field_mappings: str  # JSON 字符串
+        detected_fields: str  # JSON 字符串
         category_uid: int
         class_uid: int
         confidence: float

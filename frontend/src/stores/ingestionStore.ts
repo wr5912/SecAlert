@@ -10,9 +10,9 @@ export interface LogFormatRecognitionResult {
   detected_format: string;
   regex_pattern: string;
   field_mappings: Record<string, string>;
+  detected_fields: string[];
   confidence: number;
   reasoning: string;
-  detected_fields?: string[];
 }
 
 // 解析预览结果类型
@@ -81,6 +81,7 @@ interface IngestionState {
 
   // 当前模板 ID (AI 识别后自动保存模板时设置)
   currentTemplateId: string | null;
+  currentTemplateSaved: boolean;
 
   // 批量导入状态 (DI-08)
   batchDevices: BatchDevice[];
@@ -107,6 +108,7 @@ interface IngestionState {
   setBatchDevices: (devices: BatchDevice[]) => void;
   setBatchImportResult: (result: BatchCreateResponse | null) => void;
   setCurrentTemplateId: (id: string | null) => void;
+  setCurrentTemplateSaved: (saved: boolean) => void;
 }
 
 const initialState = {
@@ -131,6 +133,7 @@ const initialState = {
   isTestQualified: false,
   // 当前模板 ID
   currentTemplateId: null,
+  currentTemplateSaved: false,
   // 批量导入状态
   batchDevices: [],
   batchImportResult: null,
@@ -191,4 +194,6 @@ export const useIngestionStore = create<IngestionState>((set) => ({
   setBatchImportResult: (batchImportResult) => set({ batchImportResult }),
 
   setCurrentTemplateId: (currentTemplateId) => set({ currentTemplateId }),
+
+  setCurrentTemplateSaved: (currentTemplateSaved) => set({ currentTemplateSaved }),
 }));

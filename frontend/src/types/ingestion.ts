@@ -57,10 +57,10 @@ export interface DataSourceStatus {
 export interface LogFormatRecognitionResult {
   detected_format: string;  // 检测到的格式：CEF/Syslog/JSON/Custom
   regex_pattern: string;  // Python 正则表达式，包含命名捕获组
-  field_mappings: Record<string, string>;  // 字段映射 {目标字段: 源字段}
+  field_mappings: Record<string, string>;  // 字段映射 {sourceField: OCSFField} - 统一方向
+  detected_fields: string[];  // 检测到的源字段列表
   confidence: number;  // 置信度 0.0-1.0
   reasoning: string;  // 识别理由
-  detected_fields?: string[];  // 检测到的源字段列表
 }
 
 // 向导状态

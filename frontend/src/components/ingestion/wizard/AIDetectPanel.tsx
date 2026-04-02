@@ -17,7 +17,7 @@ interface DetectPanelProps {
 }
 
 export function AIDetectPanel({ onSuccess }: DetectPanelProps) {
-  const { sampleLogs, setAiRecognitionResult, setFieldMappings, setCurrentTemplateId } = useIngestionStore();
+  const { sampleLogs, setAiRecognitionResult, setFieldMappings, setCurrentTemplateId, setCurrentTemplateSaved } = useIngestionStore();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const mutation = useMutation({
@@ -38,10 +38,17 @@ export function AIDetectPanel({ onSuccess }: DetectPanelProps) {
       return response.json() as Promise<LogFormatRecognitionResult>;
     },
     onSuccess: async (data) => {
+      // 1. 先更新识别结果（立即显示）
       setAiRecognitionResult(data);
-      setFieldMappings(data.field_mappings || {});
 
-      // 自动保存模板 (Gap-05: AI 识别成功后自动保存模板)
+      // 2. 反转 field_mappings 方向：从 {OCSFField: sourceField} 转为 {sourceField: OCSFField}
+      const reversedMappings: Record<string, string> = {};
+      for (const [ocsfField, sourceField] of Object.entries(data.field_mappings || {})) {
+        reversedMappings[sourceField] = ocsfField;
+      }
+      setFieldMappings(reversedMappings);
+
+      // 3. 异步保存模板 - 使用 await 确保完成
       const templateName = `AI识别-${data.detected_format}-${Date.now()}`;
       try {
         const response = await fetch('/api/ingestion/templates', {
@@ -57,7 +64,9 @@ export function AIDetectPanel({ onSuccess }: DetectPanelProps) {
         });
         if (response.ok) {
           const template = await response.json();
+          // 4. 模板保存成功后更新 templateId 和 saved 标志
           setCurrentTemplateId(template.id);
+          setCurrentTemplateSaved(true);
         }
       } catch (e) {
         console.error('Auto-save template failed:', e);

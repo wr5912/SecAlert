@@ -49,7 +49,7 @@ function downloadTemplate() {
 type ConfigMode = 'auto' | 'manual';
 
 export function Step3LogFormat() {
-  const { logFormat, setLogFormat, customRegex, setCustomRegex, aiRecognitionResult, fieldMappings, currentTemplateId, sampleLogs } = useIngestionStore();
+  const { logFormat, setLogFormat, customRegex, setCustomRegex, aiRecognitionResult, fieldMappings, currentTemplateId, currentTemplateSaved, sampleLogs } = useIngestionStore();
   const [localRegex, setLocalRegex] = useState(customRegex || '');
   const [pythonCode, setPythonCode] = useState('');
   const [configMode, setConfigMode] = useState<ConfigMode>('manual');
@@ -131,15 +131,17 @@ export function Step3LogFormat() {
                 />
               </div>
 
-              {/* 映射预览 */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">解析预览</label>
-                <MappingPreview
-                  templateId={currentTemplateId || ''}
-                  fieldMappings={fieldMappings}
-                  sampleLogs={sampleLogs}
-                />
-              </div>
+              {/* 映射预览 - 仅在模板保存后显示 */}
+              {currentTemplateSaved && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300">解析预览</label>
+                  <MappingPreview
+                    templateId={currentTemplateId || ''}
+                    fieldMappings={fieldMappings}
+                    sampleLogs={sampleLogs}
+                  />
+                </div>
+              )}
 
               {/* 应用映射按钮 */}
               <div className="flex justify-end">
