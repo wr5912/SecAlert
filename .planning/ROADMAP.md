@@ -47,7 +47,7 @@ Plans:
 - [x] 15-03-PLAN.md — Wave 2: 批量接入 (DI-08)
 - [x] 15-04-PLAN.md — Wave 2: 解析测试 (DI-09)
 - [ ] 15-05-PLAN.md — Gap closure: AI 识别 + MappingPreview 修复
-- [ ] 15-06-PLAN.md — Gap closure: REQUIREMENTS.md 条目补充
+- [x] 15-06-PLAN.md — Gap closure: REQUIREMENTS.md 条目补充
 
 ---
 
