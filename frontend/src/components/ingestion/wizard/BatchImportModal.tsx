@@ -34,12 +34,20 @@ export function BatchImportModal({
   const [importResult, setImportResult] = useState<BatchCreateResponse | null>(null);
   const [isImporting, setIsImporting] = useState(false);
 
+  // 文件大小限制 5MB
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
   // 解析文件
   const parseFile = useCallback(async (file: File) => {
     setState('parsing');
     setErrorMessage('');
 
     try {
+      // 验证文件大小
+      if (file.size > MAX_FILE_SIZE) {
+        throw new Error(`文件大小超过 5MB 限制（当前 ${(file.size / 1024 / 1024).toFixed(2)}MB）`);
+      }
+
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: 'array' });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
