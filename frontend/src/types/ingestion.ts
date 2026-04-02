@@ -60,6 +60,7 @@ export interface LogFormatRecognitionResult {
   field_mappings: Record<string, string>;  // 字段映射 {目标字段: 源字段}
   confidence: number;  // 置信度 0.0-1.0
   reasoning: string;  // 识别理由
+  detected_fields?: string[];  // 检测到的源字段列表
 }
 
 // 向导状态
