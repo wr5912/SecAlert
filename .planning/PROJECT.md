@@ -112,3 +112,31 @@ This document evolves at phase transitions and milestone boundaries.
 **Gaps Fixed:** 6/6 (IG-01/02/03/04/05/06/08; IG-07 not_needed)
 
 *Last updated: 2026-03-26 after Phase 10 completion*
+
+---
+
+## v1.5 多源异构安全日志采集优化
+
+**Milestone started:** 2026-04-01
+**Phases completed:** 16
+
+### Phase 16: 全局元数据体系 (global-metadata)
+
+**Goal:** GM-01 全局元数据强制注入 + GM-02 OCSF 映射
+
+**Completed:** 2026-04-02
+**Plans:** 3/3 | **Commits:** 8
+
+**What was built:**
+- `CollectionMetadata` 模型（vendor_name/product_name/device_type/tenant_id/environment/OCSF UIDs）
+- `Environment` 枚举（PROD/DEV/TEST）
+- `MetadataEnricher` 组件 — 将 metadata 注入事件 `_collection_metadata` 子对象
+- `OCSFMapper` 组件 — 基于 device_type+log_format 推断 OCSF category_uid/class_uid，规则表覆盖 15+ 设备类型
+- `create_template` — 创建时自动 OCSF 推断
+- `update_template` — v1.0 迁移填充 + device_type/log_format 变化时 OCSF 重算
+- `_get_default_metadata` — Suricata 默认值填充
+
+**Key decisions:**
+- `_collection_metadata` 子对象注入，不污染顶层字段
+- 规则优先 + AI 兜底（AI 兜底暂未启用）
+- v1.0 旧模板自动迁移填充
