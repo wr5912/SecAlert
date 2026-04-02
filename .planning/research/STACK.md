@@ -1,468 +1,458 @@
-# Technology Stack: SecAlert v1.1
+# Technology Stack: SecAlert v1.5 Multi-Channel Ingestion
 
-**项目:** SecAlert v1.1 (多数据源支持 + 产品级 UI + AI 助手)
-**研究日期:** 2026-03-25
+**项目:** SecAlert v1.5 多源异构安全日志采集优化
+**研究日期:** 2026-04-02
 **研究模式:** Stack Addition Research
-**Confidence:** MEDIUM-HIGH (基于 2025-06 训练数据 + 现有架构分析)
+**Confidence:** MEDIUM-HIGH
 
 ---
 
-## Executive Summary
+## 执行摘要
 
-v1.1 需要在 v1.0 已验证的三层解析架构、AI 过滤和攻击链关联基础上，增加：
-1. 多设备解析支持 (防火墙/WAF/EDR/云安全)
-2. 产品级 React UI (响应式、组件复用)
-3. 前端内嵌 AI 助手对话框
-4. 报表统计仪表板
+v1.5 需要在现有 Vector + Kafka 采集架构基础上，新增多渠道接入后端（Kafka Topic 订阅、Webhook 接收、REST/DB 轮询）、DLQ 死信队列、采集监控体系。
 
-**核心原则：** 栈选择必须与现有架构无缝集成，保持私有化离线部署约束。
+**核心结论：现有技术栈已覆盖大部分需求，只需引入 1 个新库（prometheus-client），其余通过设计模式实现。**
 
 ---
 
-## 1. 多设备解析支持
+## 现有技术栈评估
 
-### 1.1 解析库/框架
+| 组件 | 当前版本 | v1.5 需求 | 状态 |
+|------|---------|----------|------|
+| Python | 3.10+ | 3.10+ | ✅ 兼容 |
+| FastAPI | >=0.100.0 | Webhook 接收网关 | ✅ 已有 |
+| confluent-kafka | 2.13.2 | Kafka Consumer/Producer | ✅ 已有 |
+| httpx | >=0.24.0 | REST API 轮询 | ✅ 已有 |
+| SQLAlchemy | (via psycopg2) | 数据库轮询 | ✅ 已有 |
+| APScheduler | >=3.10.0 | 定时任务 | ✅ 已有 |
+| schedule | (在 jdbc_poller 用) | 简单定时 | ✅ 已有 |
+| redis | >=5.0.0 | 游标状态存储 | ✅ 已有 |
 
-| 需求 | 推荐技术 | 版本 | 说明 |
-|------|---------|------|------|
-| CEF 解析 | `cef-parser` 或自研 | - | CEF 是防火墙/WAF 常用格式，ArcSight 标准 |
-| Syslog 解析 | `python-syslog-rfc5424` | 0.4+ | RFC 5424 标准syslog解析 |
-| OCSF 规范化 | 自研 + DSPy | - | OCSF 是云原生安全事件标准 |
-| JSON 日志 | `json.loads` (stdlib) | - | 多数云安全设备使用 JSON |
-| 正则匹配 | `regex` 库 | 2.5+ | 优于标准 re，支持 Unicode |
+---
 
-**为什么不选：** Elastic Common Schema (ECS) 是 Elasticsearch 内部格式，不是解析器；CEFparse 库已停止维护。
+## 推荐新增技术栈
 
-### 1.2 设备特定解析器
+### 1. 可观测性 / 监控指标
 
-| 设备类型 | 常见格式 | 推荐方案 |
-|----------|----------|----------|
-| 防火墙 (Fortinet, Palo Alto, CheckPoint) | CEF/Syslog | 扩展现有三层解析架构 |
-| WAF (ModSecurity, AWS WAF, CloudFlare) | JSON/CEF | 添加 JSON 路径提取 |
-| EDR (CrowdStrike, SentinelOne, Defender) | JSON/CEF | EDR 通常有标准化的 JSON 输出 |
-| 云安全 (AWS Security Hub, Azure Sentinel) | JSON/OCSF | 直接解析 JSON + OCSF 映射 |
+| 技术 | 版本 | 用途 | 理由 |
+|------|------|------|------|
+| **prometheus-client** | >=0.19.0 | 采集管道指标暴露 | 私有化部署无云依赖，Prometheus 是标准选择；相比 OpenTelemetry 更轻量，适合离线环境 |
 
-### 1.3 向后兼容
+**为什么不用 OpenTelemetry？**
+- OpenTelemetry 功能更全面但学习曲线陡峭、配置复杂
+- 私有化离线部署场景下，Prometheus + Grafana 是更务实的选择
+- 国产化环境有适配需求（如 华为云 CES、腾讯云 TCM），可后续扩展
 
-**关键约束：** 现有三层解析架构 (模板优先 → Drain 聚类 → LLM 兜底) 必须保留。
+**集成方式（FastAPI + Prometheus）：**
 
 ```python
-# 建议新增解析器注册表
-class ParserRegistry:
-    """解析器注册表，支持设备类型动态注册"""
+# src/collection/metrics.py
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from fastapi import APIRouter, Response
 
-    def __init__(self):
-        self.parsers: Dict[str, BaseParser] = {}
-        self.default_parser = DrainParser()  # 兜底
+# 定义采集管道指标
+COLLECTION_EPS = Counter(
+    'secalert_collection_eps_total',
+    'Total events collected',
+    ['source_type', 'channel']  # channel: kafka/webhook/rest/db
+)
 
-    def register(self, device_type: str, parser: BaseParser):
-        self.parsers[device_type] = parser
+COLLECTION_LAG = Histogram(
+    'secalert_collection_lag_seconds',
+    'Collection lag in seconds',
+    ['channel']
+)
 
-    def parse(self, raw_log: str, device_type: Optional[str] = None) -> NormalizedEvent:
-        if device_type and device_type in self.parsers:
-            return self.parsers[device_type].parse(raw_log)
-        # 降级到 Drain + LLM
-        return self.default_parser.parse(raw_log)
+DLQ_MESSAGES = Counter(
+    'secalert_dlq_messages_total',
+    'Messages sent to DLQ',
+    ['reason', 'channel']
+)
+
+ACTIVE_SOURCES = Gauge(
+    'secalert_active_sources',
+    'Number of active collection sources',
+    ['channel']
+)
+
+router = APIRouter()
+
+@router.get("/metrics/collection")
+async def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 ```
-
-### 1.4 风险与注意事项
-
-- **风险:** 多种设备类型导致解析规则爆炸式增长
-- **缓解:** OCSF 作为统一中间格式，减少设备-specific 逻辑
-- **验证:** 确保 syslog UDP/TCP 端口配置支持多源
 
 ---
 
-## 2. 产品级 React UI
+## 渠道接入技术方案
 
-### 2.1 UI 组件库
+### 2. Kafka Topic 订阅（增强现有消费者）
 
-| 选项 | 推荐度 | 理由 |
-|------|--------|------|
-| **shadcn/ui + Radix UI** | **首选** | 无供应商锁定，代码可控，Tailwind 原生集成 |
-| Chakra UI | 次选 | 上手快但运行时样式冲突风险 |
-| Ant Design | 不推荐 | 企业风格固定，不适合 SecAlert 极简原则 |
-| Material UI | 不推荐 | Google 设计语言，不适合安全产品 |
+**现状：** `src/chain/kafka_consumer.py` 使用 `confluent-kafka.Consumer`
+**v1.5 需求：** 支持多 Consumer Group、多 Topic、DLQ 吐出
 
-**推荐配置:**
-```json
-{
-  "dependencies": {
-    "@radix-ui/react-dialog": "^1.0.5",
-    "@radix-ui/react-dropdown-menu": "^2.0.6",
-    "@radix-ui/react-tabs": "^1.0.4",
-    "@radix-ui/react-select": "^2.0.0",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.1.0",
-    "tailwind-merge": "^2.2.0"
-  }
-}
+```python
+# src/collection/kafka_consumer.py (新增)
+from confluent_kafka import Consumer, Producer, KafkaError
+import json
+
+class MultiTopicConsumer:
+    """多 Topic 订阅消费者"""
+
+    def __init__(self, config: dict):
+        self.consumer = Consumer({
+            'bootstrap.servers': config['bootstrap_servers'],
+            'group.id': config['group_id'],
+            'auto.offset.reset': 'earliest',
+            'enable.auto.commit': True,
+            # 新增：错误回调
+            'error_cb': self._error_callback,
+        })
+        self.dlq_producer = Producer({'bootstrap.servers': config['bootstrap_servers']})
+        self.dlq_topic = config.get('dlq_topic', 'secalert-dlq-raw')
+
+    def _error_callback(self, err):
+        """Kafka 错误回调"""
+        if err.fatal():
+            # 致命错误，记录并可能需要重启 consumer
+            pass
+
+    def send_to_dlq(self, message, reason: str):
+        """发送失败消息到 DLQ"""
+        from datetime import datetime
+        dlq_event = {
+            'original_topic': message.topic(),
+            'original_partition': message.partition(),
+            'original_offset': message.offset(),
+            'error_reason': reason,
+            'timestamp': datetime.utcnow().isoformat(),
+            'payload': message.value().decode('utf-8', errors='replace')
+        }
+        self.dlq_producer.produce(
+            self.dlq_topic,
+            key=message.key(),
+            value=json.dumps(dlq_event).encode('utf-8')
+        )
+        self.dlq_producer.flush()
 ```
 
-### 2.2 路由
+**无需新库：** confluent-kafka 2.13.2 已支持所有所需功能。
 
-| 选项 | 推荐度 | 理由 |
-|------|--------|------|
-| **React Router v6** | **首选** | 事实标准，嵌套路由支持 |
-| Next.js App Router | 不推荐 | SSR 增加了不必要的复杂度，纯 SPA 足够 |
+---
 
-**推荐配置:**
-```json
-{
-  "dependencies": {
-    "react-router-dom": "^6.22.0"
-  }
-}
-```
+### 3. Webhook 接收网关
 
-### 2.3 状态管理
-
-| 需求 | 推荐 | 说明 |
-|------|------|------|
-| 服务端状态 | **TanStack Query (React Query)** | 数据获取、缓存、轮询一体化 |
-| 全局 UI 状态 | **Zustand** | 轻量，比 Redux 简单太多 |
-| 表单状态 | **React Hook Form + Zod** | 性能优于 uncontrolled forms |
-
-**为什么不选 Redux:** 对于 SecAlert 的复杂度，Redux 模板代码过多，Zustand 足以应对。
-
-**推荐配置:**
-```json
-{
-  "dependencies": {
-    "@tanstack/react-query": "^5.28.0",
-    "zustand": "^4.5.0",
-    "react-hook-form": "^7.51.0",
-    "@hookform/resolvers": "^3.3.0",
-    "zod": "^3.22.0"
-  }
-}
-```
-
-### 2.4 响应式设计
-
-**方案:** Tailwind CSS 响应式工具类 (已有 v3.4)
-
-现有 Tailwind 配置已支持响应式，无需额外库。但建议:
-- 使用 `container` 插件规范化间距
-- 引入 `tailwindcss-typography` 用于长文本展示
+**技术：** FastAPI 已有，依赖 `python-multipart`
 
 ```bash
-npm install -D @tailwindcss/typography
+# 已安装（FastAPI 依赖）
+pip install python-multipart
 ```
-
-### 2.5 升级清单
-
-| 类别 | 现有 | 升级后 |
-|------|------|--------|
-| React | 18.2 | 18.2 (保留) |
-| Vite | 5 | 5 (保留) |
-| Tailwind | 3.4 | 3.4 + typography |
-| 路由 | 无 | React Router v6 |
-| 状态 | useState | Zustand + TanStack Query |
-| 表单 | 无 | React Hook Form + Zod |
-| UI 库 | lucide-react (icons) | Radix UI + shadcn/ui 组件 |
-
----
-
-## 3. AI 助手对话框
-
-### 3.1 前端对话组件
-
-| 选项 | 推荐度 | 理由 |
-|------|--------|------|
-| **自研 + Radix UI** | **首选** | 完全可控，易于上下文集成 |
-| react-chatui | 次选 | 开源但维护不活跃 |
-| ChatUI (阿里) | 不推荐 | 面向电商客服，非技术对话 |
-
-**推荐实现:**
-```json
-{
-  "dependencies": {
-    "@radix-ui/react-scroll-area": "^1.0.5"
-  }
-}
-```
-
-核心组件结构:
-- `AIChatDialog` - 主对话框组件 (Radix Dialog)
-- `ChatMessage` - 消息气泡
-- `ChatInput` - 输入区域 (支持流式)
-- `ContextIndicator` - 上下文关联指示器
-
-### 3.2 流式响应
-
-**后端需求:** FastAPI 支持 SSE (Server-Sent Events)
 
 ```python
-# 后端新增 endpoint
-@router.get("/api/chat/stream")
-async def chat_stream(
-    message: str,
-    context_chain_id: Optional[str] = None
+# src/collection/webhook.py
+from fastapi import FastAPI, Header, HTTPException, BackgroundTasks
+from pydantic import BaseModel
+from typing import Optional
+import hmac, hashlib
+import json
+
+class WebhookPayload(BaseModel):
+    """Webhook 载荷模型"""
+    data: dict
+    timestamp: Optional[str] = None
+
+def verify_signature(payload: bytes, signature: str, secret: str) -> bool:
+    """验证 Webhook 签名 (HMAC-SHA256)"""
+    expected = hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(f"sha256={expected}", signature)
+
+@app.post("/api/ingest/webhook/{source_id}")
+async def receive_webhook(
+    source_id: str,
+    background_tasks: BackgroundTasks,
+    x_signature: Optional[str] = Header(None),
+    body: bytes = None,  # 原始 body 用于签名验证
 ):
-    """流式 AI 对话响应"""
-    async def generate():
-        async for token in ai_service.stream_chat(message, context=context_chain_id):
-            yield f"data: {token}\n\n"
-        yield "data: [DONE]\n\n"
+    # 1. 签名验证（如果配置了 secret）
+    source_config = get_source_config(source_id)
+    if source_config.get('webhook_secret'):
+        if not verify_signature(body, x_signature, source_config['webhook_secret']):
+            raise HTTPException(status_code=401, detail="Invalid signature")
 
-    return StreamingResponse(
-        generate(),
-        media_type="text/event-stream"
-    )
+    # 2. 解析 payload
+    payload = json.loads(body)
+
+    # 3. 异步发送到 Kafka（不阻塞响应）
+    background_tasks.add_task(send_to_kafka, source_id, payload)
+
+    return {"status": "accepted"}
 ```
 
-**前端流式处理:**
-```typescript
-// 使用 Fetch API + ReadableStream
-const response = await fetch('/api/chat/stream', {
-  method: 'POST',
-  body: JSON.stringify({ message, context_chain_id }),
-});
-
-const reader = response.body.getReader();
-const decoder = new TextDecoder();
-
-// 处理流式响应
-while (true) {
-  const { done, value } = await reader.read();
-  if (done) break;
-  const chunk = decoder.decode(value);
-  // 追加到消息列表
-}
-```
-
-### 3.3 上下文关联
-
-**设计要点:**
-1. 当前查看的攻击链自动作为上下文
-2. 用户可以手动切换上下文
-3. 上下文变更时，清除对话历史并显示新上下文
-
-```typescript
-// 上下文状态
-interface ChatContext {
-  type: 'chain' | 'alert' | 'dashboard' | 'global';
-  entity_id?: string;
-  entity_data?: object;
-}
-```
-
-### 3.4 风险
-
-- **风险:** 流式响应在弱网环境下可能中断
-- **缓解:** 前端实现重连逻辑和消息缓存
+**无需新库：** FastAPI + python-multipart 足够。
 
 ---
 
-## 4. 报表统计仪表板
+### 4. REST API 定时轮询
 
-### 4.1 图表库
+**技术：** httpx (已有) + APScheduler (已有)
 
-| 选项 | 推荐度 | 理由 |
-|------|--------|------|
-| **Recharts** | **首选** | React 原生，TypeScript 支持好，轻量 |
-| Apache ECharts | 次选 | 功能强大但 React 封装 (echarts-for-react) 不如原生 |
-| Tremor | 不推荐 | 虽与 Tailwind 集成好但闭源 (2024 年商业化) |
-| Chart.js | 不推荐 | 非 React 原生，需 react-chartjs-2 |
-
-**推荐配置:**
-```json
-{
-  "dependencies": {
-    "recharts": "^2.12.0"
-  }
-}
-```
-
-### 4.2 仪表板组件
-
-| 组件 | 推荐技术 | 说明 |
-|------|----------|------|
-| 趋势折线图 | Recharts LineChart | 告警数量时间趋势 |
-| 分布饼图 | Recharts PieChart | 严重度/类型分布 |
-| TOP N 柱状图 | Recharts BarChart | TOP 攻击类型/资产 |
-| 统计卡片 | 自研 + Tailwind | 关键数字高亮展示 |
-
-### 4.3 数据源
-
-**现有后端 API 已支持:**
-- `/api/analysis/metrics/fp-rate` - 误报率统计
-- `/api/analysis/metrics/severity-distribution` - 严重度分布
-- `/api/chains` - 攻击链列表 (可聚合)
-
-**新增 API 需求:**
 ```python
-# 新增 endpoints for 报表
-@router.get("/api/reports/trends")
-async def get_alert_trends(
-    time_window_days: int = Query(default=7, ge=1, le=90)
-) -> Dict[str, Any]:
-    """告警趋势 (每日数量)"""
+# src/collection/rest_poller.py
+import httpx
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-@router.get("/api/reports/top-attack-types")
-async def get_top_attack_types(
-    limit: int = Query(default=10, ge=1, le=50)
-) -> List[Dict[str, Any]]:
-    """TOP 攻击类型统计"""
+class RestPoller:
+    """REST API 轮询器"""
 
-@router.get("/api/reports/affected-assets")
-async def get_affected_assets(
-    limit: int = Query(default=10, ge=1, le=50)
-) -> List[Dict[str, Any]]:
-    """受攻击资产统计"""
+    def __init__(self, config: dict):
+        self.url = config['url']
+        self.auth = self._setup_auth(config)
+        self.poll_interval = config.get('poll_interval_seconds', 60)
+        self.last_cursor = None
+        self.client = httpx.AsyncClient(timeout=30.0)
+        self.source_id = config['source_id']
+
+    def _setup_auth(self, config: dict):
+        """设置认证信息"""
+        auth_type = config.get('auth_type', 'none')
+        if auth_type == 'bearer':
+            return {'Authorization': f"Bearer {config['auth_token']}"}
+        elif auth_type == 'api_key':
+            return {'X-API-Key': config['api_key']}
+        return {}
+
+    def _build_params(self) -> dict:
+        """构建请求参数，包含游标"""
+        params = {}
+        if self.last_cursor:
+            # 根据 API 类型构建翻页参数
+            if 'cursor_field' in self.poll_config:
+                params[self.poll_config['cursor_field']] = self.last_cursor
+            elif 'since_field' in self.poll_config:
+                params[self.poll_config['since_field']] = self.last_cursor
+        return params
+
+    async def poll(self):
+        """执行一次轮询"""
+        params = self._build_params()
+
+        try:
+            response = await self.client.get(
+                self.url,
+                headers=self.auth,
+                params=params
+            )
+            response.raise_for_status()
+            events = response.json()
+
+            # 提取事件列表（根据 API 响应格式）
+            events = self._extract_events(events)
+
+            # 发送到 Kafka
+            for event in events:
+                await self._send_to_kafka(event)
+
+            # 更新游标
+            self.last_cursor = self._extract_cursor(events)
+
+            # 更新指标
+            COLLECTION_EPS.labels(source_type='rest', channel='rest').inc(len(events))
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 429:
+                # 限流：使用 Retry-After 头
+                retry_after = int(e.response.headers.get('Retry-After', 60))
+                # 调整下次执行时间
+            COLLECTION_LAG.labels(channel='rest').observe(time.time() - start_time)
+        except Exception as e:
+            logger.error(f"REST polling failed: {e}")
+            DLQ_MESSAGES.labels(reason='poll_error', channel='rest').inc()
 ```
 
-### 4.4 仪表板页面布局
-
-```typescript
-// 建议布局
-const DashboardLayout = {
-  header: { title: '报表统计', timeRangeSelector },
-  stats: [
-    { label: '总告警', value: total, trend: +5% },
-    { label: '真威胁', value: truePositives, trend: -2% },
-    { label: '误报率', value: fpRate, trend: -8% },
-    { label: '处置率', value: resolutionRate, trend: +3% }
-  ],
-  charts: [
-    { title: '告警趋势', type: 'line', span: 2 },
-    { title: '严重度分布', type: 'pie', span: 1 },
-    { title: 'TOP 攻击类型', type: 'bar', span: 1 }
-  ]
-};
-```
+**无需新库：** httpx + APScheduler 已覆盖。
 
 ---
 
-## 5. 完整依赖升级
+### 5. 数据库定时轮询
 
-### 5.1 Frontend (package.json)
+**技术：** 已有 `collector/polling/jdbc_poller.py`，可增强
 
-```json
-{
-  "name": "secalert-frontend",
-  "version": "1.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.0",
-    "@tanstack/react-query": "^5.28.0",
-    "zustand": "^4.5.0",
-    "react-hook-form": "^7.51.0",
-    "@hookform/resolvers": "^3.3.0",
-    "zod": "^3.22.0",
-    "recharts": "^2.12.0",
-    "lucide-react": "^0.400.0",
-    "clsx": "^2.1.0",
-    "tailwind-merge": "^2.2.0",
-    "@radix-ui/react-dialog": "^1.0.5",
-    "@radix-ui/react-dropdown-menu": "^2.0.6",
-    "@radix-ui/react-tabs": "^1.0.4",
-    "@radix-ui/react-select": "^2.0.0",
-    "@radix-ui/react-scroll-area": "^1.0.5"
-  },
-  "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-react": "^4.0.0",
-    "autoprefixer": "^10.4.27",
-    "tailwindcss": "^3.4.19",
-    "@tailwindcss/typography": "^0.5.10",
-    "typescript": "^5.0.0",
-    "vite": "^5.0.0"
-  }
-}
+**建议增强点：**
+- 增量游标支持更通用（时间戳 + ID 组合）
+- Redis 存储游标状态（利用已有 redis 依赖）
+- 统一指标埋点
+
+---
+
+## DLQ 设计模式
+
+### Kafka DLQ Topic 架构
+
+```
+正常流程:
+  raw-events → Parser → parsed-events
+
+DLQ 流程:
+  Parser 解析失败 → dlq-raw-events (保留原始消息)
+  解析失败元数据 → dlq-metadata (包含解析错误原因)
 ```
 
-### 5.2 Backend (pyproject.toml)
+**DLQ Topic 命名规范：**
+| Topic | 用途 |
+|-------|------|
+| `secalert-dlq-raw` | 原始解析失败消息 |
+| `secalert-dlq-metadata` | 解析失败的元数据（错误原因、尝试次数） |
+
+**DLQ 消费者需求：**
+- 人工审核界面（查看 DLQ 消息）
+- 重试机制（可配置重试次数）
+- 告警（DLQ 堆积超过阈值）
+
+---
+
+## 全局元数据注入
+
+**这不是新库，是数据流设计要求。**
+
+所有渠道采集的消息必须在最早入口处注入元数据：
+
+```python
+# src/collection/metadata.py
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+
+class CollectionMetadata(BaseModel):
+    """采集元数据（强制字段）"""
+    vendor_name: str           # 厂商名
+    product_name: str          # 产品名
+    device_type: str           # 设备类型
+    target_category_uid: Optional[str] = None   # OCSF 目标类别
+    target_class_uid: Optional[str] = None     # OCSF 事件类
+    tenant_id: Optional[str] = None            # 多租户标识
+    environment: Optional[str] = None          # 环境
+    zone: Optional[str] = None                  # 可用区
+    collector_id: str                            # 采集器实例 ID
+    ingest_timestamp: str                       # 摄取时间 (ISO 8601)
+
+def inject_metadata(event: dict, source_config: dict, collector_id: str) -> dict:
+    """在采集入口注入全局元数据"""
+    metadata = CollectionMetadata(
+        vendor_name=source_config['vendor_name'],
+        product_name=source_config['product_name'],
+        device_type=source_config['device_type'],
+        target_category_uid=source_config.get('target_category_uid'),
+        target_class_uid=source_config.get('target_class_uid'),
+        tenant_id=source_config.get('tenant_id'),
+        environment=source_config.get('environment'),
+        zone=source_config.get('zone'),
+        collector_id=collector_id,
+        ingest_timestamp=datetime.utcnow().isoformat(),
+    )
+    event['_collection_metadata'] = metadata.model_dump()
+    return event
+```
+
+**注入时机：**
+- Kafka Consumer：消费消息后立即注入
+- Webhook Receiver：接收时立即注入
+- REST/DB Poller：轮询返回后立即注入
+
+---
+
+## 依赖汇总
+
+### 需新增的依赖
+
+| 库 | 版本 | 用途 | pyproject.toml 位置 |
+|----|------|------|---------------------|
+| prometheus-client | >=0.19.0 | 采集管道监控指标 | 新增 `monitoring` 分组 |
 
 ```toml
-[project]
-name = "secalert"
-version = "1.1.0"
-
-[project.optional-dependencies]
-parser = [
-    "python-syslog-rfc5424>=0.4",
-    "regex>=2.5",
+# pyproject.toml 新增
+monitoring = [
+    "prometheus-client>=0.19.0",
 ]
-
-[tool.poetry.dependencies]
-python = "^3.10"
-fastapi = "^0.110.0"
-uvicorn = { extras = ["standard"], version = "^0.27.0" }
-pydantic = "^2.6.0"
-# ... existing dependencies
 ```
 
----
+### 已有但需确认的依赖
 
-## 6. 集成注意事项
+| 库 | 用途 | pyproject.toml 位置 |
+|----|------|---------------------|
+| confluent-kafka==2.13.2 | Kafka 客户端 | parser |
+| httpx>=0.24.0 | HTTP 客户端 | chain |
+| APScheduler>=3.10.0 | 定时任务 | reporting |
+| python-multipart | FastAPI 表单解析 | FastAPI 自动依赖 |
+| redis>=5.0.0 | 游标状态存储 | parser |
 
-### 6.1 与现有架构集成
+### 可选依赖（建议暂不加）
 
-| 新组件 | 集成点 | 说明 |
-|--------|--------|------|
-| 多设备解析器 | `src/parser/` | 扩展现有解析注册表 |
-| AI Chat | `src/api/chat.py` (新建) | 新增 chat router 注册到 main.py |
-| 报表 API | `src/api/reports.py` (新建) | 新增 reports router |
-
-### 6.2 Docker Compose 更新
-
-现有服务无需大幅修改，新增:
-- 前端构建产物通过 volume 挂载或单独容器
-- 如果添加 Redis Session 用于 AI Chat 上下文，可选添加
-
----
-
-## 7. 替代方案汇总
-
-| 需求 | 本文推荐 | 替代方案 | 替代理由 |
-|------|----------|----------|----------|
-| UI 组件库 | shadcn/ui + Radix | Chakra UI | shadcn 无供应商锁定 |
-| 路由 | React Router v6 | Next.js | v1.1 不需要 SSR |
-| 状态管理 | Zustand + TanStack Query | Redux Toolkit | Zustand 复杂度低 |
-| 表单验证 | React Hook Form + Zod | Formik + Yup | Zod 与 TypeScript 更配 |
-| 图表 | Recharts | Apache ECharts | Recharts React 原生 |
-| AI Chat | 自研 + Radix | react-chatui | 自研更可控 |
+| 库 | 替代方案 | 暂不加理由 |
+|----|---------|-----------|
+| structlog | 现有 logging | 增加学习成本，当前足够 |
+| opentelemetry-api | prometheus-client | 离线环境 Prometheus 更简单 |
+| aiokafka | confluent-kafka | confluent-kafka 已支持异步模式 |
 
 ---
 
-## 8. Confidence Assessment
+## 不建议添加的技术
+
+| 技术 | 原因 |
+|------|------|
+| Kafka Connect | 过度工程，现有 Python consumer 足够 |
+| Flink | 处理量级（3万/天）不需要实时流处理 |
+| Pulsar | Confluent Kafka 7.5.0 足够 |
+| RabbitMQ | 已有 Kafka，无需双消息队列 |
+| AWS SDK / Azure SDK | 私有化离线部署无云依赖 |
+
+---
+
+## 国产化数据库支持
+
+v1.5 采集后端需要支持轮询国产数据库：
+
+| 数据库 | SQLAlchemy 连接串格式 | 驱动需求 |
+|-------|---------------------|---------|
+| 达梦 (DM) | `dm+dmPython://user:pass@host:5236/db` | 需安装 dmPython |
+| openGauss | `postgresql+psycopg2://user:pass@host:5432/db` | 已有 psycopg2 |
+| Kingbase | `kingbase+psycopg2://user:pass@host:54321/db` | 需安装对应驱动 |
+| TiDB | `mysql+pymysql://user:pass@host:4000/db` | 需安装 pymysql |
+
+**建议：** 数据库轮询使用 SQLAlchemy 2.0+，可适配多种数据库。
+
+---
+
+## 集成点清单
+
+| 组件 | 集成位置 | 说明 |
+|------|---------|------|
+| Prometheus Metrics | 新建 `src/collection/metrics.py` | 新增 `/metrics/collection` 端点 |
+| Kafka Consumer | 新建 `src/collection/kafka_consumer.py` | 增强支持多 Topic 和 DLQ |
+| Webhook Receiver | 新建 `src/collection/webhook.py` | FastAPI 新端点 `/api/ingest/webhook/{source_id}` |
+| REST Poller | 新建 `src/collection/rest_poller.py` | httpx + APScheduler |
+| JDBC Poller | 已有 `collector/polling/jdbc_poller.py` | 增强游标和错误处理 |
+| Metadata Injector | 新建 `src/collection/metadata.py` | 统一元数据注入 |
+
+---
+
+## Confidence Assessment
 
 | 领域 | Confidence | 说明 |
 |------|------------|------|
-| UI 组件选择 | MEDIUM-HIGH | shadcn/ui 是 2024-2025 主流选择 |
-| 路由/状态 | HIGH | React Router + Zustand 是成熟组合 |
-| 图表库 | MEDIUM | Recharts 为主流，但 ECharts 功能更全 |
-| AI Chat 实现 | MEDIUM | SSE 流式是标准方式，具体实现待验证 |
-| 多设备解析 | MEDIUM | 需要根据实际设备型号验证解析规则 |
+| prometheus-client 选择 | HIGH | 事实标准，私有化部署首选 |
+| confluent-kafka DLQ 模式 | HIGH | 已有库完整支持 |
+| Webhook 方案 | HIGH | FastAPI 原生支持 |
+| REST Polling 方案 | MEDIUM-HIGH | httpx + APScheduler 成熟 |
+| 国产数据库支持 | MEDIUM | 需要实际环境验证驱动兼容性 |
 
 ---
 
-## 9. Sources
+## 参考来源
 
-- **shadcn/ui:** https://ui.shadcn.com (官方文档)
-- **React Router:** https://reactrouter.com/docs (v6)
-- **TanStack Query:** https://tanstack.com/query/latest (官方文档)
-- **Recharts:** https://recharts.org (官方文档)
-- **CEF Format:** https://www.micro Focus.com/documentation/arcsight/arcsight-smartconnectors/_pdf/CommonEventFormat.pdf
-- **OCSF Schema:** https://schema.ocsf.io (官方文档)
+- [confluent-kafka-python GitHub](https://github.com/confluentinc/confluent-kafka-python) - 官方 Kafka Python 客户端
+- [Prometheus Python Client](https://github.com/prometheus/client_python) - 官方 Prometheus Python 库
+- [HTTPX 文档](https://www.python-httpx.org/) - 异步 HTTP 客户端
+- [FastAPI Webhook 最佳实践](https://fastapi.tiangolo.com/tutorial/request-forms/) - Webhook 接收模式
 
-**验证状态:** WebSearch 不可用，基于 2025-06 训练数据。**建议在正式选型前验证最新版本和社区状态。**
-
----
-
-## 10. 下一步
-
-1. **UI 组件原型** - 用 shadcn/ui 搭建基础组件，验证与 Tailwind 的集成
-2. **AI Chat 演示** - 实现最小化流式对话，验证 SSE 集成
-3. **报表 API** - 扩展 `src/api/analysis.py`，添加趋势统计 endpoints
-4. **设备解析验证** - 获取目标防火墙/WAF 的真实日志样本，验证解析覆盖率
+**验证状态:** 部分基于 2026 年训练数据 + 现有架构分析。建议在正式选型前验证最新版本。

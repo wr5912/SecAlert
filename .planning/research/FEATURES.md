@@ -1,382 +1,442 @@
-# Feature Landscape: v1.1 多数据源支持 + 产品级 UI + AI 助手
+# Feature Landscape: v1.5 多渠道采集后端 + 采集可观测性 + 全局元数据体系
 
-**Domain:** 安全告警分析平台
-**Researched:** 2026-03-25
-**Confidence:** MEDIUM（基于现有系统分析，外部搜索工具受限）
+**Domain:** 安全告警分析平台 - 采集层扩展
+**Researched:** 2026-04-02
+**Mode:** Ecosystem (多渠道采集、DLQ 机制、全局元数据系统)
+**Confidence:** MEDIUM-HIGH（基于现有系统架构 + 最佳实践调研文档，外部搜索受限）
 
 ---
 
 ## 概述
 
-v1.1 在 v1.0 单设备（Suricata IDS）基础上，新增多设备支持、产品级前端、AI 助手对话和报表统计四个能力域。
+v1.5 在 v1.0 已验证的三层解析架构（Vector + Kafka 采集 BSD Syslog via TCP 514）基础上，扩展三个能力域：
+
+1. **多渠道采集后端**：支持 Kafka Topic 订阅、Webhook 接收网关、REST API/数据库定时轮询
+2. **采集可观测性 + DLQ**：死信队列、EPS 监控、采集延迟告警、背压机制
+3. **全局元数据体系**：强制 metadata 标签（vendor_name/product_name/device_type + OCSF target + tenant_id/environment）
+
+**已有基础（不可忽略）：**
+
+- Vector + Kafka 采集通道（Suricata TCP 514）
+- 三层解析 pipeline：模板匹配 -> Drain 聚类 -> DSPy/LLM 兜底
+- Data Source Template CRUD API + UI
+- AI 自动检测日志格式（CEF/Syslog/JSON/Custom）
+- Draggable field mapping UI + 实时预览
+- 批量导入设备 CSV/Excel
+- preview-parse endpoint
+
+**核心约束：** 私有化离线部署，无外部云依赖。所有设计必须符合此约束。
 
 ---
 
-## 1. 多数据源支持（Multi-Device Log Parsing）
+## 1. 多渠道采集后端（Multi-Channel Ingestion Backend）
 
-### 1.1 目标设备类型
+### 1.1 渠道分类
 
-| 设备类型 | 示例产品 | 日志格式 | OCSF Source Type |
-|----------|----------|----------|------------------|
-| **防火墙** | Palo Alto, Fortinet, Cisco ASA | Syslog/CEF, JSON | `firewall` |
-| **WAF** | ModSecurity, Imperva, AWS WAF | JSON, Apache/Nginx 格式 | `waf` |
-| **EDR** | CrowdStrike, SentinelOne, DeepInstinct | JSON, XML | `endpoint` |
-| **IDS/IPS** | Suricata (已有), Snort, Zeek | EVE JSON (已有), JSON | `ids`/`ips` |
-| **云安全** | AWS CloudTrail, Azure Security Center | JSON | `cloud` |
-| **邮件安全** | Proofpoint, IronPort | JSON, Syslog | `email_security` |
-| **身份安全** | Azure AD, Okta | SAML, JSON | `identity` |
+| 梯队 | 渠道类型 | 优先级 | 适用场景 | 复杂度 |
+|------|----------|--------|----------|--------|
+| **第一梯队** | Kafka Topic 订阅 | 首选 | 云平台、大型安全设备海量日志 | Medium |
+| **第一梯队** | Webhook 接收网关 | 首选 | SaaS 安全产品、第三方云告警 | Low |
+| **第二梯队** | REST API 定时轮询 | 次选 | 第三方告警 API、无推送能力平台 | Medium |
+| **第二梯队** | 数据库定时轮询 | 次选 | 内部数据库审计日志、SQL Server/Oracle | Medium |
+| **第三梯队** | Syslog 接收（已有） | 已有 | 传统网络设备、安全设备 | Low |
+| **第三梯队** | 文件监听（已有 Vector） | 已有 | 日志文件、JSON 文件 | Low |
+
+**说明：** 私有化部署约束下，"云原生通道"如 S3+MQ 不适用，但 Kafka Topic 订阅和 Webhook 完全可用。
 
 ### 1.2 表干功能（Table Stakes）
 
+这些是用户期望的基本能力，缺失则产品不完整。
+
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| 模板注册中心扩展 | 支持新设备只需添加 YAML 模板 | Low | 复用现有 `TemplateRegistry`，新增 `source_type` 字段 |
-| OCSF 标准化映射 | 所有设备日志统一转为 OCSF 格式 | Medium | 已有 `ocsf_mapper.py`，需扩展覆盖更多字段 |
-| 多源事件关联 | 同源攻击链可能来自不同设备 | High | 需要统一的 `source_name` + `source_type` 标识 |
-| 设备发现/配置 | 用户声明式配置数据源 | Low | 简单 YAML/表单配置即可 |
+| Kafka Consumer Group 订阅 | 支持消费外部 Kafka Topic 日志 | Medium | 已有 Kafka 基础设施，扩展 consumer 逻辑 |
+| Webhook 接收端点 | 接收第三方/SaaS 安全产品推送 | Low | 新增 HTTP POST endpoint |
+| REST API 轮询调度器 | 定时拉取 REST API 告警 | Medium | 需要状态跟踪（翻页、光标） |
+| 数据库 JDBC 轮询 | 定时查询数据库告警表 | Medium | 需要递增游标字段 |
+| 统一事件入 Kafka | 所有渠道事件统一写入 raw-events Topic | Low | 复用现有 Kafka 基础设施 |
 
 ### 1.3 差异化功能（Differentiators）
 
+这些功能不是用户预期的，但能带来价值。
+
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| 零样本模板生成 | 新设备无需预置模板，DSPy 自动推断 | High | 使用 LLM 分析样本日志生成初始模板 |
-| 跨设备攻击链 | 从防火墙+WAF+EDR 关联完整攻击路径 | High | 需要统一实体（IP、MAC、用户名）在多源间链接 |
-| 设备健康监控 | 检测某设备日志中断/异常 | Medium | 统计各源告警数量，异常时告警 |
+| 背压机制（Backpressure） | 防止后端过载时采集端继续发送导致崩溃 | High | 需要信号反馈到采集端 |
+| 采集源健康检查 | 自动检测某渠道采集中断并告警 | Medium | 统计各渠道 EPS 异常 |
+| 多渠道优先级队列 | 不同渠道事件打不同优先级标签 | Medium | 高优先级渠道优先解析 |
 
-### 1.4 依赖现有系统
+### 1.4 架构集成点
 
 ```
-parser/registry.py     → TemplateRegistry 支持多 source_type
-parser/pipeline.py      → ThreeTierParser.parse(source_type) 已支持
-storage/ocsf_mapper.py → 已有 OCSF 映射，需扩展字段覆盖
-parser/templates/      → 新设备添加 YAML 模板即可
+[现有架构 - 保持不变]
+Vector (TCP 514) → Kafka (raw-events) → Flink Parser → ES/Neo4j/MinIO
+
+[v1.5 新增渠道]
+                                          │
+         ┌────────────────────────────────┼────────────────────────────────┐
+         │                                │                                │
+         ▼                                ▼                                ▼
+┌─────────────────┐              ┌─────────────────┐              ┌─────────────────┐
+│ Kafka Consumer  │              │  Webhook Gateway │              │  REST/DB Poller  │
+│ (Topic 订阅)    │              │  (HTTP POST)     │              │  (定时任务)      │
+└────────┬────────┘              └────────┬────────┘              └────────┬────────┘
+         │                                │                                │
+         └────────────────────────────────┼────────────────────────────────┘
+                                          │
+                                          ▼
+                              ┌─────────────────────────┐
+                              │   Kafka (raw-events)     │  ← 统一入口
+                              │   + metadata headers    │
+                              └─────────────────────────┘
+                                          │
+                                          ▼
+                              [现有 Flink Parser Pipeline]
 ```
 
-### 1.5 架构扩展点
+### 1.5 依赖现有系统
 
-**模板扩展示例 - Palo Alto Firewall:**
+| 现有组件 | v1.5 变更 | 集成方式 |
+|----------|-----------|----------|
+| Kafka | 新增 consumer group 或共享现有 | 新渠道共用 `raw-events` Topic |
+| Flink Parser | 无需修改 | 解析层只关心 Kafka 消息，不关心来源 |
+| ThreeTierParser | 无需修改 | 复用现有解析能力 |
+| Vector | 不修改现有配置 | 新渠道通过其他方式接入 |
+| Template CRUD API | 扩展支持新渠道类型 | source_type 枚举新增 KAFKA/WEBHOOK/API/DB |
+
+### 1.6 配置模型
+
 ```yaml
-source_type: paloalto_firewall
-templates:
-  - name: paloalto_traffic
-    match:
-      log_type: traffic
-    fields:
-      timestamp: {path: "start_time", type: string}
-      src_ip: {path: "srcaddr", type: ip}
-      src_port: {path: "srcport", type: integer}
-      dest_ip: {path: "dstaddr", type: ip}
-      dest_port: {path: "dstport", type: integer}
-      action: {path: "action", type: string}
-      rule: {path: "rule", type: string}
+# 数据源配置示例
+data_sources:
+  - id: "ds-001"
+    name: "阿里云云安全中心"
+    source_type: "WEBHOOK"           # KAFKA | WEBHOOK | API | DB | SYSLOG | FILE
+    enabled: true
+
+    # Webhook 特有
+    webhook:
+      path: "/api/ingest/aliyun"
+      auth_type: "header_secret"     # header_secret | ip_whitelist | none
+      secret_header: "X-Webhook-Secret"
+
+    # API 轮询特有
+    api:
+      url: "https://api.example.com/alerts"
+      method: "GET"
+      auth_type: "bearer_token"
+      interval_seconds: 300
+      cursor_field: "next_token"
+      rate_limit:
+        max_requests_per_minute: 60
+        backoff_seconds: 30
+
+    # Kafka 特有
+    kafka:
+      broker: "kafka:9092"
+      topic: "cloud-security-alerts"
+      consumer_group: "secalert-aliyun"
+      offset: "latest"               # earliest | latest
+
+    # DB 轮询特有
+    database:
+      jdbc_url: "jdbc:oracle:thin:@10.0.0.1:1521:orcl"
+      table: "security_alerts"
+      cursor_field: "alert_id"
+      interval_seconds: 60
+
+    # 强制元数据（所有渠道必须）
+    metadata:
+      vendor_name: "aliyun"
+      product_name: "cloud_security_center"
+      device_type: "cloud_security"
+      target_category_uid: 2         # OCSF 告警类
+      target_class_uid: 2001
+      tenant_id: "tenant-001"
+      environment: "prod"
 ```
 
 ---
 
-## 2. 产品级 Web UI（Production React UI）
+## 2. 采集可观测性 + DLQ（Collection Observability + Dead Letter Queue）
 
 ### 2.1 表干功能（Table Stakes）
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| 响应式布局 | 运维可能从手机/平板查看 | Low | Tailwind CSS 已有，移动端适配 |
-| 加载状态 | 网络请求必须有视觉反馈 | Low | 已有 "加载中..." 文本，需升级为骨架屏/spinner |
-| 错误边界 | API 失败时不能白屏 | Medium | React Error Boundary 组件 |
-| 离线/网络恢复 | 弱网络环境需优雅降级 | Medium | TanStack Query 已有 retry 机制 |
-| 表单验证 | 用户输入必须校验 | Low | 简单 zod/react-hook-form |
+| 死信队列（DLQ） | 解析失败的日志不能丢失，安全合规要求 | Medium | 独立 Kafka Topic 或 MinIO 存储 |
+| EPS 监控 | 每秒事件数，衡量采集吞吐 | Low | 简单计数统计 |
+| 采集延迟监控 | 事件产生到写入 Kafka 的延迟 | Low | 事件携带 timestamp |
+| 错误率统计 | 解析成功率/失败率 | Low | 聚合统计 |
+| 渠道健康告警 | 某渠道连续失败时通知管理员 | Low | 阈值告警 |
 
 ### 2.2 差异化功能（Differentiators）
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| 实时告警推送 | 不用刷新页面，新告警自动出现 | High | WebSocket 或 SSE，推送至前端 |
-| 虚拟滚动 | 告警列表万级数据不卡 | Medium | @tanstack/react-virtual |
-| 键盘快捷键 | 提升运维效率 | Low | `j/k` 上下导航，`Enter` 查看详情 |
-| 主题切换 | 深色模式减少夜班眼睛疲劳 | Low | Tailwind dark mode |
-| 操作批处理 | 批量确认/抑制告警 | Medium | Shift+点击多选 |
+| 背压机制（Backpressure） | 后端过载时主动降速，防止 OOM | High | 需要 HTTP 429 / 队列满信号 |
+| 自适应采集速率 | 根据后端负载动态调整轮询频率 | High | 反馈控制环 |
+| DLQ 自动重试 | 解析失败的日志稍后自动重解析 | Medium | 需要版本跟踪，避免死循环 |
+| 采集趋势预测 | 基于历史数据预测采集瓶颈 | Medium | 时序预测 |
 
-### 2.3 推荐依赖
+### 2.3 DLQ 设计
 
-| Library | Version | Purpose | Why |
-|---------|---------|---------|-----|
-| `@tanstack/react-query` | v5 | 服务端状态管理 | 缓存、loading、error、refetch 全支持 |
-| `react-hook-form` | v7 | 表单管理 | 减少 re-render，built-in validation |
-| `zod` | - | Schema 验证 | 与 TypeScript 一体化 |
-| `@tanstack/react-virtual` | v3 | 虚拟列表 | 大数据集性能优化 |
-| `sonner` | - | Toast 通知 | 操作反馈（确认成功/失败） |
+**DLQ 存储策略：**
 
-### 2.4 现有系统评估
+| 存储位置 | 适用场景 | 优点 | 缺点 |
+|----------|----------|------|------|
+| Kafka Topic (`dlq-events`) | 临时存储，等待重处理 | 与现有架构一致，可复用 consumer | 消息堆积可能影响 Kafka 性能 |
+| MinIO + 数据库索引 | 长期存储，需要人工审查 | 成本低，支持大容量 | 人工介入复杂 |
 
-| 已有实现 | 现状 | 需改进 |
-|----------|------|--------|
-| AlertList loading 状态 | 简单文本 "加载中..." | 升级为骨架屏 |
-| Error handling | try/catch + 显示 error | 需 Error Boundary |
-| API client | 基础 fetch 封装 | 缺少 request cancellation, retry |
-| 响应式 | Tailwind 已有 | 可微调 |
+**推荐方案：** Kafka Topic (`dlq-events`) + 24 小时保留期 + 自动清理
 
-### 2.5 模式示例
+**DLQ 事件格式：**
 
-**Error Boundary 组件:**
-```tsx
-class ErrorBoundary extends React.Component {
-  state = { hasError: false };
-  static getDerivedStateFromError() { return { hasError: true }; }
-  render() {
-    if (this.state.hasError) {
-      return <div className="p-4 text-red-500">页面出错，请刷新</div>;
-    }
-    return this.props.children;
+```json
+{
+  "dlq_id": "dlq-20260402-001",
+  "source_datasource_id": "ds-001",
+  "source_type": "WEBHOOK",
+  "raw_event": "<original base64 encoded>",
+  "parse_error": "JSONDecodeError: Expecting property name enclosed in double quotes",
+  "failed_at": "2026-04-02T10:30:00Z",
+  "retry_count": 0,
+  "max_retries": 3,
+  "metadata": {
+    "vendor_name": "aliyun",
+    "product_name": "cloud_security_center",
+    "device_type": "cloud_security"
   }
 }
 ```
 
-**TanStack Query 集成:**
-```tsx
-const { data, isLoading, isError, error, refetch } = useQuery({
-  queryKey: ['chains', severity],
-  queryFn: () => fetchChains(50, 0, severity),
-  staleTime: 30000,      // 30秒内不重新请求
-  retry: 3,              // 失败重试3次
-  refetchInterval: 60000 // 每分钟自动刷新
-});
+**DLQ 处理流程：**
+
 ```
+事件解析失败
+      │
+      ▼
+写入 DLQ Topic (dlq-events)
+      │
+      ├──→ [重试上限未达] ──→ 定时任务重新解析 ──→ 成功则写入 raw-events
+      │                         │
+      │                         └──→ 失败则 retry_count++ ──→ 再次入 DLQ
+      │
+      └──→ [重试上限已达] ──→ 告警通知管理员 ──→ 人工处理
+```
+
+### 2.4 监控指标
+
+| 指标 | 计算方式 | 告警阈值建议 | 复杂度 |
+|------|----------|--------------|--------|
+| `eps_in` | 最近 1 分钟事件数 / 60 | > 10000 正常，< 100 可能异常 | Low |
+| `eps_out` | Flink 输出的解析成功事件数 | eps_in 的 95% 以上 | Low |
+| `parse_success_rate` | 成功解析数 / 总数 | < 90% 告警 | Low |
+| `collection_lag_ms` | 当前时间 - 事件 timestamp | > 5000ms 告警 | Low |
+| `dlq_size` | DLQ Topic 当前消息数 | > 1000 告警 | Low |
+| `datasource_health` | 每渠道 EPS 是否 > 0 | 连续 5 分钟 = 0 则告警 | Medium |
+
+### 2.5 背压机制
+
+**背压信号类型：**
+
+| 信号来源 | 信号类型 | 响应动作 |
+|----------|----------|----------|
+| Kafka Consumer Lag | 消费 lag > N 万条 | 降低 producer 发送速率 |
+| Flink 处理延迟 | 处理时间 > 预期 2x | 减少并行度 |
+| HTTP 429 Too Many Requests | Webhook 上游返回 | 增加重试间隔 |
+| 队列满 | Redis/内存队列堆积 | 暂停拉取，等待消化 |
+
+**实现建议：** 使用令牌桶算法控制发送速率，动态调整 `target_eps`。
 
 ---
 
-## 3. AI 助手对话框（AI Chat Assistant）
+## 3. 全局元数据体系（Global Metadata System）
 
 ### 3.1 表干功能（Table Stakes）
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| 多轮对话 | 运维可能追问"这条告警的来源IP是哪里？" | Low | 维护 messages 数组 |
-| 上下文注入 | AI 需知道当前在看哪个告警/攻击链 | Medium | system prompt 包含当前页面状态 |
-| 流式输出 | 打字机效果体验好 | Low | fetch + ReadableStream |
-| 消息类型区分 | 用户消息 vs AI 回复 vs 系统提示 | Low | 不同样式/头像 |
-| 对话历史 | 同一会话内上下文连续 | Low | messages state 持久化 |
+| 强制 vendor_name/product_name/device_type | OCSF 标准化映射需要这些字段 | Low | 表单验证必填 |
+| OCSF target (category_uid/class_uid) | 确定解析目标模板和告警类型 | Low | 下拉选择 |
+| tenant_id 多租户隔离 | MSSP 场景需要数据隔离 | Medium | 影响所有查询 |
+| environment 环境标签 | 区分 prod/dev/test 告警 | Low | 简单标签 |
+| metadata 自动注入 | 所有入站事件自动附加 metadata | Low | Kafka header 或 payload |
 
 ### 3.2 差异化功能（Differentiators）
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| 页面感知注入 | "帮我分析这个告警" 自动注入当前告警详情 | Medium | 当前页面 state → system prompt |
-| 结构化输出 | AI 回复包含可点击的 IP、哈希等实体 | High | 需要流式解析 + 高亮渲染 |
-| 告警处置执行 | "把这个标记为误报" → 调用 API | High | 需要 function calling / tool use |
-| 对话搜索 | 历史对话中找类似问题 | Medium | 存储对话记录，支持检索 |
-| 快捷指令 | `/help` `/analyze` `/suppress` | Low | slash commands 模式 |
+| metadata 自动推断 | 首次接入设备时，AI 自动推断 vendor/product | High | 使用 LLM 分析日志样本 |
+| metadata 版本管理 | 支持历史版本的 metadata 切换 | Medium | 便于回滚 |
+| 跨租户关联分析 | MSSP 场景下跨租户威胁关联 | High | 安全合规复杂 |
 
-### 3.3 上下文关联设计
+### 3.3 元数据 Schema
 
-**页面状态 → System Prompt 注入:**
+```yaml
+# 全局元数据配置
+metadata_schema:
+  # 必填字段
+  required:
+    - vendor_name
+    - product_name
+    - device_type
+    - target_category_uid
+    - target_class_uid
 
-```typescript
-interface PageContext {
-  page: 'list' | 'detail' | 'dashboard';
-  currentAlert?: AttackChain;
-  filters?: { severity?: Severity; status?: string; };
-};
+  # 推荐字段
+  recommended:
+    - tenant_id
+    - environment
+    - datacenter
 
-// 页面切换时更新 context
-function updateChatContext(context: PageContext) {
-  const systemMessage = {
-    role: 'system',
-    content: `当前用户正在查看 SecAlert 安全告警平台。
-页面: ${context.page}
-${context.currentAlert ? `
-当前告警:
-- 攻击链ID: ${context.currentAlert.chain_id}
-- 严重度: ${context.currentAlert.max_severity}
-- 源IP: ${context.currentAlert.src_ip}
-- 目标资产: ${context.currentAlert.asset_ip}
-- 告警数量: ${context.currentAlert.alert_count}
-- 状态: ${context.currentAlert.status}
-` : ''}
-你是安全分析师助手，帮助运维人员理解和处置安全告警。`
-  };
-  // 添加到 messages
-}
+  # 可选字段
+  optional:
+    - asset_group
+    - priority
+    - tags
+
+# OCSF 目标类别参考
+ocsf_categories:
+  1: "System Activity"
+  2: "Alert"
+  3: "Audit"
+  4: "Network Activity"
+  5: "Application Activity"
+
+ocsf_classes:
+  2001: "Network Activity"
+  2002: "File Activity"
+  2003: "User Activity"
+  3001: "Security Alert"
+  3002: "System Alert"
 ```
 
-### 3.4 依赖现有系统
+### 3.4 metadata 注入点
 
-```
-src/api/           → 后端 API（需新增 /api/chat 端点）
-src/analysis/     → DSPy 程序（复用人机协作分析逻辑）
-src/graph/client  → Neo4j（查询告警上下文）
-```
+**注入位置：** Kafka 消息 Header
 
-### 3.5 后端 API 设计建议
-
-```python
-# POST /api/chat
+```json
 {
-  "messages": [
-    {"role": "user", "content": "这条告警怎么处理？"}
-  ],
-  "context": {
-    "chain_id": "abc123",
-    "page": "detail"
-  }
+  "headers": {
+    "vendor_name": "paloalto",
+    "product_name": "pan-os",
+    "device_type": "firewall",
+    "target_category_uid": 4,
+    "target_class_uid": 2001,
+    "tenant_id": "tenant-001",
+    "environment": "prod",
+    "datasource_id": "ds-firewall-01"
+  },
+  "body": "<原始日志>"
 }
-
-# Response: SSE stream
-data: {"role": "assistant", "content": "根据告警"}
-data: {"role": "assistant", "content": "分析，"}
-...
-data: {"done": true}
 ```
+
+### 3.5 UI 强制要求
+
+**数据源配置表单必须包含：**
+
+| 字段 | 验证规则 | 错误提示 |
+|------|----------|----------|
+| vendor_name | 非空，字母数字下划线 | "厂商名称不能为空" |
+| product_name | 非空 | "产品名称不能为空" |
+| device_type | 必须在允许列表中 | "请选择正确的设备类型" |
+| target_category_uid | 必须是有效 OCSF UID | "请选择 OCSF 类别" |
+| tenant_id | MSSP 模式下必填 | "租户 ID 不能为空" |
+| environment | 必须是 prod/dev/test | "请选择环境" |
 
 ---
 
-## 4. 报表统计仪表板（Security Reporting Dashboard）
+## 4. Anti-Features（明确不做的功能）
 
-### 4.1 表干功能（Table Stakes）
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| 告警趋势图 | 每天告警量变化，识别异常 | Low | Line chart (7天/30天) |
-| 严重度分布 | 当前积压的告警分布 | Low | Donut/Pie chart |
-| TOP 攻击类型 | 哪些攻击最常见 | Low | Horizontal bar chart |
-| 处置统计 | 已处理/待处理比例 | Low | Simple metric + progress |
-| 时间范围选择 | 可切换 24h/7d/30d/自定义 | Low | Date picker |
-
-### 4.2 差异化功能（Differentiators）
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| 误报率趋势 | 展示系统准确性提升 | Medium | Line chart + 目标线 |
-| 资产受损报告 | 哪些资产被攻击最多 | Medium | 按资产聚合 |
-| 响应时效统计 | 平均处置时间 SLA | Medium | 从 acknowledged_at 计算 |
-| 报表导出 | PDF/CSV 导出给领导 | High | 服务端生成 or 前端 html2pdf |
-| 环比/同比 | 与上周/月对比 | Low | 简单计算百分比 |
-
-### 4.3 已有系统评估
-
-| 已有实现 | 现状 | 需改进 |
-|----------|------|--------|
-| `src/analysis/metrics.py` | FalsePositiveMetricsCollector 存在 | 需扩展为完整指标体系 |
-| 严重度分布 | 简化版 get_severity_distribution() | 需支持时间范围 |
-| 误报统计 | 基础 fp_rate 计算 | 需趋势数据（非单点） |
-
-### 4.4 指标体系设计
-
-```typescript
-interface DashboardMetrics {
-  // 时间范围
-  timeRange: { start: Date; end: Date };
-
-  // 告警统计
-  alertStats: {
-    total: number;
-    bySeverity: { critical: number; high: number; medium: number; low: number; };
-    byStatus: { active: number; resolved: number; falsePositive: number; };
-  };
-
-  // 趋势数据（每日聚合）
-  trends: Array<{
-    date: string;
-    total: number;
-    truePositives: number;
-    falsePositives: number;
-  }>;
-
-  // TOP 统计
-  topAttackTypes: Array<{ signature: string; count: number; }>;
-  topAffectedAssets: Array<{ asset_ip: string; count: number; }>;
-
-  // 效能指标
-  performance: {
-    avgResolutionTimeHours: number;
-    falsePositiveRate: number;  // 百分比
-    suppressionRate: number;     // 自动抑制率
-  };
-}
-```
-
-### 4.5 图表库选择
-
-| Library | Pros | Cons | Recommendation |
-|---------|------|------|----------------|
-| Recharts | React 原生，轻量，易用 | 功能相对基础 | **推荐**（适合简单图表） |
-| Tremor | 内置 UI 组件，仪表板友好 | 学习曲线 | 备选 |
-| Chart.js | 功能强大 | React 封装不完美 | 不推荐 |
-
-### 4.6 API 端点设计
-
-```
-GET /api/metrics/dashboard
-    ?range=7d|30d|custom
-    &start=2026-03-01
-    &end=2026-03-25
-
-Response: DashboardMetrics
-```
+| Anti-Feature | Why Avoid | What To Do Instead |
+|--------------|-----------|---------------------|
+| S3/OSS + MQ 云存储事件触发 | 私有化部署无 S3，违反约束 | Kafka Topic 订阅代替 |
+| 云厂商专属 SDK（如 AWS CloudTrail SDK） | 私有化部署不支持 | REST API 轮询代替 |
+| 全球全渠道自动发现 | 复杂度爆炸，运维不可控 | 用户手动声明式配置 |
+| 自动背压到所有采集源 | 可能导致采集源雪崩 | 仅对 HTTP 源做背压 |
+| 实时采集延迟 < 100ms | 私有化环境网络不稳定，追求低延迟不现实 | < 5s 延迟可接受 |
+| 自动 metadata 推断作为唯一来源 | LLM 推断可能出错，必须有人工确认 | 人工配置为主，AI 辅助校验 |
 
 ---
 
 ## 5. 功能依赖关系
 
 ```
-                    ┌─────────────────────┐
-                    │   Multi-Device      │
-                    │   Log Parsing       │
-                    └──────────┬──────────┘
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-              ▼                ▼                ▼
-┌──────────────────┐  ┌───────────────┐  ┌───────────────┐
-│  AI Chat Context │  │  Dashboard    │  │  Alert List   │
-│  (需要攻击链数据)  │  │  (需要指标)    │  │  (已有基础)    │
-└──────────────────┘  └───────────────┘  └───────────────┘
-         │                   │                  │
-         └───────────────────┴──────────────────┘
-                             │
-                             ▼
-                    ┌─────────────────────┐
-                    │   产品级 Web UI     │
-                    │   (基础框架)        │
-                    └─────────────────────┘
+[全局元数据体系]
+      │
+      │ metadata 是所有渠道的强制输入
+      ▼
+[多渠道采集后端]
+      │
+      │ 采集事件 + metadata 统一进入 Kafka
+      ▼
+[采集可观测性 + DLQ]
+      │
+      │ 监控指标基于 Kafka 事件统计
+      │ DLQ 事件携带完整 metadata
+      ▼
+[现有 Flink Parser Pipeline] → [ES/Neo4j/MinIO]
 ```
+
+**构建顺序建议：**
+
+| 阶段 | 任务 | 原因 |
+|------|------|------|
+| Phase 1 | 全局元数据 Schema + UI 强制验证 | 所有渠道依赖 metadata |
+| Phase 2 | Webhook 接收网关 + Kafka Writer | 最简单的新渠道，快速验证 |
+| Phase 3 | Kafka Consumer 订阅 | 扩展现有 Kafka 基础设施 |
+| Phase 4 | REST API / DB 轮询调度器 | 复杂状态管理，最后做 |
+| Phase 5 | DLQ 机制 | 依赖解析层，可独立验证 |
+| Phase 6 | 监控指标 + 告警 | 依赖所有渠道运行数据 |
+| Phase 7 | 背压机制 | 高复杂度，最后做 |
 
 ---
 
 ## 6. MVP 推荐
 
-### Phase 1: 多数据源基础
-1. 扩展 TemplateRegistry 支持新设备类型
-2. 添加 2-3 个常见设备模板（Palo Alto, ModSecurity）
-3. 完善 OCSF 字段映射覆盖
+**最小可行产品功能集：**
 
-### Phase 2: UI 基础 + 报表
-1. 引入 TanStack Query
-2. 添加 Error Boundary
-3. 骨架屏加载状态
-4. 基础 Dashboard（趋势 + 分布）
+1. **全局元数据 Schema**（必做）
+   - vendor_name/product_name/device_type 必填验证
+   - OCSF target category/class 下拉选择
+   - tenant_id/environment 标签
 
-### Phase 3: AI 助手基础
-1. 基础对话 UI（消息列表 + 输入框）
-2. 页面上下文注入
-3. 流式输出
-4. /api/chat 后端端点
+2. **Webhook 接收网关**（最简单新渠道）
+   - HTTP POST endpoint
+   - Header secret 鉴权
+   - 事件写入 Kafka + metadata header
 
-### Phase 4: 高级功能
-1. 实时告警推送（WebSocket）
-2. AI 处置执行（function calling）
-3. 报表导出
-4. 虚拟滚动
+3. **Kafka Consumer 订阅**（复用现有）
+   - 新 consumer group 订阅外部 Topic
+   - metadata 从配置注入
+
+4. **DLQ 基础版**（必做）
+   - 解析失败事件写入 dlq-events Topic
+   - 3 次重试 + 告警
+
+5. **基础监控**（必做）
+   - EPS 计数
+   - parse_success_rate
+   - datasource_health 告警
+
+**不放入 MVP：** 背压机制、自适应采集速率、DLQ 自动重试、metadata AI 推断
 
 ---
 
-## 7. 关键技术风险
+## 7. 复杂度评估汇总
 
-| Feature | Risk | Mitigation |
-|---------|------|------------|
-| 多设备关联 | 不同设备时间不同步 | 统一使用统一时间戳（UTC）+ 窗口容差 |
-| 零样本模板 | LLM 生成可能不准确 | 保留人工确认环节，生成后用户可修正 |
-| AI 助手幻觉 | LLM 可能编造告警细节 | 注入真实数据到 prompt，限制只读操作 |
-| 实时推送 | WebSocket 复杂度 | 考虑 SSE（更简单）或轮询（可接受） |
-| 大数据量 Dashboard | ES 聚合查询慢 | 预计算 + 缓存，ClickHouse 加速 |
+| Feature | Complexity | Risk | Reason |
+|---------|------------|------|--------|
+| Kafka Consumer 订阅 | Medium | Low | 复用现有 Kafka client |
+| Webhook 接收网关 | Low | Low | 标准 HTTP endpoint |
+| REST API 轮询 | Medium | Medium | 状态管理复杂（翻页、光标、限流） |
+| 数据库 JDBC 轮询 | Medium | Low | JDBC 标准化，光标字段用户配置 |
+| DLQ 机制 | Medium | Medium | 需要重试逻辑和告警 |
+| EPS/延迟监控 | Low | Low | 简单计数统计 |
+| 背压机制 | High | High | 反馈控制环复杂，可能震荡 |
+| 全局 metadata 强制 | Low | Low | UI 验证 + Kafka header 注入 |
+| metadata AI 推断 | High | Medium | LLM 推断不确定，需人工确认 |
 
 ---
 
@@ -384,10 +444,22 @@ Response: DashboardMetrics
 
 | 领域 | 来源 | 置信度 |
 |------|------|--------|
-| OCSF 标准化 | OCSF Schema GitHub (ocsf/ocsf-schema) | HIGH |
-| 多设备日志格式 | 各厂商公开文档（Palo Alto, Fortinet, AWS） | HIGH |
-| React 生产模式 | React 官方文档 + TanStack Query 文档 | HIGH |
-| 安全仪表板指标 | 行业标准 SOC 指标（MITRE ATT&CK） | MEDIUM |
-| AI 对话上下文 | LangChain/GPTs 最佳实践 | MEDIUM |
+| 多渠道采集架构 | `docs/多源异构安全日志采集最佳实践调研.md` | HIGH |
+| Kafka Consumer | Confluent Kafka 文档 | HIGH |
+| DLQ 模式 | 行业标准（Cribl, Vector, Logstash 最佳实践） | MEDIUM |
+| OCSF 标准 | OCSF Schema GitHub (ocsf/ocsf-schema) | HIGH |
+| 背压机制 | Reactive Streams Backpressure 模式 | MEDIUM |
 
-**注意:** 由于外部搜索工具受限，部分分析基于现有系统代码逆向工程和领域知识推断，建议后续通过用户访谈确认具体需求。
+**注意：** 由于外部搜索工具受限，部分分析基于现有系统架构和最佳实践文档推断，建议后续通过 PoC 验证轮询调度器的状态管理复杂性。
+
+---
+
+## 9. 验证清单
+
+- [x] 表干功能 vs 差异化功能区分清晰
+- [x] 所有新功能标注了复杂度
+- [x] 依赖关系和构建顺序明确
+- [x] anti-features 明确列出
+- [x] 与现有系统（Vector/Kafka/Flink）集成点标注
+- [x] MVP 范围明确
+- [x] 元数据 Schema 完整
