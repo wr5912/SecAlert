@@ -80,6 +80,56 @@ def _generate_id() -> str:
     return f"template-{uuid.uuid4().hex[:8]}"
 
 
+def _get_default_metadata(template_name: str, device_type: str) -> "CollectionMetadata":
+    """v1.0 Suricata 模板默认 metadata（D-06 迁移填充）"""
+    from src.api.ingestion_models import DeviceType as DT, Environment, CollectionMetadata
+    from src.collection.metadata import OCSFMapper
+
+    # Suricata EVE JSON 默认值
+    if "suricata" in template_name.lower():
+        vendor_name = "Suricata"
+        product_name = "EVE JSON"
+        device_type_enum = DT.IDS
+    elif device_type:
+        device_type_lower = device_type.lower()
+        if device_type_lower == "ids" or device_type_lower == "ips":
+            vendor_name = "unknown"
+            product_name = "unknown"
+            device_type_enum = DT.IDS
+        elif device_type_lower == "firewall":
+            vendor_name = "unknown"
+            product_name = "unknown"
+            device_type_enum = DT.FIREWALL
+        elif device_type_lower == "waf":
+            vendor_name = "unknown"
+            product_name = "unknown"
+            device_type_enum = DT.WAF
+        else:
+            vendor_name = "unknown"
+            product_name = "unknown"
+            device_type_enum = DT.OTHER
+    else:
+        vendor_name = "unknown"
+        product_name = "unknown"
+        device_type_enum = DT.OTHER
+
+    # 自动推断 OCSF
+    ocsf_result = OCSFMapper.map(
+        device_type=device_type_enum.value,
+        log_format="JSON"  # 默认使用 JSON
+    )
+
+    return CollectionMetadata(
+        vendor_name=vendor_name,
+        product_name=product_name,
+        device_type=device_type_enum,
+        tenant_id="default",
+        environment=Environment.PROD,
+        target_category_uid=ocsf_result.category_uid,
+        target_class_uid=ocsf_result.class_uid,
+    )
+
+
 @router.get("/templates", response_model=TemplateListResponse)
 async def list_templates() -> TemplateListResponse:
     """
@@ -96,24 +146,40 @@ async def list_templates() -> TemplateListResponse:
 @router.post("/templates", response_model=DataSourceTemplate, status_code=201)
 async def create_template(template: TemplateCreate) -> DataSourceTemplate:
     """
-    DI-01: 创建数据源模板
+    DI-01: 创建数据源模板（含 metadata 和 OCSF 自动推断）
 
     - **name**: 模板名称
     - **device_type**: 设备类型 (firewall/ids/vpn/switch/router/waf/other)
     - **connection**: 连接参数
     - **log_format**: 日志格式 (CEF/Syslog/JSON/Custom)
+    - **metadata**: 采集元数据（GM-01 强制字段）
 
     Returns:
-        创建的模板对象
+        创建的模板对象（含自动推断的 OCSF 映射）
     """
+    from src.collection.metadata import OCSFMapper
+
     template_id = _generate_id()
+
+    # 自动推断 OCSF 映射
+    ocsf_result = OCSFMapper.map(
+        device_type=template.device_type.value,
+        log_format=template.log_format.value
+    )
+
+    # 构建 metadata（含 OCSF 推断结果）
+    metadata = template.metadata
+    metadata.target_category_uid = ocsf_result.category_uid
+    metadata.target_class_uid = ocsf_result.class_uid
+
     new_template = DataSourceTemplate(
         id=template_id,
         name=template.name,
         device_type=template.device_type,
         connection=template.connection,
         log_format=template.log_format,
-        custom_regex=template.custom_regex
+        custom_regex=template.custom_regex,
+        metadata=metadata  # 新增
     )
     _templates[template_id] = new_template
     return new_template
@@ -219,7 +285,7 @@ async def update_template(
     template_update: TemplateUpdate
 ) -> DataSourceTemplate:
     """
-    DI-02: 更新数据源模板
+    DI-02: 更新数据源模板（含 metadata 迁移和 OCSF 重算）
 
     - **template_id**: 模板 ID
     - **template_update**: 更新内容 (部分更新)
@@ -230,14 +296,31 @@ async def update_template(
     Raises:
         404: 模板不存在
     """
+    from src.collection.metadata import OCSFMapper
+
     if template_id not in _templates:
         raise HTTPException(status_code=404, detail=f"Template {template_id} not found")
 
     existing = _templates[template_id]
 
+    # v1.0 迁移：如果模板没有 metadata，自动填充默认值
+    if existing.metadata is None:
+        existing.metadata = _get_default_metadata(
+            template_name=existing.name,
+            device_type=existing.device_type
+        )
+
     # 部分更新
     update_data = template_update.model_dump(exclude_unset=True)
     updated = existing.model_copy(update=update_data)
+
+    # 如果更新涉及 device_type 或 log_format，重新推断 OCSF
+    if "device_type" in update_data or "log_format" in update_data:
+        device_type_val = updated.device_type.value if hasattr(updated.device_type, 'value') else updated.device_type
+        log_format_val = updated.log_format.value if hasattr(updated.log_format, 'value') else updated.log_format
+        ocsf_result = OCSFMapper.map(device_type_val, log_format_val)
+        updated.metadata.target_category_uid = ocsf_result.category_uid
+        updated.metadata.target_class_uid = ocsf_result.class_uid
 
     _templates[template_id] = updated
     return updated

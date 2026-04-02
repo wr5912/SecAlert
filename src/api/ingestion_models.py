@@ -65,6 +65,7 @@ class DataSourceTemplate(BaseModel):
     connection: ConnectionConfig = Field(..., description="连接参数")
     log_format: str = Field(..., description="日志格式")
     custom_regex: Optional[str] = Field(None, description="自定义正则 (Custom 格式时必填)")
+    metadata: Optional[CollectionMetadata] = Field(None, description="采集元数据（GM-01 强制字段）")
 
 
 class TemplateCreate(BaseModel):
