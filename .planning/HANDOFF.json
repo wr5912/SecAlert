@@ -1,38 +1,29 @@
 {
   "version": "1.0",
-  "timestamp": "2026-03-26T12:17:54.958Z",
-  "phase": "11",
-  "phase_name": "后端 API 集成",
-  "phase_dir": "phases/11-backend-api",
+  "timestamp": "2026-04-03T02:48:10.667Z",
+  "phase": "17",
+  "phase_name": "ES数据渠道接入",
+  "phase_dir": ".planning/phases/17-es-data-ingestion",
   "plan": "01",
-  "task": 6,
-  "total_tasks": 6,
-  "status": "completed",
-  "completed_tasks": [
-    {"id": 1, "name": "创建分析模块 Pydantic 模型", "status": "done"},
-    {"id": 2, "name": "实现获取故事线列表 API", "status": "done"},
-    {"id": 3, "name": "实现攻击图数据 API", "status": "done"},
-    {"id": 4, "name": "实现时间线事件 API", "status": "done"},
-    {"id": 5, "name": "实现资产上下文 API", "status": "done"},
-    {"id": 6, "name": "实现威胁狩猎查询 API", "status": "done"}
+  "task": 1,
+  "total_tasks": 3,
+  "status": "paused",
+  "completed_tasks": [],
+  "remaining_tasks": [
+    {"id": 1, "name": "添加 Logstash Docker 服务", "status": "not_started"},
+    {"id": 2, "name": "创建 Logstash 配置目录结构", "status": "not_started"},
+    {"id": 3, "name": "添加环境变量配置", "status": "not_started"}
   ],
-  "remaining_tasks": [],
   "blockers": [],
-  "human_actions_pending": [
-    {
-      "action": "启动后端服务",
-      "context": "分析工作台页面报 API 404 错误，需要启动后端才能联调",
-      "blocking": false
-    }
-  ],
+  "human_actions_pending": [],
   "decisions": [
-    {
-      "decision": "Phase 11-01 已完成后端 API 实现",
-      "rationale": "5个 API 端点已实现并注册到 main.py",
-      "phase": "11"
-    }
+    {"decision": "使用 Logstash 而非 Python elasticsearch 库", "rationale": "Vector 不支持把 ES 作为 source 主动拉数据；Logstash elasticsearch input 插件支持 Scroll API"},
+    {"decision": "Logstash Docker Compose 容器化部署", "rationale": "版本 logstash:8.11.0 兼容 ES 8.x；复用现有基础设施"},
+    {"decision": "JVM 内存锁死 -Xms2g -Xmx2g", "rationale": "避免 Logstash 把宿主机内存吃光被 OOM Killer 杀掉"},
+    {"decision": "Scroll API 深度分页 + 幂等写入", "rationale": "scroll: 5m, size: 2000 避免旧 ES OOM；docinfo + document_id 防止重复数据"},
+    {"decision": "输出到 Kafka raw-events topic", "rationale": "复用现有 Kafka 采集通道，进入系统统一解析 pipeline"}
   ],
   "uncommitted_files": [],
-  "next_action": "启动后端服务进行联调验证: cd src && uvicorn api.main:app --reload",
-  "context_notes": "本会话主要是调试前端 UI 问题（severity 类型修复）。Phase 11-01 已完成但后端服务未启动，导致前端分析工作台报 404。"
+  "next_action": "执行 /gsd:execute-phase 17 来执行 17-01-PLAN.md 中的 Logstash 服务和配置任务",
+  "context_notes": "Phase 17 是新增的里程碑 v1.6 '从 Elasticsearch 接入数据渠道'。调研文档显示使用 Logstash 是最佳方案（非自研 Python、非 Vector、非 DataX/SeaTunnel）。17-01-PLAN.md 已创建，包含 3 个任务：1) 添加 Logstash Docker 服务 2) 创建配置目录结构 3) 添加环境变量。计划还要创建 17-02 处理 ES 查询模板管理和 17-03/04 处理实际拉取与解析接入。"
 }
