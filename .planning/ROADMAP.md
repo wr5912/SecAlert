@@ -32,7 +32,7 @@
 
 Plans:
 - [x] 18-01-PLAN.md — 多源异构数据模拟器基础设施 ✅ Complete
-- [ ] 18-02-PLAN.md — DLQ 死信队列机制实现 (SM-01)
+- [x] 18-02-PLAN.md — DLQ 死信队列机制实现 (SM-01) ✅ Complete
 
 ---
 
