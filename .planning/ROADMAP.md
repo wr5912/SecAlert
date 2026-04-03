@@ -28,7 +28,7 @@
 **Goal:** 增加从 Elasticsearch 中接入安全日志数据的渠道
 **Requirements**: ES-01, ES-02, ES-03, ES-04
 **Depends on:** Phase 16
-**Plans:** Not started
+**Plans:** 1/1 plans complete
 
 ---
 
