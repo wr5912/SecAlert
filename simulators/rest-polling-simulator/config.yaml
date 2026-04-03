@@ -1,0 +1,42 @@
+# REST Polling 模拟器配置
+
+# 日志生成间隔 (秒)
+log_interval: 5
+
+# 每批生成日志数
+batch_size: 10
+
+# 缓冲最大容量
+max_buffer: 1000
+
+# API 认证 (可选)
+# api_key: your-secret-key
+
+# 日志来源
+sources:
+  - WAF
+  - IDS
+  - Firewall
+  - Endpoint
+  - SIEM
+  - DNS
+
+# 告警类型
+alert_categories:
+  - SQL Injection
+  - XSS Attack
+  - CSRF Token Missing
+  - Brute Force Attempt
+  - Malware Detected
+  - Data Exfiltration
+  - Unauthorized Access
+  - DDoS Attack
+  - Privilege Escalation
+  - Configuration Change
+
+# 严重程度分布
+severity_distribution:
+  low: 0.3
+  medium: 0.4
+  high: 0.2
+  critical: 0.1

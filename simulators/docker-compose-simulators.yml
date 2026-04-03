@@ -1,0 +1,151 @@
+# SecAlert 多源异构数据模拟器
+# 用于测试 SecAlert 采集渠道的完整性
+#
+# 使用方法:
+#   cp .env.simulators.example .env.simulators
+#   编辑 .env.simulators 配置
+#   docker-compose -f simulators/docker-compose-simulators.yml up -d
+
+services:
+  # ============================================
+  # 1. log-generator: SIEM 日志生成器 (summved/log-generator)
+  #    支持: MITRE ATT&CK, 12+ 数据源, JSON/Syslog/CEF/HTTP 输出
+  # ============================================
+  log-generator:
+    build:
+      context: ./log-generator
+      dockerfile: Dockerfile.production
+    container_name: log-generator-prod
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - CONFIG_PATH=/app/src/config/default.yaml
+      - LOG_LEVEL=info
+      - SIEM_HTTP_URL=${SECALERT_INGEST_URL:-http://localhost:9000/api/v1/ingest}
+      - SIEM_API_TOKEN=${SECALERT_API_TOKEN:-test-token}
+      - ENABLE_MONITORING=true
+      - ENABLE_SYSMGMT=true
+    volumes:
+      - ./log-generator/logs:/app/logs
+      - log-generator-models:/app/models
+    ports:
+      - "3000:3000"  # HTTP API
+      - "8080:8080"  # Metrics
+    networks:
+      - simulators-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+  # ============================================
+  # 2. syslog-simulator: Syslog 网络接收/发送模拟器
+  #    模拟防火墙、IDS 等设备发送 CEF 格式日志
+  # ============================================
+  syslog-simulator:
+    build:
+      context: ./syslog-simulator
+      dockerfile: Dockerfile
+    container_name: syslog-simulator
+    restart: unless-stopped
+    environment:
+      - TARGET_HOST=${SECALERT_SYSLOG_HOST:-localhost}
+      - TARGET_PORT=${SECALERT_SYSLOG_PORT:-514}
+      - PROTOCOL=${SECALERT_SYSLOG_PROTOCOL:-UDP}
+      - RATE=${SIMULATOR_RATE:-10}
+      - FORMAT=${SIMULATOR_FORMAT:-CEF}
+    ports:
+      - "1514:1514/udp"  # Syslog 接收端口
+      - "1514:1514/tcp"
+    volumes:
+      - ./syslog-simulator/config.yaml:/app/config.yaml:ro
+    networks:
+      - simulators-net
+
+  # ============================================
+  # 3. rest-polling-simulator: REST API Polling 模拟器
+  #    模拟 WAF、威胁情报平台等 REST API
+  # ============================================
+  rest-polling-simulator:
+    build:
+      context: ./rest-polling-simulator
+      dockerfile: Dockerfile
+    container_name: rest-polling-simulator
+    restart: unless-stopped
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8081
+      - LOG_INTERVAL=${POLLING_INTERVAL:-5}
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./rest-polling-simulator/config.yaml:/app/config.yaml:ro
+    networks:
+      - simulators-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ============================================
+  # 4. file-simulator: 日志文件监控模拟器
+  #    模拟应用日志文件写入，Vector 监控文件变化
+  # ============================================
+  file-simulator:
+    build:
+      context: ./file-simulator
+      dockerfile: Dockerfile
+    container_name: file-simulator
+    restart: unless-stopped
+    environment:
+      - LOG_DIR=/app/logs
+      - LOG_INTERVAL=${FILE_LOG_INTERVAL:-2}
+      - LOG_FORMAT=${FILE_LOG_FORMAT:-JSON}
+    volumes:
+      - ./file-simulator/logs:/app/logs
+      - ./file-simulator/vector.yml:/etc/vector/vector.toml:ro
+    networks:
+      - simulators-net
+
+  # ============================================
+  # Prometheus 监控 (可选)
+  # ============================================
+  prometheus-simulators:
+    image: prom/prometheus:latest
+    container_name: prometheus-simulators
+    restart: unless-stopped
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-simulators-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=200h'
+    networks:
+      - simulators-net
+
+networks:
+  simulators-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  log-generator-models:
+    driver: local
+  prometheus-simulators-data:
+    driver: local

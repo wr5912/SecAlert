@@ -1,0 +1,19 @@
+# 文件日志模拟器配置
+
+# 日志目录
+log_dir: /app/logs
+
+# 日志写入间隔 (秒)
+log_interval: 2
+
+# 日志格式: JSON, SYSLOG, PLAIN
+log_format: JSON
+
+# 每批写入条数
+batch_size: 1
+
+# 日志文件
+log_files:
+  - app.log      # 应用日志
+  - auth.log      # 认证日志
+  - network.log   # 网络日志

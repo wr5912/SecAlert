@@ -1,0 +1,110 @@
+# Vector 配置: 监控日志文件变化并发送到 Kafka
+# 用于 SecAlert file-simulator
+
+api:
+  enabled: true
+  address: 0.0.0.0:9000
+
+sources:
+  app_logs:
+    type: file
+    include_files:
+      - /app/logs/app.log
+    read_from: beginning
+    ignore_older: 86400
+
+  auth_logs:
+    type: file
+    include_files:
+      - /app/logs/auth.log
+    read_from: beginning
+    ignore_older: 86400
+
+  network_logs:
+    type: file
+    include_files:
+      - /app/logs/network.log
+    read_from: beginning
+    ignore_older: 86400
+
+transforms:
+  # 解析 JSON 格式日志并添加 metadata
+  parse_app_logs:
+    type: remap
+    inputs:
+      - app_logs
+    source: |
+      .metadata = {
+        "file_source": "app.log",
+        "device_type": "application_server",
+        "collector": "vector-file-simulator"
+      }
+      if exists(.message) {
+        .parsed = parse_json(.message) ?? {}
+        .timestamp = .parsed.timestamp ?? now()
+        .level = .parsed.level ?? "INFO"
+        .service = .parsed.service ?? "unknown"
+        .event = .parsed.event ?? ""
+      }
+
+  parse_auth_logs:
+    type: remap
+    inputs:
+      - auth_logs
+    source: |
+      .metadata = {
+        "file_source": "auth.log",
+        "device_type": "authentication_server",
+        "collector": "vector-file-simulator"
+      }
+      if exists(.message) {
+        .parsed = parse_json(.message) ?? {}
+        .timestamp = .parsed.timestamp ?? now()
+        .level = .parsed.level ?? "INFO"
+        .src_ip = .parsed.src_ip ?? "unknown"
+        .user = .parsed.user ?? "unknown"
+      }
+
+  parse_network_logs:
+    type: remap
+    inputs:
+      - network_logs
+    source: |
+      .metadata = {
+        "file_source": "network.log",
+        "device_type": "network_firewall",
+        "collector": "vector-file-simulator"
+      }
+      if exists(.message) {
+        .parsed = parse_json(.message) ?? {}
+        .timestamp = .parsed.timestamp ?? now()
+        .src_ip = .parsed.src_ip ?? "unknown"
+        .dst_ip = .parsed.dst_ip ?? "unknown"
+        .action = .parsed.action ?? "UNKNOWN"
+      }
+
+sinks:
+  # 输出到 Kafka (SecAlert 采集点)
+  to_kafka:
+    type: kafka
+    inputs:
+      - parse_app_logs
+      - parse_auth_logs
+      - parse_network_logs
+    bootstrap_servers: ${KAFKA_BOOTSTRAP:-kafka:9092}
+    topic: raw-events
+    encoding:
+      codec: json
+    # 生产者配置
+    producer:
+      compression: gzip
+      lz4: false
+      snappy: false
+
+  # 同时输出到 stdout 便于调试
+  to_stdout:
+    type: console
+    inputs:
+      - parse_app_logs
+    encoding:
+      codec: json

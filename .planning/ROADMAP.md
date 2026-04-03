@@ -15,25 +15,33 @@
 - ✅ **v1.3** — Claude Code AI 后端 (shipped 2026-04-01)
 - ✅ **v1.4** — 数据接入前端界面 (shipped 2026-04-02)
 - ✅ **v1.5** — 数据接入功能完善 + 全局元数据 (shipped 2026-04-03)
-- 🚧 **v1.6** — 从 Elasticsearch 接入数据渠道 (Phase 17)
+- ✅ **v1.6** — 从 Elasticsearch 接入数据渠道 (Phase 17 ✅)
+- 🚧 **v1.6 续** — 多源异构数据模拟器 + 死信队列 (Phase 18-19)
 
 ---
 
 ## Current State
 
-**v1.6 进行中** — 增加从 Elasticsearch 接入安全日志数据的渠道
+**v1.6 续进行中** — 多源异构数据模拟器基础设施 + 死信队列机制
 
-### Phase 17: ES 数据渠道接入
+### Phase 18: 多源异构数据模拟器
 
-**Goal:** 增加从 Elasticsearch 中接入安全日志数据的渠道
-**Requirements**: ES-01, ES-02, ES-03, ES-04
-**Depends on:** Phase 16
-**Plans:** 2/3 plans executed
+**Goal:** 创建独立测试环境，模拟各种安全设备数据上报渠道
+**Depends on:** Phase 17
+**Plans:** 1/2 plans
 
 Plans:
-- [x] 17-01-PLAN.md — Logstash Docker 服务配置完成 (ES-01, ES-02)
-- [x] 17-02-PLAN.md — ES 日志拉取与解析接入 (ES-03)
-- [ ] 17-03-PLAN.md — ES 告警数据采集流程 + E2E 验证 (ES-04)
+- [x] 18-01-PLAN.md — 多源异构数据模拟器基础设施 (计划中)
+- [ ] 18-02-PLAN.md — DLQ 死信队列机制实现 (SM-01)
+
+---
+
+### Phase 19: 采集可观测性监控
+
+**Goal:** 采集系统监控指标
+**Depends on:** Phase 18
+**Requirements**: SM-02
+**Plans:** Not started
 
 ---
 

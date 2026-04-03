@@ -1,0 +1,25 @@
+# Syslog 模拟器配置
+# 目标: SecAlert Vector Syslog 源
+
+# 发送目标配置
+target_host: ${SECALERT_SYSLOG_HOST:-localhost}
+target_port: ${SECALERT_SYSLOG_PORT:-514}
+protocol: ${SECALEST_SYSLOG_PROTOCOL:-UDP}
+
+# 接收端口 (本地监听)
+listen_port: 1514
+
+# 生成配置
+rate: 10  # 每秒生成日志数
+format: CEF  # 日志格式: CEF, JSON, SYSLOG
+
+# 设备类型 (从以下设备随机选择)
+devices:
+  - Check Point VPN-1
+  - Palo Alto PAN-OS
+  - Fortinet FortiGate
+  - Cisco ASA
+  - Snort IDS
+  - Suricata IDS
+  - Imperva WAF
+  - F5 BIG-IP ASM
