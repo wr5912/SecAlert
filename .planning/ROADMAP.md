@@ -16,13 +16,22 @@
 - ✅ **v1.4** — 数据接入前端界面 (shipped 2026-04-02)
 - ✅ **v1.5** — 数据接入功能完善 + 全局元数据 (shipped 2026-04-03)
 - ✅ **v1.6** — 从 Elasticsearch 接入数据渠道 (Phase 17 ✅)
-- 🚧 **v1.6 续** — 多源异构数据模拟器 + 死信队列 (Phase 18-19)
+- ✅ **v1.6 续** — 多源异构数据模拟器 + 死信队列 + 可观测性监控 (Phase 18-19 ✅)
+- 🚧 **v1.7** — Phase 20: v1.6 收尾与集成测试
 
 ---
 
 ## Current State
 
-**v1.6 续进行中** — 多源异构数据模拟器基础设施 + 死信队列机制
+**v1.7 启动中** — Phase 20: v1.6 收尾与集成测试
+
+### Phase 20: v1.6 收尾与集成测试
+
+**Goal:** 完成 v1.6 所有功能的集成测试
+**Depends on:** Phase 19
+**Plans:** Not started
+
+---
 
 ### Phase 18: 多源异构数据模拟器
 
@@ -41,7 +50,8 @@ Plans:
 **Goal:** 采集系统监控指标
 **Depends on:** Phase 18
 **Requirements**: SM-02
-**Plans:** Not started
+**Plans:** 1/1 plans
+- [x] 19-01-PLAN.md — 采集可观测性监控实现 ✅ Complete
 
 ---
 

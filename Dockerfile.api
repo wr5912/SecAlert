@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # 安装依赖
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir ".[chain]"
+RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ ".[chain,agent,parser,reporting]"
 
 # 复制源代码
 COPY src/ ./src/

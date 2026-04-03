@@ -56,7 +56,7 @@ class SlidingWindowRateCalculator:
             now = time.time()
             # 清理过期的时间戳
             while self.timestamps and self.timestamps[0] < now - self.window_size:
-                self.popleft()
+                self.timestamps.popleft()
 
             if not self.timestamps:
                 return 0.0

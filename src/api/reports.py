@@ -11,8 +11,6 @@ from fastapi import APIRouter, Query, HTTPException
 from fastapi.responses import Response
 
 from src.analysis.report_aggregator import ReportAggregator, DailyMetrics
-from src.exporters.pdf_exporter import generate_pdf
-from src.exporters.excel_exporter import generate_excel_report
 from src.api.health import _source_registry, DataSourceHealth, DataSourceStatus
 
 logger = logging.getLogger(__name__)
@@ -156,6 +154,7 @@ async def export_pdf_report(
         template_name = "weekly_report.html"
 
     try:
+        from src.exporters.pdf_exporter import generate_pdf
         pdf_bytes = generate_pdf(template_name, context)
         return Response(
             content=pdf_bytes,
@@ -201,6 +200,7 @@ async def export_excel_report(
         excel_data["date"] = excel_data["week_start"]
 
     try:
+        from src.exporters.excel_exporter import generate_excel_report
         excel_bytes = generate_excel_report(excel_data, report_type)
         return Response(
             content=excel_bytes,
