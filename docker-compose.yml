@@ -1,9 +1,23 @@
+# ============================================
+# SecAlert 完整服务配置 (生产/调试模式)
+# ============================================
+#
+# 使用方式:
+#   完整服务 (前后端使用 Docker): docker compose up
+#   开发调试模式 (前后端本地源码): 见 docker-compose.dev.yml
+#
+# 开发调试模式启动:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# 排除前后端仅启动基础设施:
+#   docker compose up zookeeper kafka elasticsearch redis postgres neo4j minio
+#
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: secalert-zookeeper
     ports:
-      - "2181:2181"
+      - "52181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -19,7 +33,7 @@ services:
     image: confluentinc/cp-kafka:7.5.0
     container_name: secalert-kafka
     ports:
-      - "9092:9092"
+      - "59092:9092"
       - "29092:29092"
     depends_on:
       zookeeper:
@@ -44,9 +58,10 @@ services:
     image: timberio/vector:latest-alpine
     container_name: secalert-vector
     ports:
-      - "514:514"
-      - "515:515"
-      - "9001:9001"
+      - "50514:514"
+      - "50515:515"
+      - "59001:9001"
+      - "59002:9002"
     depends_on:
       kafka:
         condition: service_healthy
@@ -66,7 +81,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: secalert-elasticsearch
     ports:
-      - "9200:9200"
+      - "59200:9200"
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"
@@ -83,7 +98,7 @@ services:
     image: redis:7-alpine
     container_name: secalert-redis
     ports:
-      - "6379:6379"
+      - "56379:6379"
     command: redis-server --maxmemory-policy allkeys-lru --maxmemory 256mb
     networks:
       - secalert-network
@@ -97,7 +112,7 @@ services:
     image: postgres:16-alpine
     container_name: secalert-postgres
     ports:
-      - "5432:5432"
+      - "55432:5432"
     environment:
       POSTGRES_DB: secalert
       POSTGRES_USER: secalert
@@ -116,8 +131,8 @@ services:
     image: neo4j:5.18-community
     container_name: secalert-neo4j
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "57474:7474"
+      - "57687:7687"
     environment:
       NEO4J_AUTH: neo4j/neo4j_dev
       NEO4J_PLUGINS: '["apoc"]'
@@ -133,13 +148,17 @@ services:
       timeout: 5s
       retries: 5
 
+  # ============================================
+  # API 服务 (通过 Dockerfile 构建)
+  # 如需本地源码调试，使用 docker-compose.dev.yml 中的配置
+  # ============================================
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
     container_name: secalert-api
     ports:
-      - "8000:8000"
+      - "58000:8000"
     depends_on:
       - neo4j
       - postgres
@@ -158,6 +177,24 @@ services:
       timeout: 5s
       retries: 3
 
+  # ============================================
+  # Frontend: 前端 UI 服务 (React/Vite)
+  # 如需本地源码调试，使用 docker-compose.dev.yml 中的配置
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: secalert-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_BASE: /api
+    networks:
+      - secalert-network
+    depends_on:
+      - api
+
   logstash:
     image: docker.elastic.co/logstash/logstash:8.11.0
     container_name: secalert-logstash
@@ -165,7 +202,7 @@ services:
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
     ports:
-      - "5044:5044"
+      - "55044:5044"
     environment:
       - "LS_JAVA_OPTS=-Xms2g -Xmx2g"
       - "LOGSTASH_ENABLED=${LOGSTASH_ENABLED:-false}"
@@ -195,8 +232,8 @@ services:
     image: minio/minio:latest
     container_name: secalert-minio
     ports:
-      - "9000:9000"   # API
-      - "9001:9001"   # Console
+      - "59000:9000"   # API
+      - "59003:9001"   # Console (改为59003避免与vector的9001冲突)
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
@@ -249,6 +286,31 @@ services:
         limits:
           memory: 512M
           cpus: '0.5'
+
+  # ============================================
+  # Prometheus: 指标监控
+  # ============================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: secalert-prometheus
+    ports:
+      - "59090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./storage/prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   secalert-network:

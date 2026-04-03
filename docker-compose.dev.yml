@@ -1,0 +1,80 @@
+# ============================================
+# SecAlert 开发环境配置
+# 使用本地源码进行调试
+#
+# 启动方式:
+#   基础设施 + 前后端本地调试:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+#   仅启动基础设施 (不启动前后端):
+#   docker compose up zookeeper kafka elasticsearch redis postgres neo4j minio prometheus
+#
+#   前后端在本地单独启动:
+#   cd frontend && npm run dev    # 前端: http://localhost:3000
+#   cd src && uvicorn src.api.main:app --reload  # 后端: http://localhost:8000
+# ============================================
+
+services:
+  # ============================================
+  # API 开发服务 - 使用本地源码 + uvicorn 热重载
+  # ============================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: secalert-api-dev
+    volumes:
+      # 挂载本地源码覆盖容器内源码，实现热重载
+      - ./src:/app/src
+      - ./rules:/app/rules
+      - ./storage:/app/storage
+      - ./parser:/app/parser
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USERNAME: neo4j
+      NEO4J_PASSWORD: neo4j_dev
+      POSTGRES_URI: postgresql://secalert:secalert_dev@postgres:5432/secalert
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: DEBUG
+    # 使用 --reload 实现代码修改自动重载
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "58000:8000"
+
+  # ============================================
+  # Frontend 开发服务 - 使用本地源码 Vite 开发服务器
+  # ============================================
+  frontend:
+    image: node:20-alpine
+    container_name: secalert-frontend-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_BASE: http://localhost:58000/api
+      VITE_WS_BASE: ws://localhost:58000
+    networks:
+      - secalert-network
+
+  # ============================================
+  # DLQ Consumer 开发服务 - 使用本地源码
+  # ============================================
+  dlq-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.dlq
+    container_name: secalert-dlq-consumer-dev
+    volumes:
+      - ./src:/app/src
+      - ./parser:/app/parser
+    environment:
+      KAFKA_BOOTSTRAP: kafka:29092
+      DLQ_TOPIC: dlq-events
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: secalert-dlq

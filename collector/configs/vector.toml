@@ -5,6 +5,15 @@
 enabled = true
 address = "0.0.0.0:9001"
 
+# ============================================
+# Internal Metrics Source
+# ============================================
+[sources.internal_metrics]
+type = "internal_metrics"
+
+# ============================================
+# Syslog Source (Suricata)
+# ============================================
 [sources.suricata_syslog]
 type = "syslog"
 address = "0.0.0.0:514"
@@ -31,3 +40,12 @@ linger_ms = 5
 buffer_type = "disk"
 buffer_max_size = 1073741824
 buffer_when_full = "block"
+
+# ============================================
+# Prometheus Metrics Sink
+# ============================================
+[sinks.prometheus_metrics]
+type = "prometheus_exporter"
+inputs = ["internal_metrics"]
+address = "0.0.0.0:9002"
+default_namespace = "secalert"
