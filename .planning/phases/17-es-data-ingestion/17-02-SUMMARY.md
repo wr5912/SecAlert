@@ -90,3 +90,10 @@ grep "remove_field.*alert_level" logstash/pipeline/es-input.conf
 ## 下一步
 
 - 继续执行 Plan 17-03 (验证 Logstash Pipeline 配置)
+
+## Self-Check: PASSED
+
+- [x] SUMMARY.md 创建成功
+- [x] 提交 bbf383a 存在 (feat: ES 告警过滤查询 + 字段映射 + OCSF 格式转换)
+- [x] 提交 fbfa5f6 存在 (docs: 完成 17-02 文档)
+- [x] 所有验证通过
