@@ -3,7 +3,7 @@
 **Project:** Security Alert Analysis System
 **Granularity:** Standard
 **Created:** 2026-03-22
-**Updated:** 2026-04-02
+**Updated:** 2026-04-03
 
 ---
 
@@ -28,7 +28,12 @@
 **Goal:** 增加从 Elasticsearch 中接入安全日志数据的渠道
 **Requirements**: ES-01, ES-02, ES-03, ES-04
 **Depends on:** Phase 16
-**Plans:** 1/1 plans complete
+**Plans:** 3/3 plans created
+
+Plans:
+- [x] 17-01-PLAN.md — Logstash Docker 服务配置完成 (ES-01, ES-02)
+- [ ] 17-02-PLAN.md — ES 日志拉取与解析接入 (ES-03)
+- [ ] 17-03-PLAN.md — ES 告警数据采集流程 + E2E 验证 (ES-04)
 
 ---
 
