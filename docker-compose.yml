@@ -158,7 +158,7 @@ services:
       timeout: 5s
       retries: 3
 
-logstash:
+  logstash:
     image: docker.elastic.co/logstash/logstash:8.11.0
     container_name: secalert-logstash
     volumes:
@@ -169,10 +169,17 @@ logstash:
     environment:
       - "LS_JAVA_OPTS=-Xms2g -Xmx2g"
       - "LOGSTASH_ENABLED=${LOGSTASH_ENABLED:-false}"
+      - "ES_HOST=elasticsearch:9200"
+      - "ES_USER=${ES_USER:-elastic}"
+      - "ES_PASSWORD=${ES_PASSWORD:-changeme}"
+      - "ES_INDEX=${ES_INDEX:-security-alerts-*}"
+      - "KAFKA_BOOTSTRAP=kafka:9092"
     networks:
       - secalert-network
     depends_on:
       kafka:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9600/_node/stats || exit 1"]
