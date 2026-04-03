@@ -2,36 +2,36 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: 多源异构数据模拟器 + DLQ
-current_phase: 18
+current_phase: 19
 status: planning
-last_updated: "2026-04-03T05:20:00.000Z"
+last_updated: "2026-04-03T06:00:00.000Z"
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # SecAlert State
 
 **Project:** Security Alert Analysis System
 **Core Value:** 帮助非专业运维人员自动过滤海量告警，只呈现真正需要关注的安全威胁
-**Current Phase:** 18 (data-simulators) — PLANNING
+**Current Phase:** 19 (collection-monitoring) — PLANNING
 
 ---
 
 ## Current Position
 
-Phase: 18 (data-simulators) — PLANNING
-Plan: 1 of 2
+Phase: 18 (data-simulators) — COMPLETED ✅
+Plan: 2 of 2
 
 ## v1.6 Phase Breakdown
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 17 | ES数据渠道接入 | ES-01, ES-02, ES-03, ES-04 | Completed ✅ |
-| 18 | 多源异构数据模拟器 | SM-01 | Planning |
-| 19 | 采集可观测性监控 | SM-02 | Not Started |
+| 18 | 多源异构数据模拟器 | SM-01 | Completed ✅ |
+| 19 | 采集可观测性监控 | SM-02 | Planning |
 
 ## Decisions Made
 
@@ -50,6 +50,8 @@ _Accumulated context from previous milestones preserved below_
 - [Phase 17]: Logstash elasticsearch input 插件支持 Scroll API 深度分页
 - [Phase 17]: 幂等写入（docinfo + document_id）防止重复数据
 - [Phase 17]: ES-03: 告警过滤查询条件 - 时间范围 now-1h~now + severity high/critical + risk_score >= 70
+- [Phase 18-01]: 使用 summved/log-generator 作为核心日志生成器，支持 MITRE ATT&CK 和 12+ 数据源
+- [Phase 18-02]: DLQ 重试机制使用 Redis Sorted Set，Score=重试时间戳，7天过期
 
 ## v1.5 Phase Breakdown
 
