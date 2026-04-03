@@ -15,17 +15,18 @@
 - ✅ **v1.3** — Claude Code AI 后端 (shipped 2026-04-01)
 - ✅ **v1.4** — 数据接入前端界面 (shipped 2026-04-02)
 - ✅ **v1.5** — 数据接入功能完善 + 全局元数据 (shipped 2026-04-03)
+- 🚧 **v1.6** — 从 Elasticsearch 接入数据渠道 (Phase 17)
 
 ---
 
 ## Current State
 
-**Shipped v1.5** — 数据接入 4 步向导、AI 自动识别、可视化字段映射、解析测试、全局元数据体系。
+**v1.6 进行中** — 增加从 Elasticsearch 接入安全日志数据的渠道
 
-### Phase 17: 多渠道采集后端
+### Phase 17: ES 数据渠道接入
 
-**Goal:** 实现多渠道数据采集后端，支持 HTTP/WebSocket/TCP/UDP 多协议接入
-**Requirements**: MC-01, MC-02, MC-03
+**Goal:** 增加从 Elasticsearch 中接入安全日志数据的渠道
+**Requirements**: ES-01, ES-02, ES-03, ES-04
 **Depends on:** Phase 16
 **Plans:** Not started
 
@@ -38,4 +39,5 @@
 - [v1.2-ROADMAP.md](./milestones/v1.2-ROADMAP.md) — Phases 9-12
 - [v1.3-ROADMAP.md](./milestones/v1.3-ROADMAP.md) — Phase 13
 - [v1.4-ROADMAP.md](./milestones/v1.4-ROADMAP.md) — Phases 14-15
+- [v1.5-ROADMAP.md](./milestones/v1.5-ROADMAP.md) — Phase 16
 - [v1.5-ROADMAP.md](./milestones/v1.5-ROADMAP.md) — Phases 16

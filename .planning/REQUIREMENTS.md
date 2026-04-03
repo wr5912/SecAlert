@@ -223,3 +223,23 @@
 | SM-02 | 采集可观测性监控 | 19 | Pending |
 | GM-01 | 全局元数据强制注入 | 16 | Pending |
 | GM-02 | OCSF Target Mapping | 16 | Pending |
+
+---
+
+## v1.6 从 Elasticsearch 接入数据渠道 (In Progress)
+
+### Phase 17: ES 数据渠道接入 (ES-01 ~ ES-04)
+
+- **ES-01**: ES 数据源连接配置（主机、端口、认证）
+- **ES-02**: ES 查询模板管理（Index Pattern、Time Field、Query DSL）
+- **ES-03**: ES 日志拉取与解析接入
+- **ES-04**: ES 告警数据采集流程
+
+### Traceability
+
+| REQ-ID | Phase | Description | Status |
+|--------|-------|-------------|--------|
+| ES-01 | 17 | ES 数据源连接配置 | - |
+| ES-02 | 17 | ES 查询模板管理 | - |
+| ES-03 | 17 | ES 日志拉取与解析 | - |
+| ES-04 | 17 | ES 告警采集流程 | - |
