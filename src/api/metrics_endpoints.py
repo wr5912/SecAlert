@@ -158,3 +158,111 @@ async def get_metrics_summary():
         "resolved_chains": resolved,
         "false_positive_chains": false_positive,
     }
+
+
+# ============================================
+# 采集可观测性指标 (SM-02)
+# ============================================
+
+@router.get("/collection")
+async def get_collection_metrics():
+    """
+    获取采集系统指标 (Prometheus 格式)
+
+    Returns:
+        Prometheus text format 指标
+    """
+    from src.collection.metrics import get_metrics_collector
+
+    collector = get_metrics_collector()
+    return {"metrics": collector.get_prometheus_format()}
+
+
+@router.get("/collection/prometheus")
+async def get_collection_metrics_prometheus():
+    """
+    获取采集系统指标 (Prometheus 格式纯文本)
+
+    Returns:
+        Prometheus text format
+    """
+    from fastapi import Response
+    from src.collection.metrics import get_metrics_collector
+
+    collector = get_metrics_collector()
+    return Response(
+        content=collector.get_prometheus_format(),
+        media_type="text/plain; charset=utf-8"
+    )
+
+
+@router.get("/collection/summary")
+async def get_collection_summary():
+    """
+    获取采集指标摘要 (JSON 格式)
+
+    Returns:
+        MetricsSummary
+    """
+    from src.collection.metrics import get_metrics_collector
+
+    collector = get_metrics_collector()
+    summary = collector.get_summary()
+    return {
+        "timestamp": summary.timestamp.isoformat(),
+        "uptime_seconds": summary.uptime_seconds,
+        "collection": {
+            "events_in_total": summary.collection.events_in_total,
+            "events_out_total": summary.collection.events_out_total,
+            "parse_errors_total": summary.collection.parse_errors_total,
+            "dlq_messages_total": summary.collection.dlq_messages_total,
+            "events_in_rate": round(summary.collection.events_in_rate, 2),
+            "events_out_rate": round(summary.collection.events_out_rate, 2),
+            "collection_lag_ms": summary.collection.collection_lag_ms,
+            "dlq_size": summary.collection.dlq_size,
+            "datasource_health": round(summary.collection.datasource_health, 3),
+            "parse_success_rate": round(summary.collection.parse_success_rate, 4),
+        },
+        "datasources": [
+            {
+                "name": ds.name,
+                "type": ds.type,
+                "status": ds.status,
+                "last_seen": ds.last_seen.isoformat() if ds.last_seen else None,
+                "events_total": ds.events_total,
+                "errors_total": ds.errors_total,
+                "health_score": round(ds.health_score, 3),
+            }
+            for ds in summary.datasources
+        ]
+    }
+
+
+@router.get("/collection/datasource")
+async def get_datasource_health():
+    """
+    获取各数据源健康详情
+
+    Returns:
+        数据源健康状态列表
+    """
+    from src.collection.metrics import get_metrics_collector
+
+    collector = get_metrics_collector()
+    summary = collector.get_summary()
+
+    return {
+        "overall_health": round(summary.collection.datasource_health, 3),
+        "datasources": [
+            {
+                "name": ds.name,
+                "type": ds.type,
+                "status": ds.status,
+                "last_seen": ds.last_seen.isoformat() if ds.last_seen else None,
+                "events_total": ds.events_total,
+                "errors_total": ds.errors_total,
+                "health_score": round(ds.health_score, 3),
+            }
+            for ds in summary.datasources
+        ]
+    }
