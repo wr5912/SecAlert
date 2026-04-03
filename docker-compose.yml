@@ -158,6 +158,21 @@ services:
       timeout: 5s
       retries: 3
 
+logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: secalert-logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+    ports:
+      - "5044:5044"
+    environment:
+      - "LS_JAVA_OPTS=-Xms2g -Xmx2g"
+    networks:
+      - secalert-network
+    depends_on:
+      - kafka
+
 networks:
   secalert-network:
     driver: bridge
