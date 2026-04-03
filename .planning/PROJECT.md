@@ -23,21 +23,22 @@
 - [x] 系统能给出简单明确的处置建议 — v1.0 (Phase 4, UAT ✅)
 - [x] 界面简洁，面向非专业运维人员 — v1.0 (Phase 4, UAT ✅)
 
-## Current Milestone: v1.5 多源异构安全日志采集优化
+## Current Milestone: v1.6 从 Elasticsearch 接入数据渠道
 
-**Goal:** 扩展多渠道采集接入能力，建立可观测的采集监控体系，强化全局元数据标签
+**Goal:** 增加从 Elasticsearch 中接入安全日志数据的渠道
 
 **Target features:**
-- 多渠道接入后端：Kafka Topic 订阅、Webhook 接收网关、REST API / 数据库定时轮询
-- 采集监控与 DLQ：死信队列（解析失败日志不丢失）、EPS 监控、采集延迟告警、背压机制
-- 全局元数据体系：强制 vendor_name / product_name / device_type + OCSF target + tenant_id / environment
+- ES 数据源连接配置（主机、端口、认证）
+- ES 查询模板管理（Index Pattern、Time Field、Query DSL）
+- ES 日志拉取与解析接入
+- 告警数据从 ES 到系统的采集流程
 
 ### Out of Scope
 
 - 自动响应/自动阻断 — 系统只报警，不自动处置
 - 专业安全分析师工具 — 用户是普通IT运维，不是安全专家
 - 实时阻断防护 — 分析工具定位，不做边界防护
-- 采集配置版本化与回滚 — 放到 v1.6
+- 其他数据渠道（Kafka、Webhook等）— 已规划或已在用
 
 ## Context
 
