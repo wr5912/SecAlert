@@ -1,0 +1,25 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# 安装依赖
+RUN pip install --no-cache-dir \
+    confluent-kafka \
+    redis \
+    minio \
+    fastapi \
+    uvicorn
+
+# 复制源代码
+COPY src/collection/dlq/ /app/src/collection/dlq/
+COPY parser/ /app/parser/
+COPY src/collection/metadata.py /app/src/collection/metadata.py
+COPY src/collection/__init__.py /app/src/collection/__init__.py
+
+# 设置 Python 路径
+ENV PYTHONPATH=/app
+
+EXPOSE 8080
+
+# 运行 DLQ Consumer
+CMD ["python", "-m", "src.collection.dlq.consumer"]

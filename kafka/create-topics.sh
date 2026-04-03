@@ -24,6 +24,22 @@ kafka-topics --create \
   --replication-factor 1 \
   --config retention.ms=604800000
 
+# Create raw-events topic (Phase 17)
+kafka-topics --create \
+  --bootstrap-server $KAFKA_BOOTSTRAP \
+  --topic raw-events \
+  --partitions 6 \
+  --replication-factor 1 \
+  --config retention.ms=604800000
+
+# Create DLQ (Dead Letter Queue) topic for failed parsing events
+kafka-topics --create \
+  --bootstrap-server $KAFKA_BOOTSTRAP \
+  --topic dlq-events \
+  --partitions 3 \
+  --replication-factor 1 \
+  --config retention.ms=604800000
+
 echo "Topics created successfully"
 
 # List created topics

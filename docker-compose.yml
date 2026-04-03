@@ -188,6 +188,68 @@ services:
       retries: 5
       start_period: 60s
 
+  # ============================================
+  # MinIO: S3 兼容对象存储 (用于 DLQ 归档)
+  # ============================================
+  minio:
+    image: minio/minio:latest
+    container_name: secalert-minio
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./storage/minio/data:/data
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ============================================
+  # DLQ Consumer: 死信队列消费者服务
+  # ============================================
+  dlq-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.dlq
+    container_name: secalert-dlq-consumer
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+      DLQ_TOPIC: dlq-events
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: secalert-dlq
+    volumes:
+      - ./parser:/app/parser:ro
+      - ./src/collection:/app/src/collection:ro
+    networks:
+      - secalert-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis'); r.ping()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
 networks:
   secalert-network:
     driver: bridge
