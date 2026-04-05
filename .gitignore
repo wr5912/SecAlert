@@ -209,6 +209,9 @@ storage/neo4j/
 storage/minio/
 storage/prometheus/
 
+# Docker volume data (统一管理)
+docker_volume_data/
+
 # Node
 node_modules/
 
