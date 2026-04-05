@@ -4,7 +4,7 @@
 #
 # 启动方式:
 #   1. 启动基础设施 (Docker):
-#      sudo docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#      sudo docker compose -f docker-compose.dev.yml up -d
 #
 #   2. 启动后端 (本地，端口 58000):
 #      cd /home/admin/work/SecAlert && source .venv/bin/activate && uvicorn src.api.main:app --host 0.0.0.0 --port 58000 --reload
