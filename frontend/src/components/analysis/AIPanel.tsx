@@ -6,6 +6,8 @@
  */
 
 import { useState, useEffect, useRef, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Bot, Send, X, AlertCircle, BarChart3, Shield, Settings, Loader2, MessageSquare, Sparkles, FileText, FileCode, FileJson } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAnalysisStore } from '../../stores/analysisStore';
@@ -51,7 +53,47 @@ export function AIPanel({ onExport }: AIPanelProps) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
   const [showChat, setShowChat] = useState(false);
+  const [wsStatus, setWsStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
+  const [panelWidth, setPanelWidth] = useState(320); // 默认宽度 320px
+  const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // 拖动调整宽度
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = window.innerWidth - e.clientX;
+      // 限制最小 240px，最大 600px
+      const clampedWidth = Math.min(Math.max(newWidth, 240), 600);
+      setPanelWidth(clampedWidth);
+    };
+
+    const handleMouseUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   // 获取当前页面上下文 - 使用 useMemo 避免无限循环
   const location = useLocation();
@@ -230,6 +272,7 @@ export function AIPanel({ onExport }: AIPanelProps) {
     // 添加空助手消息占位
     addMessage({ role: 'assistant', content: '' });
     setStreaming(true);
+    setWsStatus('connecting');
 
     // 流式获取响应 (使用 WebSocket)
     streamChatWebSocket(
@@ -238,16 +281,21 @@ export function AIPanel({ onExport }: AIPanelProps) {
       chatContext,
       // onChunk
       (token) => {
+        setWsStatus('connected');
         updateLastMessage((prev: string) => filterSensitiveInfo(prev + token));
       },
       // onDone
       () => {
         setStreaming(false);
+        setWsStatus('idle');
       },
       // onError
       (error) => {
+        setWsStatus('error');
         updateLastMessage((prev: string) => prev + `\n\n[错误: ${error.message}]`);
         setStreaming(false);
+        // 3秒后重置状态
+        setTimeout(() => setWsStatus('idle'), 3000);
       }
     );
   };
@@ -264,7 +312,27 @@ export function AIPanel({ onExport }: AIPanelProps) {
   if (!copilotOpen) return null;
 
   return (
-    <aside className="w-80 bg-surface/95 backdrop-blur-md border-l border-border/50 flex flex-col fixed right-0 top-0 h-screen z-50 shadow-xl">
+    <aside
+      ref={panelRef}
+      className="bg-surface/95 backdrop-blur-md border-l border-border/50 flex flex-col fixed right-0 top-0 h-screen z-50 shadow-xl"
+      style={{ width: panelWidth }}
+    >
+      {/* 拖动调整把手 - 左侧 */}
+      <div
+        className={cn(
+          "absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize group z-10",
+          "hover:bg-accent/30 transition-colors",
+          isResizing && "bg-accent/50"
+        )}
+        onMouseDown={handleMouseDown}
+      >
+        <div className={cn(
+          "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-text-muted/30",
+          "opacity-0 group-hover:opacity-100 transition-opacity",
+          isResizing && "opacity-100"
+        )} />
+      </div>
+
       {/* 顶部渐变线 */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
 
@@ -332,7 +400,11 @@ export function AIPanel({ onExport }: AIPanelProps) {
                       <span>AI 助手</span>
                     </div>
                   )}
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                  <div className="text-sm leading-relaxed [&>p]:my-1 [&>h1]:my-2 [&>h1]:text-lg [&>h2]:my-2 [&>h2]:text-base [&>h3]:my-2 [&>h3]:text-sm [&>h3]:font-semibold [&>p]:leading-relaxed [&>ul]:my-1 [&>ol]:my-1 [&>li]:my-0.5 [&>code]:text-accent [&>code]:bg-surface-hover [&>code]:px-1 [&>code]:rounded [&>code]:before:content-none [&>code]:after:content-none [&>pre]:my-2 [&>pre]:bg-[#0a0f1a] [&>pre]:border [&>pre]:border-border/50 [&>pre]:p-3 [&>pre]:rounded-lg [&>table]:text-xs [&>thead]:border-b [&>th]:pb-1 [&>td]:py-1">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {msg.content}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </div>
             ))}
@@ -417,7 +489,7 @@ export function AIPanel({ onExport }: AIPanelProps) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="输入您的安全问题..."
-            className="w-full rounded-xl border border-border bg-background/80 px-4 py-3 pr-12 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 resize-none transition-all"
+            className="w-full rounded-xl border border-border bg-[#0a0f1a]/80 px-4 py-3 pr-12 text-sm text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 resize-none transition-all"
             rows={2}
             disabled={isStreaming}
           />
@@ -435,6 +507,29 @@ export function AIPanel({ onExport }: AIPanelProps) {
             )}
           </Button>
         </div>
+        {/* 连接状态指示器 */}
+        {wsStatus !== 'idle' && (
+          <div className="mt-2 flex items-center gap-2">
+            {wsStatus === 'connecting' && (
+              <>
+                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                <span className="text-xs text-yellow-500">正在连接...</span>
+              </>
+            )}
+            {wsStatus === 'connected' && (
+              <>
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-xs text-green-500">已连接</span>
+              </>
+            )}
+            {wsStatus === 'error' && (
+              <>
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-xs text-red-500">连接异常</span>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 导出功能 */}
