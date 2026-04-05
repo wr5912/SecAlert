@@ -11,6 +11,9 @@ export default {
         background: 'var(--background)',
         surface: 'var(--surface)',
         border: 'var(--border)',
+        'text-primary': 'var(--text-primary)',
+        'text-secondary': 'var(--text-secondary)',
+        'text-muted': 'var(--text-muted)',
         accent: {
           DEFAULT: 'var(--accent)',
           muted: 'var(--accent-muted)',

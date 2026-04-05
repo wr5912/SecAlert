@@ -6,10 +6,16 @@
 import logging
 from typing import AsyncGenerator, Optional
 from claude_agent_sdk import (
+    AssistantMessage,
     ClaudeAgentOptions,
     ClaudeSDKClient,
+    ResultMessage,
+    SystemMessage,
+    TextBlock,
+    ToolResultBlock,
+    ToolUseBlock,
     CLINotFoundError,
-    CLIConnectionError
+    CLIConnectionError,
 )
 
 from src.agent.config import get_agent_config
@@ -50,7 +56,7 @@ class AgentClient:
                 allowed_tools=self._config["allowed_tools"],
                 permission_mode=self._config["permission_mode"],
                 cwd=self._config["cwd"],
-                max_steps=self._config.get("max_steps", 10),
+                max_turns=self._config.get("max_turns", 10),
                 mcp_servers={"security": security_tools},
                 env=self._config.get("env", {})
             )
@@ -63,27 +69,33 @@ class AgentClient:
 
                 # 流式接收响应
                 async for msg in self.client.receive_response():
-                    # 处理不同消息类型
-                    msg_type = getattr(msg, 'type', 'unknown')
+                    # SystemMessage: hook_started, hook_response, init 等 - 跳过
+                    if isinstance(msg, SystemMessage):
+                        continue
 
-                    if msg_type == 'assistant_message' or msg_type == 'text':
-                        content = getattr(msg, 'text', '') or ''
-                        for block in getattr(msg, 'content', []):
-                            if hasattr(block, 'text'):
-                                content += block.text
-                        if content:
-                            yield {"type": "text", "content": content}
+                    # AssistantMessage: 包含 ThinkingBlock 和 TextBlock
+                    if isinstance(msg, AssistantMessage):
+                        for block in msg.content:
+                            # 跳过 ThinkingBlock，只返回 TextBlock
+                            if isinstance(block, TextBlock) and block.text:
+                                yield {"type": "text", "content": block.text}
 
-                    elif msg_type == 'tool_use':
-                        tool_name = getattr(msg, 'tool_name', 'unknown')
-                        yield {"type": "tool_use", "content": f"正在执行: {tool_name}"}
+                    # ResultMessage: 最终结果
+                    elif isinstance(msg, ResultMessage):
+                        if msg.result:
+                            yield {"type": "text", "content": msg.result}
 
-                    elif msg_type == 'tool_result':
+                    # ToolUseBlock: 工具执行中
+                    elif isinstance(msg, ToolUseBlock):
+                        yield {"type": "tool_use", "content": f"正在执行: {msg.name}"}
+
+                    # ToolResultBlock: 工具执行完成
+                    elif isinstance(msg, ToolResultBlock):
                         yield {"type": "tool_result", "content": "工具执行完成"}
 
-                    elif msg_type == 'error':
-                        error_msg = getattr(msg, 'error', str(msg))
-                        yield {"type": "error", "content": str(error_msg)}
+                    # 其他未处理的消息类型，静默跳过
+                    else:
+                        pass
 
         except CLINotFoundError as e:
             logger.error(f"Claude SDK 未找到: {e}")

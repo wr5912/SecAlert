@@ -42,7 +42,7 @@ def get_agent_config(user_id: str) -> dict:
         ],
         "permission_mode": "acceptEdits",
         "cwd": workspace,
-        "max_steps": 10,
+        "max_turns": 10,
         "env": {
             "ANTHROPIC_BASE_URL": os.getenv("ANTHROPIC_BASE_URL", "https://api.deepseek.com"),
             "ANTHROPIC_API_KEY": os.getenv("DEEPSEEK_API_KEY", ""),

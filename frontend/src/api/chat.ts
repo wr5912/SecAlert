@@ -257,6 +257,16 @@ export function streamChatWebSocket(
 
   const ws = new WebSocket(wsUrl);
 
+  // 连接超时处理 - 10秒超时
+  const timeout = setTimeout(() => {
+    if (ws.readyState !== WebSocket.OPEN) {
+      ws.close();
+      onError(new Error('WebSocket connection timeout'));
+    }
+  }, 10000);
+
+  let hasFinished = false;
+
   ws.onopen = () => {
     // 发送消息
     ws.send(JSON.stringify({
@@ -277,9 +287,17 @@ export function streamChatWebSocket(
         // 工具执行中，可选显示
         onChunk(content);
       } else if (msgType === 'done') {
-        onDone();
+        if (!hasFinished) {
+          hasFinished = true;
+          clearTimeout(timeout);
+          onDone();
+        }
       } else if (msgType === 'error') {
-        onError(new Error(content || 'Unknown error'));
+        if (!hasFinished) {
+          hasFinished = true;
+          clearTimeout(timeout);
+          onError(new Error(content || 'Unknown error'));
+        }
       }
     } catch (e) {
       // 忽略解析错误
@@ -287,12 +305,20 @@ export function streamChatWebSocket(
   };
 
   ws.onerror = (_event) => {
-    onError(new Error('WebSocket connection error'));
+    if (!hasFinished) {
+      hasFinished = true;
+      clearTimeout(timeout);
+      onError(new Error('WebSocket connection error'));
+    }
   };
 
   ws.onclose = () => {
-    // 连接关闭时调用 onDone
-    onDone();
+    clearTimeout(timeout);
+    if (!hasFinished) {
+      hasFinished = true;
+      // 连接关闭时调用 onDone，除非已经调用过 onError
+      onDone();
+    }
   };
 
   return ws;
