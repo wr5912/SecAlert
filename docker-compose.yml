@@ -138,8 +138,8 @@ services:
       NEO4J_PLUGINS: '["apoc"]'
       NEO4J_dbms_security_procedures_unrestricted: apoc.*
     volumes:
-      - ./storage/neo4j/data:/data
-      - ./storage/neo4j/logs:/logs
+      - ./docker_volume_data/neo4j/data:/data
+      - ./docker_volume_data/neo4j/logs:/logs
     networks:
       - secalert-network
     healthcheck:
@@ -239,7 +239,7 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
     volumes:
-      - ./storage/minio/data:/data
+      - ./docker_volume_data/minio/data:/data
     networks:
       - secalert-network
     healthcheck:
@@ -297,7 +297,7 @@ services:
       - "59090:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./storage/prometheus/data:/prometheus
+      - ./docker_volume_data/prometheus:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'

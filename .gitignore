@@ -205,9 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
-storage/neo4j/
-storage/minio/
-storage/prometheus/
 
 # Docker volume data (统一管理)
 docker_volume_data/
