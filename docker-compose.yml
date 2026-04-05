@@ -12,141 +12,8 @@
 # 排除前后端仅启动基础设施:
 #   docker compose up zookeeper kafka elasticsearch redis postgres neo4j minio
 #
+
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: secalert-zookeeper
-    ports:
-      - "52181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - secalert-network
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: secalert-kafka
-    ports:
-      - "59092:9092"
-      - "29092:29092"
-    depends_on:
-      zookeeper:
-        condition: service_healthy
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-    networks:
-      - secalert-network
-    healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-
-  vector:
-    image: timberio/vector:latest-alpine
-    container_name: secalert-vector
-    ports:
-      - "50514:514"
-      - "50515:515"
-      - "59001:9001"
-      - "59002:9002"
-    depends_on:
-      kafka:
-        condition: service_healthy
-    volumes:
-      - ./collector/configs/vector.toml:/vector.toml:ro
-    environment:
-      VECTOR_CONFIG: /vector.toml
-    networks:
-      - secalert-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9001/health || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: secalert-elasticsearch
-    ports:
-      - "59200:9200"
-    environment:
-      discovery.type: single-node
-      xpack.security.enabled: "false"
-      ES_JAVA_OPTS: -Xms512m -Xmx512m
-    networks:
-      - secalert-network
-    healthcheck:
-      test: ["CMD", "curl", "-s", "http://localhost:9200/_cluster/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: secalert-redis
-    ports:
-      - "56379:6379"
-    command: redis-server --maxmemory-policy allkeys-lru --maxmemory 256mb
-    networks:
-      - secalert-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  postgres:
-    image: postgres:16-alpine
-    container_name: secalert-postgres
-    ports:
-      - "55432:5432"
-    environment:
-      POSTGRES_DB: secalert
-      POSTGRES_USER: secalert
-      POSTGRES_PASSWORD: secalert_dev
-    volumes:
-      - ./storage/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - secalert-network
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "secalert"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  neo4j:
-    image: neo4j:5.18-community
-    container_name: secalert-neo4j
-    ports:
-      - "57474:7474"
-      - "57687:7687"
-    environment:
-      NEO4J_AUTH: neo4j/neo4j_dev
-      NEO4J_PLUGINS: '["apoc"]'
-      NEO4J_dbms_security_procedures_unrestricted: apoc.*
-    volumes:
-      - ./docker_volume_data/neo4j/data:/data
-      - ./docker_volume_data/neo4j/logs:/logs
-    networks:
-      - secalert-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # ============================================
   # API 服务 (通过 Dockerfile 构建)
@@ -195,6 +62,165 @@ services:
     depends_on:
       - api
 
+  # ============================================
+  # Zookeeper
+  # ============================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: secalert-zookeeper
+    ports:
+      - "52181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  # ============================================
+  # Kafka
+  # ============================================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: secalert-kafka
+    ports:
+      - "59092:9092"
+      - "29092:29092"
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:59092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # ============================================
+  # Vector
+  # ============================================
+  vector:
+    image: timberio/vector:latest-alpine
+    container_name: secalert-vector
+    ports:
+      - "50514:514"
+      - "50515:515"
+      - "59001:9001"
+      - "59002:9002"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./collector/configs/vector.toml:/vector.toml:ro
+    environment:
+      VECTOR_CONFIG: /vector.toml
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9001/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ============================================
+  # Elasticsearch
+  # ============================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: secalert-elasticsearch
+    ports:
+      - "59200:9200"
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Redis
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: secalert-redis
+    ports:
+      - "56379:6379"
+    command: redis-server --maxmemory-policy allkeys-lru --maxmemory 256mb
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ============================================
+  # PostgreSQL
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: secalert-postgres
+    ports:
+      - "55432:5432"
+    environment:
+      POSTGRES_DB: secalert
+      POSTGRES_USER: secalert
+      POSTGRES_PASSWORD: secalert_dev
+    volumes:
+      - ./storage/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker_volume_data/postgres:/var/lib/postgresql/data
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "secalert"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ============================================
+  # Neo4j
+  # ============================================
+  neo4j:
+    image: neo4j:5.18-community
+    container_name: secalert-neo4j
+    ports:
+      - "57474:7474"
+      - "57687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/neo4j_dev
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+    volumes:
+      - ./docker_volume_data/neo4j/data:/data
+      - ./docker_volume_data/neo4j/logs:/logs
+    networks:
+      - secalert-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Logstash
+  # ============================================
   logstash:
     image: docker.elastic.co/logstash/logstash:8.11.0
     container_name: secalert-logstash
@@ -239,7 +265,7 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
     volumes:
-      - ./docker_volume_data/minio/data:/data
+      - ./docker_volume_data/minio:/data
     networks:
       - secalert-network
     healthcheck:
@@ -256,17 +282,17 @@ services:
       context: .
       dockerfile: Dockerfile.dlq
     container_name: secalert-dlq-consumer
+    volumes:
+      - ./parser:/app/parser:ro
+      - ./src/collection:/app/src/collection:ro
     environment:
-      KAFKA_BOOTSTRAP: kafka:9092
+      KAFKA_BOOTSTRAP: kafka:29092
       DLQ_TOPIC: dlq-events
       REDIS_URL: redis://redis:6379
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET: secalert-dlq
-    volumes:
-      - ./parser:/app/parser:ro
-      - ./src/collection:/app/src/collection:ro
     networks:
       - secalert-network
     depends_on:
@@ -314,4 +340,5 @@ services:
 
 networks:
   secalert-network:
+    name: secalert-network
     driver: bridge
