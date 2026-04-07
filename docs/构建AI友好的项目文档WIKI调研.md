@@ -1,154 +1,87 @@
 # 构建AI友好的项目文档WIKI调研
 
-> 参考： Andrej Karpathy在2026年4月3日发表的X博文：https://x.com/karpathy/status/2039805659525644595
+> 参考： Andrej Karpathy在2026年4月3日发表的X博文：https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f
 
-将项目前期的“人类讨论与探索资料”转化为“AI友好的开发蓝图”，这正是 Karpathy 理念在软件工程中的完美应用场景。
+Andrej Karpathy 在 2026 年初提出的 **“LLM Wiki”**（基于 LLM 的个人知识库）模式，其核心洞察在于：**放弃传统的“每次提问时进行动态 RAG（检索增强生成）”，转而让 LLM 充当“编译器”，将零散的原始资料（Raw Sources）增量编译、提炼为一个结构化、相互链接的持久化 Markdown Wiki，并且由一个全局索引（Index）驱动 AI 的阅读与开发。**
 
-人类友好的文档（如会议记录、脑图、Slack聊天导出、多版本的产品草案）通常是**按时间线（Chronological）或意识流**组织的，充满了冗余、逻辑反转（“昨天决定用A，今天开会决定改用B”）和背景噪音。如果直接让 AI 读这些材料去写代码，AI 会彻底精神分裂（即上下文混乱和严重幻觉）。
+将人类友好的 `AAA/initiative_docs`（包含会议记录、脑暴、调研报告、冗长的飞书/Slack讨论）转换为 AI 友好的 `AAA/docs` 目录，完美契合了这一理念。
 
-而 AI 友好的文档需要是**状态化（Stateful）、原子化（Atomic）、关系化（Relational）且消除歧义的**。
-
-以下是基于 Karpathy 的理念，将 `AAA/initiative_docs` 转化为可直接指导 AI 编码的 `AAA/docs` 的详细最佳实践方案：
+以下是将项目文档目录整理成 AI 友好目录的**指导思想**、**Meta知识**和**最佳实践**：
 
 ---
 
-### 第一步：明确目录层级的“物理隔离”（状态隔离）
+### 一、 指导思想（Guiding Principles）
 
-首先，在项目 AAA 的根目录下，严格区分文档的生命周期状态。绝不要在原有的讨论文档上直接修改。
+#### 1. 预编译替代实时检索（Compilation over RAG）
+人类文档往往是按**时间线**或**事件**组织的（如“4月1日产品评审会议记录.docx”），存在大量上下文缺失、冗余和废话。AI 不需要每次写代码时都去海量文本中“大海捞针”。
+*   **转变**：`AAA/docs` 必须是**预先编译好的“知识结果”**，而不是“历史记录的堆砌”。它应当像代码一样被构建，每次 `initiative_docs` 有新增，就让 AI Agent 去阅读它，并将提取的关键信息**合并（Merge）**到 `AAA/docs` 中已有的结构化页面里。
 
-```text
-AAA/
-├── .cursorrules (或 CLAUDE.md)  <-- AI 的“系统宪法”
-├── initiative_docs/             <-- 对应 Karpathy 的 raw/（不可变层）
-│   ├── 0301_需求评审会议记录.md
-│   ├── 竞品分析与调研报告.pdf
-│   └── 数据库选型讨论(Slack记录).txt
-├── docs/                        <-- 对应 Karpathy 的 wiki/（AI编译层，代码蓝图）
-│   ├── _master_index.md         <-- 超级索引
-│   ├── architecture/            <-- 架构设计
-│   ├── data_models/             <-- 数据模型
-│   ├── api_specs/               <-- API定义
-│   └── features/                <-- 具体功能拆解
-└── src/                         <-- output/（最终的代码交付层）
-```
+#### 2. 以“实体与架构”为中心，打破文档边界（Entity-Centric）
+人类按“文档”思考，AI 按“逻辑实体”思考。
+*   **转变**：LLM 会将 `initiative_docs` 中分散在调研报告、UI设计、会议结论里的关于“用户鉴权”的信息打碎，然后在 `AAA/docs` 中统一汇总到一个 `auth_module.md` 中。交叉引用（Cross-references）已经在文档生成时由 LLM 建立完毕。
 
-**💡 核心原则：** `initiative_docs` 是**“只读（Read-only）”**的，作为事实溯源库；`docs` 是由 AI 提炼后生成的，是开发阶段的**“唯一事实来源（Single Source of Truth, SSOT）”**。
+#### 3. 显式化共识，标记冲突（Synthesis & Conflict Resolution）
+人类的讨论中往往充满矛盾（如 PM 要求 A，但技术 Leader 后来改为 B）。
+*   **转变**：AI 友好的文档不能包含模棱两可的内容。LLM 在提取信息时，如果发现矛盾，必须在编译出的 `docs` 中显式地解决它（基于最新时间戳），或者使用显式的 `[WARNING: 冲突未决]` 标签让开发者确认，避免在编码时产生幻觉。
+
+#### 4. LLM 维护，人类只负责投喂（Agent-Maintained）
+*   **转变**：开发者不需要手动去写 `AAA/docs`。你的工作是将人类资料丢进 `AAA/initiative_docs`，然后通过 Prompt 让编码 Agent（如 Claude Code、Cursor、OpenDevin 等）自动阅读并更新 `AAA/docs` 目录。
 
 ---
 
-### 第二步：配置 AI 的“架构师系统提示词” (`CLAUDE.md` / `.cursorrules`)
+### 二、 AI友好目录的架构与组织
 
-在转换开始前，你需要给你的本地 AI 智能体（如 Claude Code, Cursor, Cline）写下规则。这决定了 `docs/` 的生成质量。
+为了让 AI 在开发项目 AAA 时最高效地获取上下文，`AAA/docs` 目录的结构和元数据应该包含以下几个核心模块：
 
-在根目录创建一个 `.cursorrules` 或 `CLAUDE.md`，写入以下核心指令：
+#### 1. 全局索引地图（The Master Index）—— 核心中的核心
+Karpathy 强调，AI 应当**先读索引，再钻取细节（Read index first, then drill down）**。
+*   **文件**：`AAA/docs/index.md`
+*   **内容**：这是所有 Wiki 的目录。包含项目所有模块、实体的分类列表，每一个 Markdown 文件都配有一句话（One-line summary）说明。
+*   **作用**：编码 Agent 在接手任何任务前，只需读取 `index.md`，就能精准知道应该去读取哪个具体的 `xxx.md` 获取上下文，极大节省 Token 和降低幻觉。
 
-```markdown
-# Role: 高级系统架构师与技术文档工程师
+#### 2. 实体/模块规范（Entity & Component Pages）
+*   **文件**：如 `database_schema.md`, `api_endpoints.md`, `payment_gateway.md`
+*   **内容**：高信息密度的具体规范。剥离了人类情感和推导过程，只保留：输入输出要求、数据类型、业务硬性规则（Business Logic constraints）。
 
-## 任务：
-你负责读取 `initiative_docs/` 中的原始讨论，并将其综合、提炼、转化为 `docs/` 目录下符合规范的、对AI友好的技术蓝图。
+#### 3. 架构与决策记录（Architecture & ADRs）
+*   **文件**：如 `architecture.md`, `decisions_log.md`
+*   **内容**：AI 经常会根据它的训练数据“自作主张”推荐其他技术栈。你必须在这里明确写明技术选型及其**约束原因**（如：“我们使用 PostgreSQL 而不是 MongoDB，因为调研阶段确认需要强事务支持”），约束 AI 的代码生成方向。
 
-## 规则 (AI-Friendly 文档规范)：
-1. **消除歧义与冲突**：在原始讨论中寻找“最终决策”。如果不同会议记录中存在冲突，以时间最新的为准，或者向人类提问确认。不要在 docs 中保留“讨论过程”，只写“最终决定”。
-2. **原子化 (Atomic)**：一个文件只描述一个核心事物（一个API、一张表、一个独立模块）。
-3. **双向链接**：使用 `[[filename]]` 格式连接关联的模块、数据模型和API。
-4. **强制结构**：每个 `docs/` 下的 Markdown 文件必须包含：
-   - YAML Frontmatter (描述模块状态、依赖)
-   - `> AI Summary` (一句话总结该模块职责)
-   - `Source Traceability` (标明该决定来自 `initiative_docs` 中的哪个文件，方便查证)
-5. **维护索引**：每次在 `docs/` 添加新文件，必须同步更新 `docs/_master_index.md`。
-```
-
----
-
-### 第三步：设计 `AAA/docs` 的内部网状结构（AI友好结构）
-
-在 `docs` 目录中，你需要建立一套让大模型在写代码时能**“按需精准读取”**的结构。不要写那种长达 50 页的《系统详细设计说明书.docx》，AI 的上下文窗口吃不消，且容易分心。
-
-#### 1. 唯一入口：`_master_index.md`
-这是 AI 开发时的“地图”。每次你让 AI 写功能，AI 应该先看这个文件。
-```markdown
-# AAA 项目开发导航图
-
-## 1. 架构概览
-- 系统核心架构图解：[[architecture/system_overview]]
-- 技术栈与选型：[[architecture/tech_stack]]
-
-## 2. 数据层 (Database)
-- 用户表字典：[[data_models/User_Table]]
-- 订单表字典：[[data_models/Order_Table]]
-
-## 3. 核心功能点 (Features)
-- 用户鉴权模块：[[features/auth_module]]
-- 支付结算模块：[[features/payment_flow]]
-```
-
-#### 2. 原子化标准模板示例：`features/auth_module.md`
-AI 提炼出来的具体说明文档应该长这样：
-
-```markdown
----
-module: Auth
-status: Ready for Dev
-dependencies: [[[data_models/User_Table]], [[api_specs/login_api]]]
----
-
-# 用户鉴权模块
-
-> **AI Summary:** 采用 JWT 方案，基于邮箱和验证码的无密码登录机制。
-
-## 1. 核心逻辑 (Business Rules)
-1. 用户输入邮箱获取验证码。
-2. 验证码有效期为 5 分钟，Redis 缓存处理。
-3. 登录成功返回 JWT Token (有效时间24h) 和 Refresh Token (有效时间7天)。
-
-## 2. 依赖交互
-- 前端调用 [[api_specs/send_code_api]] 和 [[api_specs/login_api]]。
-- 成功后写入/更新数据库 [[data_models/User_Table]]。
-
-## 3. 溯源区 (Traceability)
-- 决策来源：[[initiative_docs/0301_需求评审会议记录.md]] (确定了放弃密码登录，采用验证码方案)。
-```
+#### 4. 术语表（Glossary）
+*   **文件**：`glossary.md`
+*   **内容**：人类在讨论时可能把“客户”、“用户”、“租户”混着用，但这在数据库和代码中是致命的。术语表将业务黑话映射到确定的代码变量名（如：`Customer` -> 统一使用 `Tenant` 实体）。
 
 ---
 
-### 第四步：实操工作流（让 AI 自动完成转化）
+### 三、 最佳实践（Best Practices）
 
-现在，结构设计好了，你可以在终端或 Cursor 中唤起 AI 智能体，分步骤执行“编译”：
+在实际操作中，将 `initiative_docs` 转换为 `docs`，你需要遵守以下工作流和排版技巧：
 
-**指令 1：全局梳理与冲突解决**
-> "阅读 `initiative_docs/` 下的所有文件。提取出本项目的所有核心业务实体、最终选定的技术栈、以及确定的功能列表。注意甄别讨论中的反转，整理出一份不受背景噪音干扰的“核心结论清单”给我审核。"
+#### 1. 高信息密度的 Markdown 格式排版
+AI 解析 Markdown 是最高效的。在生成的 `docs/*.md` 中：
+*   **多用列表，少用长段落**：使用项目符号（Bulleted lists）呈现逻辑分支。
+*   **YAML Frontmatter**：在每个文件的顶部加上元数据，方便 AI 判断信息的时效性。
+    ```markdown
+    ---
+    status: approved
+    last_updated: 2026-04-07
+    source_refs:["initiative_docs/PRD_v1.pdf", "initiative_docs/0401_meeting.txt"]
+    ---
+    ```
+*   **显式的 Markdown 内部链接**：例如在 `api_endpoints.md` 中提及用户表时，写作 `请参考 [[database_schema.md]] 中的 User 表`。当前多数高级 Agent 能识别这种链接并自动拉取关联文档。
 
-**指令 2：建立底层模型与API**
-> "根据上一步的清单，在 `docs/data_models/` 目录下为每个数据库实体创建单独的 `.md` 文件。明确字段类型。接着在 `docs/api_specs/` 中创建对应的 API 契约文档。记得在文件之间使用 `[[ ]]` 进行交叉引用。"
+#### 2. 建立“初始化提炼”与“增量更新”的 Agent Prompt
+不要自己写 `AAA/docs`。把以下两套 Prompt 存成工具，让大模型帮你做：
 
-**指令 3：生成功能模块说明**
-> "在 `docs/features/` 目录下，将业务逻辑拆解为独立的模块文档。将它们与前一步创建的 data_models 和 api_specs 建立关联。必须在每个文件底部标注来源于 `initiative_docs/` 的哪个源文件。"
+*   **初始化 Prompt（Init）**：
+    > “读取 `AAA/initiative_docs` 中的所有材料。你的任务是将其编译为一个结构化的技术 Wiki `AAA/docs`。请提取业务核心逻辑、技术约束、模块设计，并生成一个分类清晰的 `index.md`，以及多个按实体划分的子 Markdown 文件。消除所有冗长的人类讨论背景，只保留结论和工程规范。”
+*   **增量更新 Prompt（Update）**：
+    > “我刚在 `AAA/initiative_docs` 添加了 `0407_auth_redesign.md`。请先阅读 `AAA/docs/index.md`，评估这个新文件影响了哪些现有的设计。请修改对应的 `docs/xxx.md` 页面以反映最新设计，并更新索引，保留原先不冲突的逻辑。不要只是追加文本，请重构融合（Synthesize）它。”
 
-**指令 4：构建总索引**
-> "最后，生成 `docs/_master_index.md`，将所有刚才创建的文件结构化地汇总在这里。"
+#### 3. 提供“反向溯源”机制（Traceability）
+虽然 AI 主要依靠 `docs` 进行编码，但偶尔在处理极端复杂的业务边界条件时，编译后的信息可能丢失细节。
+在 `docs` 的具体规则后，保留类似 `[溯源: 见 initiative_docs/调研文档2.docx 的第3节]` 的引用。当 Agent 对某条规则产生困惑时，它可以通过溯源路径回到原始人类语境中寻找解释。
 
----
-
-### 第五步：进入开发阶段（如何利用这个 AI 友好的结构）
-
-到了真正写代码 (`src/`) 的阶段，这套系统的威力就会显现。
-
-过去的糟糕做法：
-> "帮我写一下登录功能的代码。需求参考 `initiative_docs/需求文档.docx`。" *(结果：AI 把几十页的废话读了一遍，漏掉了某个 Slack 里的补充设定，写出错误的代码)*
-
-**现在的正确做法（Karpathy 式的精准打击）：**
-> "@_master_index.md 请帮我实现用户鉴权模块的代码。"
-
-**AI 的思考路径（隐式规划）：**
-1. 读取 `_master_index.md`。
-2. 发现用户鉴权对应 `[[features/auth_module]]`，读取该文件。
-3. 在 `auth_module.md` 中，发现它依赖 `[[data_models/User_Table]]` 和 `[[api_specs/login_api]]`。
-4. AI **按需加载** 这三个小文件进入上下文（总共不到 2000 tokens，全是干货）。
-5. AI 写出完全符合最终设计的、100% 正确的代码。
-
-### 总结
-
-将“人类讨论文档”转为“AI开发文档”，本质上是**让 LLM 充当“编译器”，将非结构化的自然语言（需求）编译成“结构化的伪代码/元数据（文档）”，然后再把“文档”编译成“真正的代码”。** 
-
-通过切断 `initiative_docs` 与 `src` 的直接联系，引入 `docs` 作为中间隔离缓冲层，不仅大幅降低了 AI 写代码时的 Token 消耗和幻觉率，还能留下一份对未来维护极其友好的架构沉淀。
+#### 4. 显式设定“What NOT to do”（防坑指南）
+在调研和脑暴阶段，往往会产生很多“走不通的路”和“被否决的方案”。在编译到 `docs/` 时，务必建立一个 `anti_patterns.md` 或在对应模块下加入 `### 明确否决的设计` 章节。
+告诉 AI：“不要使用 Redis 做持久化，因为调研报告指出我们的数据敏感度极高” —— **告诉 AI 不要怎么做，通常比告诉它怎么做更能提高代码的 First-pass success rate（一次性通过率）。**
