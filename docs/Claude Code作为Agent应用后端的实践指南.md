@@ -1,4 +1,6 @@
-# 📖 第一部分：认知篇 - 为什么选择 Claude Code？
+# Claude Code作为Agent应用后端的实践指南
+
+## 📖 第一部分：认知篇 - 为什么选择 Claude Code？
 
 ### 1. 什么是 Claude Code？
 `claude-code` 是 Anthropic 官方发布的一款基于命令行的 **AI 编程智能体（AI Coding Agent）**。
@@ -13,7 +15,7 @@
 
 ---
 
-# ⚖️ 第二部分：架构篇 - 主流方案与选型对比
+## ⚖️ 第二部分：架构篇 - 主流方案与选型对比
 
 目前行业内将 Claude Code 包装为后端的方案主要有以下三种。我们的实战指南将采用最成熟的**方案 A**。
 
@@ -43,7 +45,7 @@
 
 ---
 
-# 🚀 第三部分：实战篇 - 使用 Agent SDK 搭建高可用后端
+## 🚀 第三部分：实战篇 - 使用 Agent SDK 搭建高可用后端
 
 明确了目标后，我们将使用 **Python + FastAPI + WebSocket** 构建一个支持多用户并发、流式输出、沙箱隔离的企业级 Copilot 后端。
 
@@ -127,7 +129,7 @@ if __name__ == "__main__":
 
 ---
 
-# 🛡️ 第四部分：避坑篇 - 生产环境四大高危雷区
+## 🛡️ 第四部分：避坑篇 - 生产环境四大高危雷区
 
 如果你准备把这个后端开放给团队使用，请务必排查以下四个致命坑点：
 
@@ -159,7 +161,7 @@ if __name__ == "__main__":
         """获取公司内部 API 文档，参数为接口名"""
         # 对接你们的内部接口库
         return "POST /api/v1/internal/login ..."
-
+    
     # 注册给 Agent
     agent_client.register_tool(get_company_api_doc)
     ```

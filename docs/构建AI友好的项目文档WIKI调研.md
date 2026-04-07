@@ -1,3 +1,5 @@
+# 构建AI友好的项目文档WIKI调研
+
 > 参考： Andrej Karpathy在2026年4月3日发表的X博文：https://x.com/karpathy/status/2039805659525644595
 
 将项目前期的“人类讨论与探索资料”转化为“AI友好的开发蓝图”，这正是 Karpathy 理念在软件工程中的完美应用场景。
